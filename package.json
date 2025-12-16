@@ -1,0 +1,21 @@
+{
+  "name": "codejam",
+  "version": "1.0.0",
+  "description": "Code Jam — 실시간 협업 코드 에디터",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "code-jam",
+    "jamstack",
+    "monorepo",
+    "collaboration",
+    "realtime-editor",
+    "websocket",
+    "codemirror"
+  ],
+  "author": "jam stack",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0"
+}
