@@ -4,7 +4,9 @@
   "description": "Code Jam — 실시간 협업 코드 에디터",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "clean": "rm -rf node_modules **/*/node_modules"
   },
   "keywords": [
     "code-jam",
