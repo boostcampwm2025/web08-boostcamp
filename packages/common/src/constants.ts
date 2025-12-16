@@ -12,8 +12,24 @@ export const SOCKET_EVENTS = {
 
   /**
    * 클라이언트가 방을 떠나거나 연결이 끊어졌을 때 발생.
+   * 서버 -> 클라이언트 (브로드캐스트)
+   * - Payload: {@link UserLeftPayload}
    */
-  LEAVE_ROOM: 'room:leave',
+  USER_LEFT: 'room:user_left',
+
+  /**
+   * 방에 새로운 유저가 입장했음을 알림.
+   * 서버 -> 클라이언트 (브로드캐스트)
+   * - Payload: {@link UserJoinedPayload}
+   */
+  USER_JOINED: 'room:user_joined',
+
+  /**
+   * 방에 현재 접속 중인 유저 목록을 전송.
+   * 서버 -> 클라이언트 (단일 전송)
+   * - Payload: {@link RoomUsersPayload}
+   */
+  ROOM_USERS: 'room:users',
 
   /**
    * 코드 에디터의 내용이 변경되었을 때 발생.
