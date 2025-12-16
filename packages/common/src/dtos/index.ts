@@ -1,1 +1,1 @@
-export * from "./session-response.dto";
+export * from "./session-response.dto.js";
