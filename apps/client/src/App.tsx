@@ -1,11 +1,13 @@
-import { PROJECT_NAME } from '@codejam/common';
+import { Header } from "./widgets/header";
+import { CodeEditor } from "./widgets/code-editor";
 
 function App() {
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-3xl font-bold text-blue-600">
-        Hello, {PROJECT_NAME}!
-      </h1>
+    <div className="flex flex-col h-screen">
+      <Header />
+      <main className="flex-1 overflow-hidden">
+        <CodeEditor />
+      </main>
     </div>
   );
 }
