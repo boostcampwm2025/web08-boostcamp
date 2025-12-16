@@ -1,0 +1,23 @@
+{
+  "name": "codejam",
+  "version": "1.0.0",
+  "description": "Code Jam — 실시간 협업 코드 에디터",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "clean": "rm -rf node_modules **/*/node_modules"
+  },
+  "keywords": [
+    "code-jam",
+    "jamstack",
+    "monorepo",
+    "collaboration",
+    "realtime-editor",
+    "websocket",
+    "codemirror"
+  ],
+  "author": "jam stack",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0"
+}
