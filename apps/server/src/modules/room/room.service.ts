@@ -34,6 +34,22 @@ export class RoomService {
     return data ? JSON.parse(data) : null;
   }
 
+  /**
+   * 재접속 시 복원: TTL 제거 + presence를 online으로 변경
+   */
+  async restorePt(roomId: string, ptId: string): Promise<Pt | null> {
+    const pt = await this.getPt(roomId, ptId);
+    if (!pt) return null;
+
+    pt.presence = 'online';
+    const key = `room:${roomId}:pt:${ptId}`;
+
+    await this.redis.set(key, JSON.stringify(pt));
+    await this.redis.persist(key); // TTL 제거
+
+    return pt;
+  }
+
   private generateRandomNickname(): string {
     const names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank'];
     return names[Math.floor(Math.random() * names.length)];
