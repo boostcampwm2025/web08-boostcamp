@@ -26,6 +26,14 @@ export class RoomService {
     return pt;
   }
 
+  /**
+   * Redis에서 특정 roomId와 ptId를 가진 pt 조회
+   */
+  async getPt(roomId: string, ptId: string): Promise<Pt | null> {
+    const data = await this.redis.get(`room:${roomId}:pt:${ptId}`);
+    return data ? JSON.parse(data) : null;
+  }
+
   private generateRandomNickname(): string {
     const names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank'];
     return names[Math.floor(Math.random() * names.length)];
