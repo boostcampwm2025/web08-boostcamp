@@ -50,6 +50,22 @@ export class RoomService {
     return pt;
   }
 
+  /**
+   * disconnect 처리: presence를 offline으로 변경 + TTL 5분 설정
+   */
+  async disconnectPt(roomId: string, ptId: string): Promise<void> {
+    const pt = await this.getPt(roomId, ptId);
+    if (!pt) return;
+
+    pt.presence = 'offline';
+    const key = `room:${roomId}:pt:${ptId}`;
+    await this.redis.set(key, JSON.stringify(pt), 'EX', 300); // 5분 TTL
+  }
+
+
+ // ================================
+ // 랜덤 닉네임과 색상 생성
+ // ================================
   private generateRandomNickname(): string {
     const names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank'];
     return names[Math.floor(Math.random() * names.length)];
