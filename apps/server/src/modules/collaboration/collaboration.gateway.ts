@@ -123,11 +123,14 @@ export class CollaborationGateway
     client.emit(SOCKET_EVENTS.ROOM_FILES, { roomId, code }); // 본인에게 현재 코드
   }
 
-  private processCodeUpdate(client: Socket, payload: FileUpdatePayload) {
+  private async processCodeUpdate(client: Socket, payload: FileUpdatePayload) {
     const { roomId, code } = payload;
     this.logger.debug(`📝 [UPDATE] Room: ${roomId}, Length: ${code.length}`);
 
-    // 다른 사람들에게 브로드케스트
+    // Redis에 코드 저장
+    await this.roomService.saveCode(roomId, code);
+
+    // 다른 사람들에게 브로드캐스트
     client.to(roomId).emit(SOCKET_EVENTS.UPDATE_FILE, payload);
   }
 
