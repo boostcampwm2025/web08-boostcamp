@@ -1,14 +1,16 @@
-import { Header } from "./widgets/header";
-import { CodeEditor } from "./widgets/code-editor";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import RoomPage from "@/pages/room/RoomPage";
+import NotFoundPage from "@/pages/not-found/NotFoundPage";
 
 function App() {
   return (
-    <div className="flex flex-col h-screen">
-      <Header />
-      <main className="flex-1 overflow-hidden">
-        <CodeEditor />
-      </main>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/room/prototype" replace />} />
+        <Route path="/room/prototype" element={<RoomPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
