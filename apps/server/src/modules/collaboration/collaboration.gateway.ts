@@ -72,17 +72,23 @@ export class CollaborationGateway
     this.logger.log(`✅ Client Connected: ${client.id}`);
   }
 
-  private processDisconnect(client: Socket) {
+  private async processDisconnect(client: Socket) {
     this.logger.log(`❌ Client Disconnected: ${client.id}`);
 
-    const roomId = this.getMockRoomIdBySocket(client.id);
-    const ptId = this.getMockPtIdBySocket(client.id);
-    if (roomId && ptId) {
-      this.server.to(roomId).emit(SOCKET_EVENTS.PT_DISCONNECT, {
-        ptId,
-      });
-      this.logger.log(`👋 [DISCONNECT] PtId ${ptId} left room: ${roomId}`);
-    }
+    const info = this.socketMap.get(client.id);
+    if (!info) return;
+
+    const { roomId, ptId } = info;
+
+    // Redis에서 offline + TTL 5분 설정
+    await this.roomService.disconnectPt(roomId, ptId);
+
+    // socketMap에서 제거
+    this.socketMap.delete(client.id);
+
+    // 다른 사람들에게 알림
+    this.server.to(roomId).emit(SOCKET_EVENTS.PT_DISCONNECT, { ptId });
+    this.logger.log(`👋 [DISCONNECT] PtId ${ptId} left room: ${roomId}`);
   }
 
   private async processJoinRoom(client: Socket, payload: JoinRoomPayload) {
