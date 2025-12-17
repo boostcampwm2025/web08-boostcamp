@@ -16,6 +16,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { RoomService } from '../room/room.service';
 
 @WebSocketGateway({
   cors: {
@@ -26,6 +27,11 @@ export class CollaborationGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   private readonly logger = new Logger(CollaborationGateway.name);
+
+  // socketId → { roomId, ptId } 매핑
+  private socketMap = new Map<string, { roomId: string; ptId: string }>();
+
+  constructor(private readonly roomService: RoomService) {}
 
   @WebSocketServer()
   server: Server;
