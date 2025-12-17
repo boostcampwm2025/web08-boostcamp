@@ -73,6 +73,21 @@ export class RoomService {
     return values.filter(Boolean).map((v) => JSON.parse(v!));
   }
 
+  /**
+   * 방의 현재 코드 조회
+   */
+  async getCode(roomId: string): Promise<string> {
+    const data = await this.redis.get(`room:${roomId}:code`);
+    return data ? JSON.parse(data).code : '';
+  }
+
+  /**
+   * 코드 저장
+   */
+  async saveCode(roomId: string, code: string): Promise<void> {
+    await this.redis.set(`room:${roomId}:code`, JSON.stringify({ code }));
+  }
+
   // ================================
   // 랜덤 닉네임과 색상 생성
   // ================================
