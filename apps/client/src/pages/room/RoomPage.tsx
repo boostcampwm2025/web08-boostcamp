@@ -1,7 +1,7 @@
 // import { useSocket } from "@/shared/lib/hooks/useSocket";
 import { CodeEditor } from "@/widgets/code-editor";
 import { Header } from "@/widgets/header";
-import { Participants } from "@/widgets/participants/Participants";
+import { Participants } from "@/widgets/participants";
 
 function RoomPage() {
   // 프로토타입: roomId 고정

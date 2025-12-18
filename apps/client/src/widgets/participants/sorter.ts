@@ -1,4 +1,4 @@
-import type { Pt } from "@/entities/participant";
+import type { Pt } from "@codejam/common";
 
 const onlineOrder = (status: Pt["presence"]) => {
   if (status === "online") return 1;

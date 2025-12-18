@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Pt } from "@/entities/participant";
+import type { Pt } from "@codejam/common";
 import { data } from "@/widgets/participants/data";
 
 interface PtsState {

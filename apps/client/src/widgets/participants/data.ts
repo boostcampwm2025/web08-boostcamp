@@ -1,4 +1,4 @@
-import type { Pt } from "@/entities/participant";
+import type { Pt } from "@codejam/common";
 
 export const roomId = "prototype";
 export const myPtId = "E";
