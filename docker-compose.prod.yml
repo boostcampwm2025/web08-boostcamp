@@ -1,6 +1,9 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        - VITE_API_URL= # 빈 값으로 두면 브라우저의 현재 호스트를 자동으로 사용합니다.
     container_name: codejam-service
     ports:
       - "80:80"
@@ -10,4 +13,3 @@ services:
       - REDIS_HOST=10.0.2.6
       - REDIS_PORT=6379
     restart: always
-

@@ -7,6 +7,10 @@ WORKDIR /app
 # 전체 소스 복사 (monorepo 구조 유지)
 COPY . .
 
+# 빌드 시점에 환경 변수를 주입받음 (Vite 빌드용)
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # 의존성 설치 및 전체 빌드
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
@@ -34,4 +38,3 @@ RUN chmod +x ./start.sh
 EXPOSE 80 3000
 
 CMD ["./start.sh"]
-
