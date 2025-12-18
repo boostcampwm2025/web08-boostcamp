@@ -77,7 +77,7 @@ export const useSocket = (roomId: string, yDoc: Doc, awareness: Awareness) => {
     };
 
     const onRoomPts = (data: RoomPtsPayload) => {
-      console.log(`👥 [ROOM_PTS] Count: ${data.pts.length}`, data.pts);
+      console.log(`👥 [ROOM_PTS]`, data.pts); 
       const { message } = data;
       const u8 = convertU8(message);
       applyAwarenessUpdate(awareness, u8, 'remote');

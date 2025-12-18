@@ -4,7 +4,7 @@ import { writeUpdate } from 'y-protocols/sync';
 import { Doc } from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { SOCKET_EVENTS } from '@codejam/common';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 const PROTOTYPE_ID = 'prototype';
 
@@ -82,7 +82,7 @@ export class FileService {
 
     const { doc, awareness, roomId } = file;
     doc.off('update', this.docListener(server, roomId));
-    awareness.off('update', this.awarenessListener(server, awareness, roomId));
+    awareness.off('update', this.awarenessListener(awareness, roomId));
 
     return this.files.delete(fileId);
   }
@@ -105,7 +105,7 @@ export class FileService {
     const awareness = new Awareness(doc);
 
     doc.on('update', this.docListener(server, roomId));
-    awareness.on('update', this.awarenessListener(server, awareness, roomId));
+    awareness.on('update', this.awarenessListener(awareness, roomId));
 
     return {
       doc,
@@ -133,18 +133,16 @@ export class FileService {
     };
   }
 
-  private awarenessListener(
-    server: Server,
-    awareness: Awareness,
-    roomId: RoomId,
-  ) {
-    return ({ added, updated, removed }: AwarenessUpdate) => {
+  private awarenessListener(awareness: Awareness, roomId: RoomId) {
+    return ({ added, updated, removed }: AwarenessUpdate, origin: unknown) => {
       const changed = added.concat(updated, removed);
       const message = encodeAwarenessUpdate(awareness, changed);
-      server.to(roomId).emit(SOCKET_EVENTS.ROOM_PTS, {
-        roomId,
-        message,
-      });
+      if (origin && origin instanceof Socket) {
+        origin.to(roomId).emit(SOCKET_EVENTS.ROOM_PTS, {
+          roomId,
+          message,
+        });
+      }
     };
   }
 }
