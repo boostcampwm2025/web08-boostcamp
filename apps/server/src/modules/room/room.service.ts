@@ -1,154 +1,118 @@
-import { Injectable } from '@nestjs/common';
-import { Doc } from 'yjs';
-import { Awareness, encodeAwarenessUpdate } from 'y-protocols/awareness';
-import { writeUpdate } from 'y-protocols/sync';
-import { Socket } from 'socket.io';
-import { createEncoder, toUint8Array } from 'lib0/encoding';
-import {} from 'lib0/decoding';
-import { Pt, SOCKET_EVENTS } from '@codejam/common';
-
-type RoomId = string;
-type AwarenessUpdate = {
-  added: number[];
-  updated: number[];
-  removed: number[];
-};
-export type RoomState = {
-  roomId: RoomId;
-  doc: Doc;
-  awareness: Awareness;
-  pts: { [x: number]: Pt };
-  clients: Socket[];
-};
+import { Pt } from '@codejam/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class RoomService {
-  private rooms: Map<RoomId, RoomState> = new Map();
+  constructor(@Inject('REDIS_CLIENT') private redis: Redis) {}
 
-  constructor() {}
+  /**
+   * 새 참가자 생성 + Redis 저장
+   */
+  async createPt(roomId: string): Promise<Pt> {
+    const ptId = uuidv4();
+    const pt: Pt = {
+      ptId,
+      nickname: this.generateRandomNickname(),
+      color: this.generateRandomColor(),
+      role: 'editor',
+      presence: 'online',
+      joinedAt: new Date().toISOString(),
+    };
 
-  room(roomId: RoomId): RoomState | undefined {
-    return this.rooms.get(roomId);
-  }
+    await this.redis.set(`room:${roomId}:pt:${ptId}`, JSON.stringify(pt));
 
-  safeRoom(roomId: RoomId): RoomState {
-    const room = this.room(roomId);
-
-    if (!room) {
-      throw new Error('Room not found');
-    }
-
-    return room;
-  }
-
-  join(roomId: RoomId, clientId: number, pt: Pt, client: Socket) {
-    const room = this.room(roomId);
-
-    if (!room) {
-      return;
-    }
-
-    room.clients.push(client);
-    room.pts = { ...room.pts, [clientId]: pt };
+    return pt;
   }
 
   /**
-   * 현재 방을 생성할 때 기본적인 문자열만 전달합니다.
+   * Redis에서 특정 roomId와 ptId를 가진 pt 조회
    */
-  createRoom(
-    roomId: RoomId,
-    key: string,
-    firstId: number,
-    firstPt: Pt,
-    firstClient: Socket,
-  ): RoomState {
-    const doc = new Doc();
-    const yText = doc.getText(key);
-
-    if (yText.length === 0) {
-      doc.transact(() => {
-        yText.insert(
-          0,
-          `// Write your code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n`,
-        );
-      }, firstClient);
-    }
-
-    const awareness = new Awareness(doc);
-    const roomState: RoomState = {
-      roomId,
-      awareness,
-      doc,
-      pts: { [firstId]: firstPt },
-      clients: [firstClient],
-    };
-    this.rooms.set(roomId, roomState);
-
-    this.registerDocListener(doc, roomId);
-    this.registerAwarenessListener(awareness, roomId);
-
-    return roomState;
+  async getPt(roomId: string, ptId: string): Promise<Pt | null> {
+    const data = await this.redis.get(`room:${roomId}:pt:${ptId}`);
+    return data ? (JSON.parse(data) as Pt) : null;
   }
 
-  removeRoom(roomId: RoomId) {
-    this.rooms.delete(roomId);
+  /**
+   * 재접속 시 복원: TTL 제거 + presence를 online으로 변경
+   */
+  async restorePt(roomId: string, ptId: string): Promise<Pt | null> {
+    const pt = await this.getPt(roomId, ptId);
+    if (!pt) return null;
+
+    pt.presence = 'online';
+    const key = `room:${roomId}:pt:${ptId}`;
+
+    await this.redis.set(key, JSON.stringify(pt));
+    await this.redis.persist(key); // TTL 제거
+
+    return pt;
   }
 
-  leave(roomId: RoomId, socketId: string) {
-    const room = this.room(roomId);
-    if (!room) {
-      return;
-    }
+  /**
+   * disconnect 처리: presence를 offline으로 변경 + TTL 5분 설정
+   */
+  async disconnectPt(roomId: string, ptId: string): Promise<void> {
+    const pt = await this.getPt(roomId, ptId);
+    if (!pt) return;
 
-    room.clients = room.clients.filter((client) => client.id !== socketId);
+    pt.presence = 'offline';
+    const key = `room:${roomId}:pt:${ptId}`;
+    await this.redis.set(key, JSON.stringify(pt), 'EX', 300); // 5분 TTL
   }
 
-  extractPts(roomId: RoomId, clientIds: number[]): Pt[] {
-    const room = this.room(roomId);
-    if (!room) {
-      return [];
-    }
+  /**
+   * 방의 모든 참가자 조회
+   */
+  async getAllPts(roomId: string): Promise<Pt[]> {
+    const keys = await this.redis.keys(`room:${roomId}:pt:*`);
+    if (!keys.length) return [];
 
-    return Object.entries(room.pts)
-      .filter(([clientId]) => clientIds.includes(parseInt(clientId)))
-      .map(([, pt]) => pt);
+    const values = await this.redis.mget(keys);
+    return values.filter(Boolean).map((v) => JSON.parse(v!));
   }
 
-  private registerDocListener(doc: Doc, roomId: RoomId) {
-    doc.on('update', (update: Uint8Array, origin: unknown) => {
-      const encoder = createEncoder();
-      const room = this.safeRoom(roomId);
-      writeUpdate(encoder, update);
-      const code = toUint8Array(encoder);
-      room.clients.forEach((client) => {
-        if (client === origin) {
-          return;
-        }
-
-        client.emit(SOCKET_EVENTS.UPDATE_FILE, { roomId, code });
-      });
-    });
+  /**
+   * 방의 현재 코드 조회
+   */
+  async getCode(roomId: string): Promise<string> {
+    const data = await this.redis.get(`room:${roomId}:code`);
+    return data ? JSON.parse(data).code : '';
   }
 
-  private registerAwarenessListener(awareness: Awareness, roomId: RoomId) {
-    awareness.on(
-      'update',
-      ({ added, updated, removed }: AwarenessUpdate, origin: Socket) => {
-        const room = this.safeRoom(roomId);
-        const changed = added.concat(updated, removed);
-        const message = encodeAwarenessUpdate(awareness, changed);
-        room.clients.forEach((client) => {
-          if (client === origin) {
-            return;
-          }
+  /**
+   * 코드 저장
+   */
+  async saveCode(roomId: string, code: string): Promise<void> {
+    await this.redis.set(`room:${roomId}:code`, JSON.stringify({ code }));
+  }
 
-          client.emit(SOCKET_EVENTS.ROOM_PTS, {
-            roomId,
-            pts: this.extractPts(roomId, changed),
-            message,
-          });
-        });
-      },
-    );
+  /**
+   * 방 존재 여부 확인 (GET /api/room/:roomId/exists 용)
+   */
+  async roomExists(roomId: string): Promise<boolean> {
+    const keys = await this.redis.keys(`room:${roomId}:*`);
+    return keys.length > 0;
+  }
+
+  // ================================
+  // 랜덤 닉네임과 색상 생성
+  // ================================
+  private generateRandomNickname(): string {
+    const names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank'];
+    return names[Math.floor(Math.random() * names.length)];
+  }
+
+  private generateRandomColor(): string {
+    const colors = [
+      '#ef4444',
+      '#22c55e',
+      '#3b82f6',
+      '#eab308',
+      '#a855f7',
+      '#ec4899',
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
   }
 }
