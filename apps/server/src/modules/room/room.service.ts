@@ -1,7 +1,7 @@
+import { Pt } from '@codejam/common';
 import { Injectable, Inject } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
-import { Pt } from '@codejam/common';
 
 @Injectable()
 export class RoomService {
@@ -31,7 +31,7 @@ export class RoomService {
    */
   async getPt(roomId: string, ptId: string): Promise<Pt | null> {
     const data = await this.redis.get(`room:${roomId}:pt:${ptId}`);
-    return data ? JSON.parse(data) : null;
+    return data ? (JSON.parse(data) as Pt) : null;
   }
 
   /**

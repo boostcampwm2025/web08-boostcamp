@@ -4,6 +4,8 @@ import { javascript } from "@codemirror/lang-javascript";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
 import { githubLight } from "@fsegurai/codemirror-theme-github-light";
+import { useYDoc } from "@/shared/lib/hooks/useYDoc";
+import { yCollab } from 'y-codemirror.next';
 
 type Language = "javascript" | "html" | "css";
 
@@ -24,32 +26,22 @@ const getLanguageExtension = (language: Language) => {
   }
 };
 
-const getDefaultCode = (language: Language) => {
-  switch (language) {
-    case "javascript":
-      return "// Write your JavaScript code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n";
-    case "html":
-      return "<!-- Write your HTML code here -->\n\n<!DOCTYPE html>\n<html>\n  <head>\n    <title>CodeJam</title>\n  </head>\n  <body>\n    <h1>Hello, CodeJam!</h1>\n  </body>\n</html>\n";
-    case "css":
-      return "/* Write your CSS code here */\n\n.container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n";
-    default:
-      return "";
-  }
-};
-
 export default function CodeEditor({
   language = "javascript",
 }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const { yText, awareness } = useYDoc('prototype');
 
   useEffect(() => {
     if (!editorRef.current) return;
 
     const view = new EditorView({
-      doc: getDefaultCode(language),
+      doc: yText.toString(),
       extensions: [
-        basicSetup,
+        basicSetup, 
+        javascript(),
+        yCollab(yText, awareness),
         getLanguageExtension(language),
         githubLight,
         EditorView.theme({
@@ -65,7 +57,7 @@ export default function CodeEditor({
     return () => {
       view.destroy();
     };
-  }, [language]);
+  }, [language, awareness, yText]);
 
   return <div ref={editorRef} className="h-full" />;
 }

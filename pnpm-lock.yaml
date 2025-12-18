@@ -53,6 +53,9 @@ importers:
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
+      lib0:
+        specifier: ^0.2.115
+        version: 0.2.115
       lucide-react:
         specifier: ^0.561.0
         version: 0.561.0(react@19.2.3)
@@ -77,6 +80,15 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.1.18)
+      y-codemirror.next:
+        specifier: ^0.3.5
+        version: 0.3.5(@codemirror/state@6.5.2)(@codemirror/view@6.39.4)(yjs@13.6.27)
+      y-protocols:
+        specifier: ^1.0.7
+        version: 1.0.7(yjs@13.6.27)
+      yjs:
+        specifier: ^13.6.27
+        version: 13.6.27
       zustand:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.3)
@@ -150,6 +162,9 @@ importers:
       joi:
         specifier: ^18.0.2
         version: 18.0.2
+      lib0:
+        specifier: ^0.2.115
+        version: 0.2.115
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -162,6 +177,12 @@ importers:
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
+      y-protocols:
+        specifier: ^1.0.7
+        version: 1.0.7(yjs@13.6.27)
+      yjs:
+        specifier: ^13.6.27
+        version: 13.6.27
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
@@ -177,7 +198,7 @@ importers:
         version: 11.0.9(chokidar@4.0.3)(typescript@5.9.3)
       '@nestjs/testing':
         specifier: ^11.0.1
-        version: 11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(@nestjs/platform-express@11.1.9)
+        version: 11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.9)(@nestjs/websockets@11.1.9)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9))
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.6
@@ -2308,7 +2329,6 @@ packages:
 
   eslint-plugin-react-refresh@0.4.25:
     resolution: {integrity: sha512-dRUD2LOdEqI4zXHqbQ442blQAzdSuShAaiSq5Vtyy6LT08YUf0oOjBDo4VPx0dCPgiPWh1WB4dtbLOd0kOlDPQ==}
-    deprecated: This version introduced false positive. This was reverted in 0.4.26
     peerDependencies:
       eslint: '>=8.40'
 
@@ -2680,6 +2700,9 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
+  isomorphic.js@0.2.5:
+    resolution: {integrity: sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==}
+
   istanbul-lib-coverage@3.2.2:
     resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
     engines: {node: '>=8'}
@@ -2899,6 +2922,11 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
+
+  lib0@0.2.115:
+    resolution: {integrity: sha512-noaW4yNp6hCjOgDnWWxW0vGXE3kZQI5Kqiwz+jIWXavI9J9WyfJ9zjsbQlQlgjIbHBrvlA/x3TSIXBUJj+0L6g==}
+    engines: {node: '>=16'}
+    hasBin: true
 
   lightningcss-android-arm64@1.30.2:
     resolution: {integrity: sha512-BH9sEdOCahSgmkVhBLeU7Hc9DWeZ1Eb6wNS6Da8igvUwAe0sqROHddIlvU06q3WyXVEOYDZ6ykBZQnjTbmo4+A==}
@@ -4012,6 +4040,19 @@ packages:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
 
+  y-codemirror.next@0.3.5:
+    resolution: {integrity: sha512-VluNu3e5HfEXybnypnsGwKAj+fKLd4iAnR7JuX1Sfyydmn1jCBS5wwEL/uS04Ch2ib0DnMAOF6ZRR/8kK3wyGw==}
+    peerDependencies:
+      '@codemirror/state': ^6.0.0
+      '@codemirror/view': ^6.0.0
+      yjs: ^13.5.6
+
+  y-protocols@1.0.7:
+    resolution: {integrity: sha512-YSVsLoXxO67J6eE/nV4AtFtT3QEotZf5sK5BHxFBXso7VDUT3Tx07IfA6hsu5Q5OmBdMkQVmFZ9QOA7fikWvnw==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
+    peerDependencies:
+      yjs: ^13.0.0
+
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
@@ -4026,6 +4067,10 @@ packages:
   yargs@17.7.2:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
+
+  yjs@13.6.27:
+    resolution: {integrity: sha512-OIDwaflOaq4wC6YlPBy2L6ceKeKuF7DeTxx+jPzv1FHn9tCZ0ZwSRnUBxD05E3yed46fv/FWJbvR+Ud7x0L7zw==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
 
   yn@3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
@@ -5104,7 +5149,7 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@nestjs/testing@11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(@nestjs/platform-express@11.1.9)':
+  '@nestjs/testing@11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.9)(@nestjs/websockets@11.1.9)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9))':
     dependencies:
       '@nestjs/common': 11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.9)(@nestjs/websockets@11.1.9)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -6697,6 +6742,8 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  isomorphic.js@0.2.5: {}
+
   istanbul-lib-coverage@3.2.2: {}
 
   istanbul-lib-instrument@6.0.3:
@@ -7109,6 +7156,10 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  lib0@0.2.115:
+    dependencies:
+      isomorphic.js: 0.2.5
 
   lightningcss-android-arm64@1.30.2:
     optional: true
@@ -8173,6 +8224,18 @@ snapshots:
 
   xtend@4.0.2: {}
 
+  y-codemirror.next@0.3.5(@codemirror/state@6.5.2)(@codemirror/view@6.39.4)(yjs@13.6.27):
+    dependencies:
+      '@codemirror/state': 6.5.2
+      '@codemirror/view': 6.39.4
+      lib0: 0.2.115
+      yjs: 13.6.27
+
+  y-protocols@1.0.7(yjs@13.6.27):
+    dependencies:
+      lib0: 0.2.115
+      yjs: 13.6.27
+
   y18n@5.0.8: {}
 
   yallist@3.1.1: {}
@@ -8188,6 +8251,10 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  yjs@13.6.27:
+    dependencies:
+      lib0: 0.2.115
 
   yn@3.1.1: {}
 
