@@ -13,13 +13,13 @@ export interface Pt {
   /** * 참가자의 권한 역할
    * @note 'host'는 현재 사용하지 않음 (확장성 고려)
    */
-  role: 'host' | 'editor' | 'viewer';
+  role: "host" | "editor" | "viewer";
 
   /** 사용자 식별용 색상 코드 (HEX 등) */
   color: string;
 
   /** 현재 접속 상태 */
-  presence: 'online' | 'offline';
+  presence: "online" | "offline";
 
   /** 방 입장 시간 (ISO 8601 String) */
   joinedAt: string;
@@ -45,11 +45,52 @@ export interface JoinRoomPayload {
 }
 
 /**
+ * 서버에서 클라이언트로 전송되는 초기 설정 및 환영 메시지.
+ * - Direction: Server -> Client
+ */
+export interface WelcomePayload {
+  myPtId: string;
+}
+
+export interface RoomPtsPayload {
+  /** 현재 방번호 */
+  roomId: string;
+
+  /** 현재 방에 존재하는 모든 참가자 목록 */
+  pts: Pt[];
+}
+
+export interface RoomFilesPayload {
+  /** 현재 방번호 */
+  roomId: string;
+
+  /** 현재 방에 존재하는 모든 파일 목록 */
+  code: Uint8Array;
+}
+
+export interface RoomAwarenessesPayload {
+  /** 현재 방번호 */
+  roomId: string;
+
+  /** 현재 방에 존재하는 모든 Awareness 목록 */
+  message: Uint8Array;
+}
+
+/**
  * 코드 변경 이벤트(`file:update`) 시 전송되는 페이로드.
  * @direction Client <-> Server (양방향)
  * @event file:update
  * @event room:file
  */
+
+export interface PtUpdatePayload {
+  /** 변경사항이 발생한 방의 ID */
+  roomId: string;
+
+  /** 업데이트된 참가자 정보 */
+  pt: Pt;
+}
+
 export interface FileUpdatePayload {
   /** 변경사항이 발생한 방의 ID */
   roomId: string;
@@ -59,6 +100,14 @@ export interface FileUpdatePayload {
    * @note 현재 단계에서는 단순 string 교체 방식으로 처리.
    */
   code: Uint8Array;
+}
+
+export interface AwarenessUpdatePayload {
+  /** 변경사항이 발생한 방의 ID */
+  roomId: string;
+
+  /** Awareness 정보 */
+  message: Uint8Array;
 }
 
 /**
@@ -106,7 +155,4 @@ export interface RoomPtsPayload {
 
   /** 현재 방에 존재하는 모든 참가자(Pt) 목록 */
   pts: Pt[];
-
-  /** Awareness 정보 (Uint8Array) */
-  message: Uint8Array;
 }
