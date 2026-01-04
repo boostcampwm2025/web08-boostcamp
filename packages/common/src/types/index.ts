@@ -34,14 +34,37 @@ export interface JoinRoomPayload {
   /** 입장하려는 방의 고유 ID */
   roomId: string;
 
-  /** 사용자의 Awareness Client ID */
-  clientId: number;
-
   /** * 기존 세션 복원을 위한 참가자 ID.
    * - 최초 입장 시: `undefined` (서버가 새로 생성)
    * - 재접속 시: 로컬 스토리지 등에 저장된 `ptId`를 전송하여 정보 복원 요청
    */
   ptId?: string;
+}
+
+/**
+ * 문서(Y.Doc) 동기화 요청 페이로드.
+ * @direction Client -> Server
+ * @event doc:request
+ */
+export interface DocRequestPayload {
+  /** 요청하는 방의 ID */
+  roomId: string;
+
+  /** YJS Client ID (Y.Doc에서 자동 생성) */
+  clientId: number;
+}
+
+/**
+ * Awareness 동기화 요청 페이로드.
+ * @direction Client -> Server
+ * @event awareness:request
+ */
+export interface AwarenessRequestPayload {
+  /** 요청하는 방의 ID */
+  roomId: string;
+
+  /** YJS Client ID (Y.Doc에서 자동 생성) */
+  clientId: number;
 }
 
 /**
@@ -60,15 +83,15 @@ export interface RoomPtsPayload {
   pts: Pt[];
 }
 
-export interface RoomFilesPayload {
+export interface RoomDocPayload {
   /** 현재 방번호 */
   roomId: string;
 
-  /** 현재 방에 존재하는 모든 파일 목록 */
-  code: Uint8Array;
+  /** 현재 방의 Y.Doc 전체 상태 */
+  message: Uint8Array;
 }
 
-export interface RoomAwarenessesPayload {
+export interface RoomAwarenessPayload {
   /** 현재 방번호 */
   roomId: string;
 
@@ -95,11 +118,8 @@ export interface FileUpdatePayload {
   /** 변경사항이 발생한 방의 ID */
   roomId: string;
 
-  /** * 변경된 코드 전체 문자열.
-   * * @todo 추후 Yjs 등을 도입하여 CRDT 바이너리(Uint8Array) 형태로 고도화 예정.
-   * @note 현재 단계에서는 단순 string 교체 방식으로 처리.
-   */
-  code: Uint8Array;
+  /** 변경된 코드 정보 */
+  message: Uint8Array;
 }
 
 export interface AwarenessUpdatePayload {

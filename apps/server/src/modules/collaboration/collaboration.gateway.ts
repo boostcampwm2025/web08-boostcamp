@@ -6,6 +6,8 @@ import {
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
   type PtLeftPayload,
+  type AwarenessRequestPayload,
+  type DocRequestPayload,
 } from '@codejam/common';
 import { Logger, Inject, OnModuleInit } from '@nestjs/common';
 import {
@@ -115,6 +117,34 @@ export class CollaborationGateway
     this.processJoinRoom(client, payload);
   }
 
+  @SubscribeMessage(SOCKET_EVENTS.REQUEST_DOC)
+  handleRequestDoc(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: DocRequestPayload,
+  ) {
+    const info = this.socketMap.get(client.id);
+    if (!info) return;
+
+    const { fileId } = info;
+    const file = this.fileService.getSafeFile(fileId);
+
+    this.startSyncDoc(file, client);
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.REQUEST_AWARENESS)
+  handleRequestAwarenesses(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: AwarenessRequestPayload,
+  ) {
+    const info = this.socketMap.get(client.id);
+    if (!info) return;
+
+    const { fileId } = info;
+    const file = this.fileService.getSafeFile(fileId);
+
+    this.startSyncAwarenesses(file, client);
+  }
+
   @SubscribeMessage(SOCKET_EVENTS.UPDATE_FILE)
   handleCodeUpdate(
     @ConnectedSocket() client: CollabSocket,
@@ -163,11 +193,10 @@ export class CollaborationGateway
   }
 
   private async processJoinRoom(client: Socket, payload: JoinRoomPayload) {
-    const { roomId, clientId, ptId: requestedPtId } = payload;
+    const { roomId, ptId: requestedPtId } = payload;
 
     // Socket room 입장
     client.join(roomId);
-    client.data.clientId = clientId;
 
     // redis에 참가자 생성 또는 redis에서 복원
     let pt: Pt | null = null;
@@ -203,22 +232,15 @@ export class CollaborationGateway
     const allPts = await this.roomService.getAllPts(roomId);
     client.emit(SOCKET_EVENTS.ROOM_PTS, { roomId, pts: allPts });
 
-    // 파일이 없으면 새로 생성 및 Doc, Awareness 이벤트 브로드케스트
+    // 파일이 없으면 새로 생성
     // TODO: 별도의 파일을 요청하는 SubscribeMessage 추가
 
-    const file = this.fileService.createFile(
-      this.server,
-      'javascript',
-      'prototype',
-    );
-
-    this.startSyncFiles(file, client); // SOCKET_EVENTS.ROOM_FILES
-    this.startSyncAwarenesses(file, client); // SOCKET_EVENTS.ROOM_AWARENESSES
+    this.fileService.createFile(this.server, 'javascript', 'prototype');
   }
 
   private processFileUpdate(client: CollabSocket, payload: FileUpdatePayload) {
-    const { roomId, code } = payload;
-    this.logger.debug(`📝 [UPDATE] Room: ${roomId}, Length: ${code.length}`);
+    const { roomId, message } = payload;
+    this.logger.debug(`📝 [UPDATE] Room: ${roomId}, Length: ${message.length}`);
 
     const info = this.socketMap.get(client.id);
     if (!info) return;
@@ -226,14 +248,14 @@ export class CollaborationGateway
     const { fileId } = info;
 
     const file = this.fileService.getSafeFile(fileId);
-    const decoder = createDecoder(code);
+    const decoder = createDecoder(message);
     const encoder = createEncoder();
 
     readSyncMessage(decoder, encoder, file.doc, client);
     const reply = toUint8Array(encoder);
 
     if (reply.byteLength > 0) {
-      client.emit(SOCKET_EVENTS.UPDATE_FILE, { roomId, code: reply });
+      client.emit(SOCKET_EVENTS.UPDATE_FILE, { roomId, message: reply });
     }
   }
 
@@ -251,21 +273,22 @@ export class CollaborationGateway
     applyAwarenessUpdate(file.awareness, message, client);
   }
 
-  private startSyncFiles(room: RoomFile, client: CollabSocket) {
+  private startSyncDoc(room: RoomFile, client: CollabSocket) {
     const update = encodeStateAsUpdate(room.doc);
     const encoder = createEncoder();
     writeUpdate(encoder, update);
-    const code = toUint8Array(encoder);
-    client.emit(SOCKET_EVENTS.ROOM_FILES, {
+
+    const message = toUint8Array(encoder);
+    client.emit(SOCKET_EVENTS.ROOM_DOC, {
       roomId: room.roomId,
-      code,
+      message,
     });
   }
 
   private startSyncAwarenesses(room: RoomFile, client: CollabSocket) {
     const ids = Array.from(room.awareness.getStates().keys());
     const message = encodeAwarenessUpdate(room.awareness, ids);
-    client.emit(SOCKET_EVENTS.ROOM_AWARENESSES, {
+    client.emit(SOCKET_EVENTS.ROOM_AWARENESS, {
       roomId: room.roomId,
       message,
     });
