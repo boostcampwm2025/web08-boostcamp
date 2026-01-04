@@ -42,32 +42,6 @@ export interface JoinRoomPayload {
 }
 
 /**
- * 문서(Y.Doc) 동기화 요청 페이로드.
- * @direction Client -> Server
- * @event doc:request
- */
-export interface DocRequestPayload {
-  /** 요청하는 방의 ID */
-  roomId: string;
-
-  /** YJS Client ID (Y.Doc에서 자동 생성) */
-  clientId: number;
-}
-
-/**
- * Awareness 동기화 요청 페이로드.
- * @direction Client -> Server
- * @event awareness:request
- */
-export interface AwarenessRequestPayload {
-  /** 요청하는 방의 ID */
-  roomId: string;
-
-  /** YJS Client ID (Y.Doc에서 자동 생성) */
-  clientId: number;
-}
-
-/**
  * 서버에서 클라이언트로 전송되는 초기 설정 및 환영 메시지.
  * - Direction: Server -> Client
  */

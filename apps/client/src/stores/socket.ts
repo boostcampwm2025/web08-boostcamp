@@ -77,7 +77,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     set({ isConnected: false, roomId: null });
   },
 
-  send: (event: string, payload: unknown) => {
+  send: (event: string, payload?: unknown) => {
     if (!socket.connected) return;
     socket.emit(event, payload);
   },

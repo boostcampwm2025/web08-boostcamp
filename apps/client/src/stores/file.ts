@@ -97,15 +97,8 @@ export const useFileStore = create<FileState>((set, get) => ({
     const { send, isConnected } = useSocketStore.getState();
 
     if (isConnected) {
-      send(SOCKET_EVENTS.REQUEST_DOC, {
-        roomId,
-        clientId: yDoc.clientID,
-      });
-
-      send(SOCKET_EVENTS.REQUEST_AWARENESS, {
-        roomId,
-        clientId: yDoc.clientID,
-      });
+      send(SOCKET_EVENTS.REQUEST_DOC);
+      send(SOCKET_EVENTS.REQUEST_AWARENESS);
     }
 
     return yDoc.clientID;

@@ -52,7 +52,7 @@ export const SOCKET_EVENTS = {
   /**
    * 새로운 사용자가 입장했을 때, 기존의 최신 Awareness 목록을 동기화하기 위해 발생.
    */
-  ROOM_AWARENESS: "room:awarenesses",
+  ROOM_AWARENESS: "room:awareness",
 
   /** 참가자 정보가 변경되었을 때 발생 *
    * (예: 닉네임, 역할, 상태 등)
