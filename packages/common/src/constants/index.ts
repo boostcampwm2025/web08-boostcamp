@@ -45,14 +45,14 @@ export const SOCKET_EVENTS = {
   ROOM_PTS: "room:pts",
 
   /**
-   * 새로운 사용자가 입장했을 때, 기존의 최신 파일 목록을 동기화하기 위해 발생.
+   * 새로운 사용자가 입장했을 때, 기존의 최신 문서(Y.Doc)를 동기화하기 위해 발생.
    */
-  ROOM_FILES: "room:files",
+  ROOM_DOC: "room:doc",
 
   /**
    * 새로운 사용자가 입장했을 때, 기존의 최신 Awareness 목록을 동기화하기 위해 발생.
    */
-  ROOM_AWARENESSES: "room:awarenesses",
+  ROOM_AWARENESS: "room:awarenesses",
 
   /** 참가자 정보가 변경되었을 때 발생 *
    * (예: 닉네임, 역할, 상태 등)
@@ -73,4 +73,18 @@ export const SOCKET_EVENTS = {
    * - Payload: {@link UpdateAwarenessPayload}
    */
   UPDATE_AWARENESS: "awareness:update",
+
+  /**
+   * 클라이언트가 문서(Y.Doc) 동기화를 요청할 때 발생.
+   * - Direction: Client -> Server
+   * - Payload: {@link DocRequestPayload}
+   */
+  REQUEST_DOC: "doc:request",
+
+  /**
+   * 클라이언트가 Awareness 동기화를 요청할 때 발생.
+   * - Direction: Client -> Server
+   * - Payload: {@link AwarenessRequestPayload}
+   */
+  REQUEST_AWARENESS: "awareness:request",
 } as const;

@@ -128,8 +128,8 @@ export class FileService {
     return (update: Uint8Array) => {
       const encoder = createEncoder();
       writeUpdate(encoder, update);
-      const code = toUint8Array(encoder);
-      server.to(roomId).emit(SOCKET_EVENTS.UPDATE_FILE, { roomId, code });
+      const message = toUint8Array(encoder);
+      server.to(roomId).emit(SOCKET_EVENTS.UPDATE_FILE, { roomId, message });
     };
   }
 

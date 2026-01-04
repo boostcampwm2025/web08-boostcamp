@@ -5,12 +5,13 @@ import { javascript } from "@codemirror/lang-javascript";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
 import { githubLight } from "@fsegurai/codemirror-theme-github-light";
-import { useYDoc } from "@/shared/lib/hooks/useYDoc";
+import { useYText } from "@/shared/lib/hooks/useYText";
 import { yCollab } from "y-codemirror.next";
 
 type Language = "javascript" | "html" | "css";
 
 interface CodeEditorProps {
+  fileId?: string;
   language?: Language;
   readOnly?: boolean;
 }
@@ -29,15 +30,16 @@ const getLanguageExtension = (language: Language) => {
 };
 
 export default function CodeEditor({
+  fileId = "prototype",
   language = "javascript",
   readOnly = false,
 }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-  const { yText, awareness } = useYDoc("prototype");
+  const { yText, awareness } = useYText(fileId);
 
   useEffect(() => {
-    if (!editorRef.current) return;
+    if (!editorRef.current || !yText || !awareness) return;
 
     const view = new EditorView({
       doc: yText.toString(),
@@ -66,7 +68,7 @@ export default function CodeEditor({
     return () => {
       view.destroy();
     };
-  }, [language, awareness, yText, readOnly]);
+  }, [yText, awareness, language, readOnly]);
 
   return <div ref={editorRef} className="h-full" />;
 }
