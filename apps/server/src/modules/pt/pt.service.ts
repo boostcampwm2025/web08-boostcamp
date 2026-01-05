@@ -2,7 +2,6 @@ import {
   Pt,
   SOCKET_EVENTS,
   JoinRoomPayload,
-  PtLeftPayload,
   PtUpdatePayload,
 } from '@codejam/common';
 import { Injectable, Inject, Logger } from '@nestjs/common';
