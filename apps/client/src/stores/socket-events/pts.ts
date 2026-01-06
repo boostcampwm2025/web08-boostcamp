@@ -1,0 +1,64 @@
+import { socket } from "@/shared/api/socket";
+import {
+  SOCKET_EVENTS,
+  type Pt,
+  type PtJoinedPayload,
+  type PtDisconnectPayload,
+  type PtLeftPayload,
+  type RoomPtsPayload,
+  type PtUpdatePayload,
+} from "@codejam/common";
+import { usePtsStore } from "../pts";
+
+export const setupPtsEventHandlers = () => {
+  const onPtJoined = (data: PtJoinedPayload) => {
+    console.log(`👋 [PT_JOINED] ${data.pt.nickname}`);
+    usePtsStore.getState().setPt(data.pt.ptId, data.pt);
+  };
+
+  const onPtDisconnect = (data: PtDisconnectPayload) => {
+    console.log(`👋 [PT_DISCONNECT] PtId: ${data.ptId}`);
+    const pt = usePtsStore.getState().pts[data.ptId];
+    if (!pt) return;
+    usePtsStore.getState().setPt(pt.ptId, { ...pt, presence: "offline" });
+  };
+
+  const onPtLeft = (data: PtLeftPayload) => {
+    console.log(`⏰ [PT_LEFT] PtId: ${data.ptId} removed by TTL expiration`);
+    usePtsStore.getState().removePt(data.ptId);
+  };
+
+  const onRoomPts = (data: RoomPtsPayload) => {
+    console.log(`👥 [ROOM_PTS]`, data.pts);
+    const pts: Pt[] = data.pts;
+    const newPts: Record<string, Pt> = pts.reduce((acc, pt) => {
+      acc[pt.ptId] = pt;
+      return acc;
+    }, {} as Record<string, Pt>);
+    usePtsStore.getState().setPts(newPts);
+  };
+
+  const onUpdatePt = (data: PtUpdatePayload) => {
+    console.log(
+      `🔄 [UPDATE_PT] PtId: ${data.pt.ptId} Nickname: ${data.pt.nickname}`
+    );
+    const pt = usePtsStore.getState().pts[data.pt.ptId];
+    if (!pt) return;
+    const newPt = { ...pt, ...data.pt };
+    usePtsStore.getState().setPt(data.pt.ptId, newPt);
+  };
+
+  socket.on(SOCKET_EVENTS.PT_JOINED, onPtJoined);
+  socket.on(SOCKET_EVENTS.PT_DISCONNECT, onPtDisconnect);
+  socket.on(SOCKET_EVENTS.PT_LEFT, onPtLeft);
+  socket.on(SOCKET_EVENTS.ROOM_PTS, onRoomPts);
+  socket.on(SOCKET_EVENTS.UPDATE_PT, onUpdatePt);
+
+  return () => {
+    socket.off(SOCKET_EVENTS.PT_JOINED, onPtJoined);
+    socket.off(SOCKET_EVENTS.PT_DISCONNECT, onPtDisconnect);
+    socket.off(SOCKET_EVENTS.PT_LEFT, onPtLeft);
+    socket.off(SOCKET_EVENTS.ROOM_PTS, onRoomPts);
+    socket.off(SOCKET_EVENTS.UPDATE_PT, onUpdatePt);
+  };
+};

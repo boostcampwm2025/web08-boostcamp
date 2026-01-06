@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { roomId } from "@/widgets/participants/data";
+
+const roomId = "prototype";
 
 interface RoomState {
   roomId: string | null;
