@@ -28,32 +28,7 @@ export class RoomService {
   }
 
   async createQuickRoom() {
-    const maxRetries = 3;
-    let roomCode = '';
-    let isUnique = false;
-
-    for (let i = 0; i < maxRetries; i++) {
-      roomCode = this.generateRoomCode();
-
-      const existingRoom = await this.roomRepository.findOne({
-        where: { roomCode },
-      });
-
-      if (!existingRoom) {
-        isUnique = true;
-        break;
-      }
-
-      this.logger.warn(
-        `Room code collision detected: ${roomCode}. Retrying... (${i + 1}/${maxRetries})`,
-      );
-    }
-
-    if (!isUnique || roomCode.length !== 6) {
-      throw new InternalServerErrorException(
-        'Failed to generate unique room code',
-      );
-    }
+    const roomCode = await this.generateUniqueRoomCode();
 
     const newRoom = this.roomRepository.create({
       roomCode,
@@ -69,10 +44,32 @@ export class RoomService {
     );
   }
 
-  protected generateRoomCode(): string {
+  private async generateUniqueRoomCode(maxRetries = 3): Promise<string> {
+    for (let i = 0; i < maxRetries; i++) {
+      const roomCode = this.generateRoomCode();
+
+      const existingRoom = await this.roomRepository.findOne({
+        where: { roomCode },
+      });
+
+      if (!existingRoom) {
+        return roomCode;
+      }
+
+      this.logger.warn(
+        `Room code collision detected: ${roomCode}. Retrying... (${i + 1}/${maxRetries})`,
+      );
+    }
+
+    throw new InternalServerErrorException(
+      'Failed to generate unique room code',
+    );
+  }
+
+  protected generateRoomCode(roomCodeLength = 6): string {
     const alphabet =
       '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    const nanoid = customAlphabet(alphabet, 6);
+    const nanoid = customAlphabet(alphabet, roomCodeLength);
     return nanoid();
   }
 }
