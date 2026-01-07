@@ -59,5 +59,5 @@ export class Room {
   createdAt: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  expiredAt: Date;
+  expiresAt: Date;
 }
