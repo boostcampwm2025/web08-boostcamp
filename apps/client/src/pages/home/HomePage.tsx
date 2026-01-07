@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { Users, Hash, CodeXml, Zap, UserCog } from "lucide-react";
 import { Hero } from "./sections/Hero";
 import { ActionCard } from "./cards/ActionCard";
 import { FeatureCard } from "./cards/FeatureCard";
+import { CreateRoomDialog } from "./dialogs/CreateRoomDialog";
+import { JoinRoomDialog } from "./dialogs/JoinRoomDialog";
 
 export default function MainPage() {
+  const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
+  const [isJoinRoomOpen, setIsJoinRoomOpen] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="relative z-10 w-3xl">
@@ -15,12 +21,14 @@ export default function MainPage() {
             title="방 만들기"
             description="새로운 협업 공간을 생성하고 팀원들을 초대하세요"
             colorKey="blue"
+            onClick={() => setIsCreateRoomOpen(true)}
           />
           <ActionCard
             icon={Hash}
             title="방 번호로 입장"
             description="기존 방 번호를 입력하여 협업에 참여하세요"
             colorKey="purple"
+            onClick={() => setIsJoinRoomOpen(true)}
           />
         </div>
 
@@ -45,6 +53,12 @@ export default function MainPage() {
           />
         </div>
       </div>
+
+      <CreateRoomDialog
+        open={isCreateRoomOpen}
+        onOpenChange={setIsCreateRoomOpen}
+      />
+      <JoinRoomDialog open={isJoinRoomOpen} onOpenChange={setIsJoinRoomOpen} />
     </div>
   );
 }
