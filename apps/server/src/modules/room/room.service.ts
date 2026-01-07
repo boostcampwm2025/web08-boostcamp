@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
+import { Pt, PtRole } from '../pt/pt.entity';
 
 /** 방의 생명 주기 관리 */
 
@@ -45,11 +46,26 @@ export class RoomService {
 
       const savedRoom = await queryRunner.manager.save(newRoom);
 
+      const hostPt = queryRunner.manager.create(Pt, {
+        roomId: savedRoom.roomId,
+        role: PtRole.HOST,
+        code: '0000',
+        nickname: 'Host',
+        color: '#E0E0E0',
+      });
+
+      const savedPt = await queryRunner.manager.save(hostPt);
+
       await queryRunner.commitTransaction();
 
       this.logger.log(
-        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})`,
+        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}]`,
       );
+
+      return {
+        roomCode: savedRoom.roomCode,
+        myPtId: savedPt.ptId,
+      };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error(`Failed to create quick room: ${error.message}`);
