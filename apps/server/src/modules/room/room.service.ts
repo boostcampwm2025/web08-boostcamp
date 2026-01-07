@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 
@@ -17,6 +17,7 @@ export class RoomService {
   constructor(
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
+    private dataSource: DataSource,
   ) {}
 
   /**
@@ -30,18 +31,32 @@ export class RoomService {
   async createQuickRoom() {
     const roomCode = await this.generateUniqueRoomCode();
 
-    const newRoom = this.roomRepository.create({
-      roomCode,
-      hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
-      defaultRolePolicy: DefaultRolePolicy.VIEWER,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const savedRoom = await this.roomRepository.save(newRoom);
+    try {
+      const newRoom = queryRunner.manager.create(Room, {
+        roomCode,
+        hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
+        defaultRolePolicy: DefaultRolePolicy.VIEWER,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
 
-    this.logger.log(
-      `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})`,
-    );
+      const savedRoom = await queryRunner.manager.save(newRoom);
+
+      await queryRunner.commitTransaction();
+
+      this.logger.log(
+        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})`,
+      );
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(`Failed to create quick room: ${error.message}`);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   private async generateUniqueRoomCode(maxRetries = 3): Promise<string> {
