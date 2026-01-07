@@ -3,6 +3,7 @@ import { RoomService } from './room.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { Repository } from 'typeorm';
+import { InternalServerErrorException } from '@nestjs/common';
 
 const mockRoomRepository = () => ({
   create: jest.fn(),
@@ -80,6 +81,18 @@ describe('RoomService', () => {
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ roomCode: 'UNI002' }),
       );
+    });
+
+    it('3번 모두 중복되면 InternalServerErrorException을 던진다', async () => {
+      jest.spyOn(service as any, 'generateRoomCode').mockReturnValue('DUP999');
+
+      repository.findOne.mockResolvedValue({ roomId: 999 } as Room);
+
+      await expect(service.createQuickRoom()).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
+      expect(repository.findOne).toHaveBeenCalledTimes(3);
     });
   });
 });
