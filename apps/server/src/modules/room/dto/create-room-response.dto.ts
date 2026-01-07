@@ -1,4 +1,4 @@
-export class QuickRoomResponseDto {
+export class CreateRoomResponseDto {
   roomCode: string;
   myPtId: string;
 }
