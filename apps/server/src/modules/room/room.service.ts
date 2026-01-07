@@ -8,7 +8,8 @@ import { DataSource, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole } from '../pt/pt.entity';
-import { QuickRoomResponseDto } from './dto/quick-room-response.dto';
+import { CreateRoomResponseDto } from './dto/create-room-response.dto';
+import { RoomCreationOptions } from './room.interface';
 
 /** 방의 생명 주기 관리 */
 
@@ -30,7 +31,18 @@ export class RoomService {
     return true;
   }
 
-  async createQuickRoom(): Promise<QuickRoomResponseDto> {
+  async createQuickRoom(): Promise<CreateRoomResponseDto> {
+    const options: RoomCreationOptions = {
+      hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
+      defaultRolePolicy: DefaultRolePolicy.VIEWER,
+    };
+
+    return this.createRoom(options);
+  }
+
+  private async createRoom(
+    options: RoomCreationOptions,
+  ): Promise<CreateRoomResponseDto> {
     const roomCode = await this.generateUniqueRoomCode();
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -40,8 +52,10 @@ export class RoomService {
     try {
       const newRoom = queryRunner.manager.create(Room, {
         roomCode,
-        hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
-        defaultRolePolicy: DefaultRolePolicy.VIEWER,
+        hostTransferPolicy: options.hostTransferPolicy,
+        defaultRolePolicy: options.defaultRolePolicy,
+        roomPassword: options.roomPassword,
+        hostPassword: options.hostPassword,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
@@ -69,7 +83,7 @@ export class RoomService {
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(`Failed to create quick room: ${error.message}`);
+      this.logger.error(`Failed to create room: ${error.message}`);
       throw error;
     } finally {
       await queryRunner.release();
@@ -82,6 +96,7 @@ export class RoomService {
 
       const existingRoom = await this.roomRepository.findOne({
         where: { roomCode },
+        select: ['roomId'],
       });
 
       if (!existingRoom) {
