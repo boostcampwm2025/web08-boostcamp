@@ -1,7 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
+import { customAlphabet } from 'nanoid';
 
 /** 방의 생명 주기 관리 */
 
@@ -23,13 +28,38 @@ export class RoomService {
   }
 
   async createQuickRoom() {
-    const roomCode = 'a1B2c3';
+    const maxRetries = 3;
+    let roomCode = '';
+    let isUnique = false;
+
+    for (let i = 0; i < maxRetries; i++) {
+      roomCode = this.generateRoomCode();
+
+      const existingRoom = await this.roomRepository.findOne({
+        where: { roomCode },
+      });
+
+      if (!existingRoom) {
+        isUnique = true;
+        break;
+      }
+
+      this.logger.warn(
+        `Room code collision detected: ${roomCode}. Retrying... (${i + 1}/${maxRetries})`,
+      );
+    }
+
+    if (!isUnique || roomCode.length !== 6) {
+      throw new InternalServerErrorException(
+        'Failed to generate unique room code',
+      );
+    }
 
     const newRoom = this.roomRepository.create({
       roomCode,
       hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
       defaultRolePolicy: DefaultRolePolicy.VIEWER,
-      expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     const savedRoom = await this.roomRepository.save(newRoom);
@@ -37,5 +67,12 @@ export class RoomService {
     this.logger.log(
       `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})`,
     );
+  }
+
+  protected generateRoomCode(): string {
+    const alphabet =
+      '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const nanoid = customAlphabet(alphabet, 6);
+    return nanoid();
   }
 }
