@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 const mockRoomRepository = () => ({
   create: jest.fn(),
   save: jest.fn(),
+  findOne: jest.fn(),
 });
 
 describe('RoomService', () => {
@@ -58,6 +59,27 @@ describe('RoomService', () => {
         }),
       );
       expect(repository.save).toHaveBeenCalled();
+    });
+
+    it('룸 코드가 중복되면 최대 3번까지 재시도하고, 성공하면 저장한다', async () => {
+      jest
+        .spyOn(service as any, 'generateRoomCode')
+        .mockReturnValueOnce('DUP001')
+        .mockReturnValueOnce('UNI002');
+
+      repository.findOne.mockResolvedValueOnce({ roomId: 1 } as Room);
+      repository.findOne.mockResolvedValueOnce(null);
+
+      const mockRoom = { roomCode: 'UNI002' } as Room;
+      repository.create.mockReturnValue(mockRoom);
+      repository.save.mockResolvedValue(mockRoom);
+
+      await service.createQuickRoom();
+
+      expect(repository.findOne).toHaveBeenCalledTimes(2);
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ roomCode: 'UNI002' }),
+      );
     });
   });
 });
