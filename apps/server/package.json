@@ -85,6 +85,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "transformIgnorePatterns": [
+      "node_modules/(?!.pnpm/(nanoid|uuid)|nanoid|uuid)"
+    ]
   }
 }
