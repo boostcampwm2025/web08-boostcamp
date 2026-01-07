@@ -8,6 +8,7 @@ import { DataSource, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole } from '../pt/pt.entity';
+import { QuickRoomResponseDto } from './dto/quick-room-response.dto';
 
 /** 방의 생명 주기 관리 */
 
@@ -29,7 +30,7 @@ export class RoomService {
     return true;
   }
 
-  async createQuickRoom() {
+  async createQuickRoom(): Promise<QuickRoomResponseDto> {
     const roomCode = await this.generateUniqueRoomCode();
 
     const queryRunner = this.dataSource.createQueryRunner();
