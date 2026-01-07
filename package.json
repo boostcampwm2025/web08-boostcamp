@@ -23,5 +23,8 @@
   "packageManager": "pnpm@10.26.0",
   "devDependencies": {
     "turbo": "^2.6.3"
+  },
+  "dependencies": {
+    "zod": "^4.3.5"
   }
 }

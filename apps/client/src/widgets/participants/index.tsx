@@ -22,3 +22,8 @@ export function Participants() {
     </div>
   );
 }
+
+// Re-export components only (for Fast Refresh compatibility)
+export { Participant } from "./Participant";
+export { ParticipantInfo } from "./ParticipantInfo";
+export { ParticipantAvatar, ParticipantMenu } from "./ui";
