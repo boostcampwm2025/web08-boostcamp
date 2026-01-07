@@ -62,7 +62,7 @@ export class Pt {
   nickname: string;
 
   @Column({ type: 'varchar' })
-  ptCode: string;
+  code: string;
 
   @Column({ type: 'varchar' })
   color: string;
