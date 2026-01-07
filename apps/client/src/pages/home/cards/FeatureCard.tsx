@@ -1,53 +1,21 @@
 import type { LucideIcon } from "lucide-react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { cardColorSchemes } from "../constants/card-color-schemes";
 
 interface FeatureCardProps {
   icon: LucideIcon;
   title: string;
   description: string;
-  colorScheme: "blue" | "green" | "purple" | "orange" | "red";
+  colorKey: string;
 }
-
-const colorClasses = {
-  blue: {
-    cardBg: "bg-blue-50",
-    iconBg: "bg-blue-100",
-    borderColor: "border-blue-200",
-    iconColor: "text-blue-500",
-  },
-  green: {
-    cardBg: "bg-green-50",
-    iconBg: "bg-green-100",
-    borderColor: "border-green-200",
-    iconColor: "text-green-500",
-  },
-  purple: {
-    cardBg: "bg-purple-50",
-    iconBg: "bg-purple-100",
-    borderColor: "border-purple-200",
-    iconColor: "text-purple-500",
-  },
-  orange: {
-    cardBg: "bg-orange-50",
-    iconBg: "bg-orange-100",
-    borderColor: "border-orange-200",
-    iconColor: "text-orange-500",
-  },
-  red: {
-    cardBg: "bg-red-50",
-    iconBg: "bg-red-100",
-    borderColor: "border-red-200",
-    iconColor: "text-red-500",
-  },
-};
 
 export function FeatureCard({
   icon: Icon,
   title,
   description,
-  colorScheme,
+  colorKey,
 }: FeatureCardProps) {
-  const colors = colorClasses[colorScheme];
+  const colors = cardColorSchemes[colorKey];
 
   return (
     <Card className={`border-transparent shadow-none ${colors.cardBg}`}>
