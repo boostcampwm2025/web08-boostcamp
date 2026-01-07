@@ -36,7 +36,7 @@ export class Room {
   code: string;
 
   @Column({ type: 'varchar', nullable: true })
-  roomPassword: string | null;
+  password: string | null;
 
   @Column({ type: 'varchar', nullable: true })
   hostPassword: string | null;
