@@ -179,7 +179,10 @@ export class PtService {
     const values = await this.redis.mget(keys);
     const pts = values.filter(Boolean).map((v) => JSON.parse(v!) as Pt);
 
-    return pts.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    return pts.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
   }
 
   private generateRandomNickname(length: number = 10): string {
