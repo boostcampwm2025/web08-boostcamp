@@ -9,21 +9,16 @@ import { CollabSocket } from './collaboration.types';
 import { Redis } from 'ioredis';
 import { PtService } from '../pt/pt.service';
 import { FileService } from '../file/file.service';
-
-type SocketData = {
-  roomId: string;
-  ptId: string;
-  clientId?: number;
-};
+import { RoomService } from '../room/room.service';
 
 @Injectable()
 export class CollaborationService {
   private readonly logger = new Logger(CollaborationService.name);
-  private socketMap = new Map<string, SocketData>();
 
   constructor(
     private readonly ptService: PtService,
     private readonly fileService: FileService,
+    private readonly roomService: RoomService,
     @Inject('REDIS_SUBSCRIBER') private readonly redisSubscriber: Redis,
   ) {}
 
@@ -52,35 +47,30 @@ export class CollaborationService {
   /**
    * Handle client connection
    */
-  handleConnection(client: CollabSocket, server: Server): void {
-    this.ptService.handleConnection(client, server);
+  handleConnection(client: CollabSocket): void {
+    this.ptService.handleConnection(client);
   }
 
   /**
    * Handle client disconnection
    */
   async handleDisconnect(client: CollabSocket, server: Server): Promise<void> {
-    const info = this.socketMap.get(client.id);
-    if (!info) return;
-
-    const { roomId, ptId, clientId } = info;
+    const { roomCode, ptId, clientId } = client.data;
+    if (!roomCode || !ptId) return;
 
     // Clean up awareness states
     if (clientId) {
       this.fileService.handleRemoveAwareness(client, server, {
-        roomId,
+        roomId: roomCode,
         clientId,
       });
     }
 
     // Clean up participant
     await this.ptService.handleDisconnect(client, server, {
-      roomId,
+      roomId: roomCode,
       ptId,
     });
-
-    // Remove from socketMap
-    this.socketMap.delete(client.id);
   }
 
   /**
@@ -92,17 +82,27 @@ export class CollaborationService {
     payload: JoinRoomPayload,
   ): Promise<void> {
     // Delegate to PT service
-    const { pt, roomId } = await this.ptService.handleJoinRoom(
+    const { pt, roomCode } = await this.ptService.handleJoinRoom(
       client,
       server,
       payload,
     );
 
-    // Store in socketMap
-    this.socketMap.set(client.id, {
-      roomId,
-      ptId: pt.ptId,
-    });
+    // Find roomId by roomCode
+    const roomId = await this.roomService.findRoomIdByCode(roomCode);
+    if (!roomId) {
+      this.logger.error(`Room not found: roomCode=${roomCode}`);
+      client.emit('error', {
+        type: 'ROOM_NOT_FOUND',
+        message: '방을 찾을 수 없습니다',
+      });
+      return;
+    }
+
+    // Store in socket.data
+    client.data.roomId = roomId;
+    client.data.roomCode = roomCode;
+    client.data.ptId = pt.ptId;
 
     // TODO: Change file creation timing
     // Create file if not exists (idempotent)
@@ -110,7 +110,7 @@ export class CollaborationService {
     const fileId = 'prototype';
 
     this.fileService.handleCreateFile(client, server, {
-      roomId,
+      roomId: roomCode,
       fileId,
     });
   }
@@ -119,22 +119,23 @@ export class CollaborationService {
    * Handle document request
    */
   handleRequestDoc(client: CollabSocket, server: Server): void {
-    const info = this.socketMap.get(client.id);
-    if (!info) return;
+    const { roomCode } = client.data;
+    if (!roomCode) return;
 
-    const { roomId } = info;
-    this.fileService.handleRequestDoc(client, server, { roomId });
+    this.fileService.handleRequestDoc(client, server, { roomId: roomCode });
   }
 
   /**
    * Handle awareness request
    */
   handleRequestAwareness(client: CollabSocket, server: Server): void {
-    const info = this.socketMap.get(client.id);
-    if (!info) return;
+    const { roomCode } = client.data;
+    if (!roomCode) return;
 
-    const { roomId } = info;
-    this.fileService.handleRequestAwareness(client, server, { roomId });
+    // TODO: fileService 부분은 아직 수정 전. 타입오류만 안나게 해둠.
+    this.fileService.handleRequestAwareness(client, server, {
+      roomId: roomCode,
+    });
   }
 
   /**
@@ -145,14 +146,13 @@ export class CollaborationService {
     server: Server,
     payload: FileUpdatePayload,
   ): void {
-    const info = this.socketMap.get(client.id);
-    if (!info) return;
+    const { roomCode } = client.data;
+    if (!roomCode) return;
 
-    const { roomId } = info;
     const { message } = payload;
 
     this.fileService.handleFileUpdate(client, server, {
-      roomId,
+      roomId: roomCode,
       message,
     });
   }
@@ -165,14 +165,13 @@ export class CollaborationService {
     server: Server,
     payload: AwarenessUpdatePayload,
   ): void {
-    const info = this.socketMap.get(client.id);
-    if (!info) return;
+    const { roomCode } = client.data;
+    if (!roomCode) return;
 
-    const { roomId } = info;
     const { message } = payload;
 
     this.fileService.handleAwarenessUpdate(client, server, {
-      roomId,
+      roomId: roomCode,
       message,
     });
   }
