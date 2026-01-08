@@ -99,4 +99,11 @@ export class CollaborationGateway
   async handlePtUpdate(@MessageBody() payload: PtUpdateRolePayload) {
     await this.collaborationService.handleUpdatePtRole(this.server, payload);
   }
+
+  /**
+   * [Scheduler용]
+   */
+  notifyAndDisconnectRoom(roomCode: string) {
+    this.collaborationService.handleRoomExpired(this.server, roomCode);
+  }
 }

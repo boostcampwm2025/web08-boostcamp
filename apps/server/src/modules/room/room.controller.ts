@@ -13,9 +13,9 @@ import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
-  @Get(':roomId/exists')
-  async checkRoomExists(@Param('roomId') roomId: string) {
-    const exists = await this.roomService.roomExists(roomId);
+  @Get(':roomCode/exists')
+  async checkRoomExists(@Param('roomCode') roomCode: string) {
+    const exists = await this.roomService.roomExists(roomCode);
     if (!exists) {
       throw new NotFoundException({ exists: false });
     }

@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, LessThan, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole } from '../pt/pt.entity';
@@ -29,8 +29,10 @@ export class RoomService {
    * 방 존재 여부 확인
    */
   async roomExists(roomCode: string): Promise<boolean> {
-    const room = await this.roomRepository.findOne({ where: { roomCode } });
-    return room !== null;
+    const count = await this.roomRepository.count({
+      where: { roomCode },
+    });
+    return count > 0;
   }
 
   /**
@@ -143,5 +145,31 @@ export class RoomService {
       select: ['roomId'],
     });
     return room?.roomId ?? null;
+  }
+
+  /**
+   * [Scheduler용] 만료 시간이 지난 방 목록 조회
+   */
+  async findExpiredRooms(): Promise<Room[]> {
+    const now = new Date();
+    return await this.roomRepository.find({
+      where: {
+        expiresAt: LessThan(now),
+      },
+      select: ['roomId', 'roomCode'],
+    });
+  }
+
+  /**
+   * [Scheduler용] 방 ID 목록을 받아 일괄 삭제
+   */
+  async deleteRooms(roomIds: number[]): Promise<number> {
+    if (roomIds.length === 0) return 0;
+
+    const result = await this.roomRepository.delete({
+      roomId: In(roomIds),
+    });
+
+    return result.affected ?? 0;
   }
 }
