@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, LessThan, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole } from '../pt/pt.entity';
@@ -131,5 +131,18 @@ export class RoomService {
       select: ['roomId'],
     });
     return room?.roomId ?? null;
+  }
+
+  /**
+   * [Scheduler용] 만료 시간이 지난 방 목록 조회
+   */
+  async findExpiredRooms(): Promise<Room[]> {
+    const now = new Date();
+    return await this.roomRepository.find({
+      where: {
+        expiresAt: LessThan(now),
+      },
+      select: ['roomId', 'roomCode'],
+    });
   }
 }
