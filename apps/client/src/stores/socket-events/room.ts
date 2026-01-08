@@ -16,10 +16,11 @@ export const setupRoomEventHandlers = (roomId: string) => {
   };
 };
 
-export const emitJoinRoom = (roomId: string) => {
-  const savedPtId = localStorage.getItem(`ptId:${roomId}`);
+export const emitJoinRoom = (roomCode: string, nickname?: string) => {
+  const savedPtId = localStorage.getItem(`ptId:${roomCode}`);
   socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
-    roomId,
+    roomCode,
     ptId: savedPtId || undefined,
+    nickname: nickname || undefined,
   });
 };

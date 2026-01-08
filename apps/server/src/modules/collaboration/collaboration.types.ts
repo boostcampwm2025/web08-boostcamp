@@ -1,4 +1,4 @@
-import { Socket } from 'socket.io';
+import { DefaultEventsMap, Socket } from 'socket.io';
 import { PtRole } from '../pt/pt.entity';
 import {
   SOCKET_EVENTS,
@@ -19,6 +19,9 @@ export interface SocketData {
   roomCode: string;
   ptId: string;
   role: PtRole;
+  nickname?: string;
+  color?: string;
+  createdAt?: string;
 }
 
 // Client -> Server 이벤트
@@ -44,7 +47,8 @@ export interface ServerToClientEvents {
 
 export type CollabSocket = Socket<
   ClientToServerEvents,
-  ServerToClientEvents,
+  // ServerToClientEvents,
+  DefaultEventsMap,
   Record<string, never>, // InterServerEvents (사용 안 함)
   SocketData
 >;
