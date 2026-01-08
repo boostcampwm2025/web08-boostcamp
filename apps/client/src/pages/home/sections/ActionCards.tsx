@@ -35,44 +35,46 @@ export function ActionCards() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-10">
-      <ActionCard
-        icon={Users}
-        title="방 만들기"
-        description="새로운 협업 공간을 생성하고 팀원들을 초대하세요"
-        colorKey="blue"
-      >
-        <Button
-          onClick={handleQuickStart}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer"
+    <section className="mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
+        <ActionCard
+          icon={Users}
+          title="방 만들기"
+          description="새로운 협업 공간을 생성하고 팀원들을 초대하세요"
+          colorKey="blue"
         >
-          Quick Start
-        </Button>
-      </ActionCard>
-
-      <ActionCard
-        icon={Hash}
-        title="방 번호로 입장"
-        description="기존 방 번호를 입력하여 협업에 참여하세요"
-        colorKey="purple"
-      >
-        <div className="flex flex-col items-center gap-4 w-full">
-          <RoomCodeInput
-            value={roomCode}
-            onChange={setRoomCode}
-            hasError={!!errorMessage}
-            onSubmit={handleJoinRoom}
-          />
-          <ErrorMessage message={errorMessage} />
           <Button
-            onClick={handleJoinRoom}
-            disabled={roomCode.some((digit) => digit === "")}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
+            onClick={handleQuickStart}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer"
           >
-            입장하기
+            Quick Start
           </Button>
-        </div>
-      </ActionCard>
-    </div>
+        </ActionCard>
+
+        <ActionCard
+          icon={Hash}
+          title="방 번호로 입장"
+          description="기존 방 번호를 입력하여 협업에 참여하세요"
+          colorKey="purple"
+        >
+          <div className="flex flex-col items-center gap-4 w-full">
+            <RoomCodeInput
+              value={roomCode}
+              onChange={setRoomCode}
+              hasError={!!errorMessage}
+              onSubmit={handleJoinRoom}
+            />
+            <ErrorMessage message={errorMessage} />
+            <Button
+              onClick={handleJoinRoom}
+              disabled={roomCode.some((digit) => digit === "")}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
+            >
+              입장하기
+            </Button>
+          </div>
+        </ActionCard>
+      </div>
+    </section>
   );
 }

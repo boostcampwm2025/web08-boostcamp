@@ -19,14 +19,13 @@ export function FeatureCard({
 
   return (
     <Card className={`border-transparent shadow-none ${colors.cardBg}`}>
-      <CardHeader>
-        <div className="flex items-center gap-3 mb-2">
-          <div
-            className={`${colors.iconBg} border ${colors.borderColor} w-10 h-10 rounded-sm flex items-center justify-center`}
-          >
-            <Icon className={`h-5 w-5 ${colors.iconColor}`} />
-          </div>
+      <CardHeader className="flex flex-col items-center text-center gap-2">
+        <div
+          className={`${colors.iconBg} border ${colors.borderColor} w-10 h-10 rounded-full flex items-center justify-center`}
+        >
+          <Icon className={`h-5 w-5 ${colors.iconColor}`} />
         </div>
+
         <CardTitle className="text-base text-gray-800">{title}</CardTitle>
         <CardDescription className="text-gray-600 text-xs font-mono">
           {description}

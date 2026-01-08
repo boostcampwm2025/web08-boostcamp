@@ -119,7 +119,7 @@ export function RoomCodeInput({
           className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-center text-base sm:text-xl md:text-2xl font-semibold font-mono border-2 ${
             hasError
               ? "border-red-500"
-              : "border-gray-300 focus:border-gray-700"
+              : "border-gray-400 focus:border-gray-900"
           } focus:outline-none transition-colors uppercase caret-transparent`}
         />
       ))}

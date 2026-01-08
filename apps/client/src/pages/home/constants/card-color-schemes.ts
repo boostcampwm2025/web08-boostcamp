@@ -13,7 +13,7 @@ const blue: CardColorScheme = {
   borderColor: "border-blue-200",
   iconColor: "text-blue-500",
   hoverCardBg: "hover:bg-blue-50",
-  hoverBorderColor: "hover:border-blue-500",
+  hoverBorderColor: "hover:border-blue-400",
 };
 
 const green: CardColorScheme = {
@@ -22,7 +22,7 @@ const green: CardColorScheme = {
   borderColor: "border-green-200",
   iconColor: "text-green-500",
   hoverCardBg: "hover:bg-green-50",
-  hoverBorderColor: "hover:border-green-500",
+  hoverBorderColor: "hover:border-green-400",
 };
 
 const purple: CardColorScheme = {
@@ -31,7 +31,7 @@ const purple: CardColorScheme = {
   borderColor: "border-purple-200",
   iconColor: "text-purple-500",
   hoverCardBg: "hover:bg-purple-50",
-  hoverBorderColor: "hover:border-purple-500",
+  hoverBorderColor: "hover:border-purple-400",
 };
 
 const orange: CardColorScheme = {
@@ -40,7 +40,7 @@ const orange: CardColorScheme = {
   borderColor: "border-orange-200",
   iconColor: "text-orange-500",
   hoverCardBg: "hover:bg-orange-50",
-  hoverBorderColor: "hover:border-orange-500",
+  hoverBorderColor: "hover:border-orange-400",
 };
 
 const red: CardColorScheme = {
@@ -49,7 +49,7 @@ const red: CardColorScheme = {
   borderColor: "border-red-200",
   iconColor: "text-red-500",
   hoverCardBg: "hover:bg-red-50",
-  hoverBorderColor: "hover:border-red-500",
+  hoverBorderColor: "hover:border-red-400",
 };
 
 export const cardColorSchemes: Record<string, CardColorScheme> = {
