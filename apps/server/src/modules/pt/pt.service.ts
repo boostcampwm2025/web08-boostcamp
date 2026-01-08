@@ -86,6 +86,24 @@ export class PtService {
     return this.entityToPt(ptEntity);
   }
 
+  /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
+  async restorePt(roomCode: string, ptId: string): Promise<Pt | null> {
+    const ptEntity = await this.ptRepository.findOne({
+      where: { roomCode, ptId },
+    });
+
+    if (!ptEntity) return null;
+
+    // presence를 ONLINE으로 업데이트
+    await this.ptRepository.update(
+      { roomCode, ptId },
+      { presence: PtPresence.ONLINE },
+    );
+
+    ptEntity.presence = PtPresence.ONLINE;
+    return this.entityToPt(ptEntity);
+  }
+
   /** 방의 모든 참가자 조회 */
   async getAllPts(roomCode: string): Promise<Pt[]> {
     const ptEntities = await this.ptRepository.find({
