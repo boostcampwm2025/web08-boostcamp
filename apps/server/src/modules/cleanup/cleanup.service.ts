@@ -28,8 +28,15 @@ export class CleanupService {
       /**
        * TODO:
        * 2. 소켓 알림 및 연결 종료 (방 별로 순회)
-       * 3. DB에서 방 삭제
        */
+
+      // 3. DB에서 방 삭제
+      const roomIdsToDelete = expiredRooms.map((room) => room.roomId);
+      const deletedCount = await this.roomService.deleteRooms(roomIdsToDelete);
+
+      this.logger.log(
+        `🧹 Cleanup Complete: Deleted ${deletedCount} expired rooms. (Targets: ${expiredRooms.map((r) => r.roomCode).join(', ')})`,
+      );
     } catch (error) {
       this.logger.error('❌ Failed to execute room cleanup', error.stack);
     }
