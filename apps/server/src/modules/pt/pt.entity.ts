@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Room } from '../room/room.entity';
+import { PT_HASH_LENGTH } from './pt.constants';
 
 export enum PtRole {
   HOST = 'host',
@@ -31,7 +32,7 @@ export class Pt {
   @JoinColumn({ name: 'room_code', referencedColumnName: 'roomCode' })
   room: Room;
 
-  @Column({ type: 'varchar', length: 4 })
+  @Column({ type: 'varchar', length: PT_HASH_LENGTH })
   ptHash: string;
 
   @Column({ type: 'varchar' })
