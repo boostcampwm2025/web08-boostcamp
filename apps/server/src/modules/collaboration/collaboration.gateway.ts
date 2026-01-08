@@ -4,7 +4,7 @@ import {
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
 } from '@codejam/common';
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -25,33 +25,24 @@ import { PermissionGuard } from './guards/permission.guard';
   },
 })
 export class CollaborationGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
+  implements OnGatewayConnection, OnGatewayDisconnect
 {
   constructor(private readonly collaborationService: CollaborationService) {}
 
   @WebSocketServer()
   server: Server;
 
-  // ==================================================================
-  // Lifecycle
-  // ==================================================================
-
-  onModuleInit() {
-    this.collaborationService.subscribeToRedisExpiration(this.server);
-  }
-
-  // ==================================================================
-  // Entry Points
-  // ==================================================================
-
+  /** 클라이언트 연결 시 초기화 */
   handleConnection(client: CollabSocket) {
     this.collaborationService.handleConnection(client);
   }
 
+  /** 클라이언트 연결 종료 시 정리 및 참가자 상태 업데이트 */
   async handleDisconnect(client: CollabSocket) {
     await this.collaborationService.handleDisconnect(client, this.server);
   }
 
+  /** C -> S: 방 입장 요청 */
   @SubscribeMessage(SOCKET_EVENTS.JOIN_ROOM)
   async handleJoinRoom(
     @ConnectedSocket() client: CollabSocket,
@@ -64,16 +55,19 @@ export class CollaborationGateway
     );
   }
 
+  /** C -> S: 문서 동기화 요청 */
   @SubscribeMessage(SOCKET_EVENTS.REQUEST_DOC)
   handleRequestDoc(@ConnectedSocket() client: CollabSocket) {
     this.collaborationService.handleRequestDoc(client, this.server);
   }
 
+  /** C -> S: Awareness 동기화 요청 */
   @SubscribeMessage(SOCKET_EVENTS.REQUEST_AWARENESS)
   handleRequestAwareness(@ConnectedSocket() client: CollabSocket) {
     this.collaborationService.handleRequestAwareness(client, this.server);
   }
 
+  /** C -> S: 파일 변경사항 브로드캐스트 */
   @UseGuards(PermissionGuard)
   @SubscribeMessage(SOCKET_EVENTS.UPDATE_FILE)
   handleFileUpdate(
@@ -83,6 +77,7 @@ export class CollaborationGateway
     this.collaborationService.handleFileUpdate(client, this.server, payload);
   }
 
+  /** C -> S: Awareness 변경사항 브로드캐스트 */
   @UseGuards(PermissionGuard)
   @SubscribeMessage(SOCKET_EVENTS.UPDATE_AWARENESS)
   handleAwarenessUpdate(

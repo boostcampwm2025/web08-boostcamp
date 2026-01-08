@@ -119,15 +119,4 @@ export class RoomService {
     const nanoid = customAlphabet(alphabet, roomCodeLength);
     return nanoid();
   }
-
-  /**
-   * Room code로 Room ID 조회
-   */
-  async findRoomIdByCode(roomCode: string): Promise<number | null> {
-    const room = await this.roomRepository.findOne({
-      where: { code: roomCode },
-      select: ['roomId'],
-    });
-    return room?.roomId ?? null;
-  }
 }
