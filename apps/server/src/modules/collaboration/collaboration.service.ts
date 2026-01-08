@@ -50,7 +50,7 @@ export class CollaborationService {
     // 클라이언트가 REQUEST_DOC을 보내기 전에 문서 준비 완료
     this.prepareRoomDoc(client, server, roomCode);
 
-    await this.notifyParticipantJoined(client, roomCode, pt);
+    await this.notifyParticipantJoined(client, server, roomCode, pt);
 
     this.logger.log(
       `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
@@ -135,6 +135,7 @@ export class CollaborationService {
   /** 참가자 입장 알림 및 참가자 데이터 전송 */
   private async notifyParticipantJoined(
     client: CollabSocket,
+    server: Server,
     roomCode: string,
     pt: Pt,
   ): Promise<void> {
@@ -145,7 +146,7 @@ export class CollaborationService {
     client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });
 
     // 본인에게: 현재 방의 모든 참가자 목록 전달
-    const pts = await this.ptService.getAllPts(roomCode);
+    const pts = await this.ptService.getAllPts(server, roomCode);
     client.emit(SOCKET_EVENTS.ROOM_PTS, { pts });
   }
 

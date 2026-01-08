@@ -104,8 +104,41 @@ export class PtService {
     return this.entityToPt(ptEntity);
   }
 
-  /** 방의 모든 참가자 조회 */
-  async getAllPts(roomCode: string): Promise<Pt[]> {
+  /** 방의 모든 참가자 조회 (Socket.IO rooms 사용) */
+  async getAllPts(server: Server, roomCode: string): Promise<Pt[]> {
+    const sockets = await server.in(roomCode).fetchSockets();
+    const pts: Pt[] = [];
+
+    for (const socket of sockets) {
+      const data = socket.data as CollabSocket['data'];
+
+      // socket.data에 필수 정보가 모두 있는 경우만 추가
+      if (
+        data.ptId &&
+        data.nickname &&
+        data.role &&
+        data.color &&
+        data.createdAt
+      ) {
+        pts.push({
+          ptId: data.ptId,
+          nickname: data.nickname,
+          role: data.role,
+          color: data.color,
+          presence: 'online', // 현재 연결된 소켓이므로 online
+          createdAt: data.createdAt,
+        });
+      }
+    }
+
+    // createdAt 기준 정렬
+    return pts.sort((a, b) => {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }
+
+  /** 방의 모든 참가자 조회 (DB 조회용, 내부 메서드) */
+  private async getAllPtsFromDb(roomCode: string): Promise<Pt[]> {
     const ptEntities = await this.ptRepository.find({
       where: { roomCode },
       order: { createdAt: 'ASC' },
@@ -261,7 +294,8 @@ export class PtService {
 
   /** 랜덤 색상 생성 (최근 6명과 중복되지 않도록) */
   private async generateRandomColor(roomCode: string): Promise<string> {
-    const pts = await this.getAllPts(roomCode);
+    // DB에서 조회 (새 참가자 생성 시점에는 아직 socket.data가 설정되지 않았으므로)
+    const pts = await this.getAllPtsFromDb(roomCode);
     const numColors = 6;
     const ptColors = pts.slice(-numColors).map((pt) => pt.color);
     const availableColors = this.colors.filter(
