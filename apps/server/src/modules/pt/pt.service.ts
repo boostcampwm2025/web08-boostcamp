@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { customAlphabet } from 'nanoid';
 import { Server } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
 import { CollabSocket } from '../collaboration/collaboration.types';
 import { Pt as PtEntity, PtRole, PtPresence } from './pt.entity';
 import { Room, DefaultRolePolicy } from '../room/room.entity';
@@ -54,8 +55,8 @@ export class PtService {
   }
 
   /** 새 참가자 생성 */
-  async createPt(roomCode: string, ptId: string): Promise<Pt> {
-    const nickname = this.generateRandomNickname();
+  async createPt(roomCode: string, nickname: string): Promise<Pt> {
+    const ptId = uuidv4();
     const color = await this.generateRandomColor(roomCode);
     const role = await this.assignRole(roomCode);
     const ptHash = this.generatePtHash();
