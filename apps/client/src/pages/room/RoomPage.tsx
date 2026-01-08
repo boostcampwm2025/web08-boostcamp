@@ -7,8 +7,8 @@ import { usePt } from "@/stores/pts";
 
 function RoomPage() {
   // Initialize socket connection
-  const roomId = useRoomStore((state) => state.roomId);
-  useSocket(roomId || "");
+  const roomCode= useRoomStore((state) => state.roomCode);
+  useSocket(roomCode || "");
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || "");

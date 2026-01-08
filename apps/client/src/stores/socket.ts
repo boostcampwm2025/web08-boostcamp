@@ -5,33 +5,33 @@ import { setupDomainEventHandlers, emitJoinRoom } from "./socket-events";
 interface SocketState {
   socket: typeof socket;
   isConnected: boolean;
-  roomId: string | null;
+  roomCode: string | null;
 
   cleanup: () => void;
 
   // Actions
-  connect: (roomId: string) => void;
+  connect: (roomCode: string) => void;
   disconnect: () => void;
-  send: (event: string, payload: unknown) => void;
+  send: (event: string, ...args: unknown[]) => void;
 }
 
 export const useSocketStore = create<SocketState>((set, get) => ({
   socket,
   isConnected: socket.connected,
-  roomId: null,
+  roomCode: null,
 
   cleanup: () => {},
 
-  connect: (roomId: string) => {
+  connect: (roomCode: string) => {
     const state = get();
 
     // Guard: Already connected to this room
-    if (state.roomId === roomId && socket.connected) {
+    if (state.roomCode === roomCode && socket.connected) {
       return;
     }
 
     // Cleanup previous connection if switching rooms
-    if (state.roomId && state.roomId !== roomId) {
+    if (state.roomCode && state.roomCode !== roomCode) {
       state.cleanup();
     }
 
@@ -39,7 +39,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       console.log("🟢 Connected to Socket Server");
       set({ isConnected: true });
 
-      emitJoinRoom(roomId);
+      emitJoinRoom(roomCode);
     };
 
     const onDisconnect = () => {
@@ -52,7 +52,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     socket.on("disconnect", onDisconnect);
 
     // Setup domain-specific event handlers
-    const cleanupDomainEventHandlers = setupDomainEventHandlers(roomId);
+    const cleanupDomainEventHandlers = setupDomainEventHandlers(roomCode);
 
     // Store cleanup function
     const cleanupListeners = () => {
@@ -61,7 +61,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       cleanupDomainEventHandlers();
     };
 
-    set({ roomId, cleanup: cleanupListeners });
+    set({ roomCode, cleanup: cleanupListeners });
 
     // Connect socket if not connected
     if (!socket.connected) {
@@ -74,11 +74,11 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     state.cleanup();
     socket.disconnect();
 
-    set({ isConnected: false, roomId: null });
+    set({ isConnected: false, roomCode: null });
   },
 
-  send: (event: string, payload?: unknown) => {
+  send: (event: string, ...args: unknown[]) => {
     if (!socket.connected) return;
-    socket.emit(event, payload);
+    socket.emit(event, ...args);
   },
 }));

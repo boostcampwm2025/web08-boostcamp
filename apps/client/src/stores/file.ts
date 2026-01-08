@@ -25,7 +25,7 @@ interface FileState {
   isInitialized: boolean;
 
   // Actions
-  initialize: (roomId: string) => number;
+  initialize: (roomCode: string) => number;
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
@@ -38,7 +38,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   activeFileId: null,
   isInitialized: false,
 
-  initialize: (roomId: string) => {
+  initialize: (roomCode: string) => {
     const state = get();
     if (state.isInitialized) {
       return state.yDoc!.clientID;
@@ -58,10 +58,10 @@ export const useFileStore = create<FileState>((set, get) => ({
       writeUpdate(encoder, update);
       const data = toUint8Array(encoder);
 
-      const { isConnected, roomId } = useSocketStore.getState();
-      if (!isConnected || !roomId) return;
+      const { isConnected } = useSocketStore.getState();
+      if (!isConnected || !roomCode) return;
 
-      emitFileUpdate(roomId, data);
+      emitFileUpdate(roomCode, data);
     };
 
     yDoc.on("update", onYDocUpdate);
@@ -76,10 +76,10 @@ export const useFileStore = create<FileState>((set, get) => ({
 
       const message = encodeAwarenessUpdate(awareness, changed);
 
-      const { isConnected, roomId } = useSocketStore.getState();
-      if (!isConnected || !roomId) return;
+      const { isConnected, roomCode } = useSocketStore.getState();
+      if (!isConnected || !roomCode) return;
 
-      emitAwarenessUpdate(roomId, message);
+      emitAwarenessUpdate(roomCode, message);
     };
 
     awareness.on("update", onAwarenessUpdate);
@@ -133,8 +133,8 @@ export const useFileStore = create<FileState>((set, get) => ({
     // Send reply if needed (sync protocol)
     const reply = toUint8Array(encoder);
     if (reply.byteLength > 0) {
-      const { roomId } = useSocketStore.getState();
-      if (roomId) emitFileUpdate(roomId, reply);
+      const { roomCode } = useSocketStore.getState();
+      if (roomCode) emitFileUpdate(roomCode, reply);
     }
   },
 

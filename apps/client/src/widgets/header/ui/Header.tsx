@@ -25,7 +25,7 @@ import {
   Moon,
 } from "lucide-react";
 
-const roomId = "PROTOTYPE";
+const roomCode = "PROTOTYPE";
 
 export default function Header() {
   const [isDark, setIsDark] = useState(false);
@@ -36,13 +36,14 @@ export default function Header() {
     document.documentElement.classList.toggle("dark");
   };
 
-  const copyRoomId = async () => {
+  const copyRoomCode = async () => {
     try {
-      await navigator.clipboard.writeText(roomId);
+      await navigator.clipboard.writeText(roomCode);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
-      alert("복사에 실패했습니다.");
+      const error = err as Error;
+      alert(`복사에 실패했습니다: ${error.message}`);
     }
   };
 
@@ -68,12 +69,12 @@ export default function Header() {
           ROOM ID
         </span>
         <div className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-md bg-secondary/50">
-          <span className="font-mono text-sm font-semibold">{roomId}</span>
+          <span className="font-mono text-sm font-semibold">{roomCode}</span>
           <Button
             variant="ghost"
             size="icon"
             className="h-4 w-4 p-0 hover:bg-transparent"
-            onClick={copyRoomId}
+            onClick={copyRoomCode}
           >
             {isCopied ? (
               <Check className="h-3 w-3 text-green-500" />

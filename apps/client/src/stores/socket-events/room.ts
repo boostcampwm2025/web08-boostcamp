@@ -2,10 +2,10 @@ import { socket } from "@/shared/api/socket";
 import { SOCKET_EVENTS, type WelcomePayload } from "@codejam/common";
 import { useRoomStore } from "../room";
 
-export const setupRoomEventHandlers = (roomId: string) => {
+export const setupRoomEventHandlers = (roomCode: string) => {
   const onWelcome = (data: WelcomePayload) => {
     console.log(`🎉 [WELCOME] My PtId: ${data.myPtId}`);
-    localStorage.setItem(`ptId:${roomId}`, data.myPtId);
+    localStorage.setItem(`ptId:${roomCode}`, data.myPtId);
     useRoomStore.getState().setMyPtId(data.myPtId);
   };
 
