@@ -22,7 +22,7 @@ export interface Pt {
   presence: "online" | "offline";
 
   /** 방 입장 시간 (ISO 8601 String) */
-  joinedAt: string;
+  createdAt: string;
 }
 
 /**
@@ -31,8 +31,8 @@ export interface Pt {
  * @event room:join
  */
 export interface JoinRoomPayload {
-  /** 입장하려는 방의 고유 ID */
-  roomId: string;
+  /** 입장하려는 방의 roomCode */
+  roomCode: string;
 
   /** * 기존 세션 복원을 위한 참가자 ID.
    * - 최초 입장 시: `undefined` (서버가 새로 생성)

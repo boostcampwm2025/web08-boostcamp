@@ -1,5 +1,12 @@
-import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  NotFoundException,
+  Post,
+} from '@nestjs/common';
 import { RoomService } from './room.service';
+import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 
 @Controller('api/room')
 export class RoomController {
@@ -12,5 +19,10 @@ export class RoomController {
       throw new NotFoundException({ exists: false });
     }
     return { exists: true };
+  }
+
+  @Post('quick')
+  async createQuickRoom(): Promise<CreateRoomResponseDto> {
+    return await this.roomService.createQuickRoom();
   }
 }
