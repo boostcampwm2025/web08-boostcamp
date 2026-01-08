@@ -2,6 +2,7 @@ import {
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
+  SOCKET_EVENTS,
 } from '@codejam/common';
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
@@ -185,5 +186,22 @@ export class CollaborationService {
   ) {
     const { roomId, ptId } = payload;
     await this.ptService.handlePtLeftByTTL(server, { roomId, ptId });
+  }
+
+  /**
+   * [Scheduler용] 방 만료 처리 로직
+   * - 방에 있는 유저들에게 만료 이벤트 전송
+   * - 소켓 연결 강제 종료
+   */
+  handleRoomExpired(server: Server, roomCode: string): void {
+    server.to(roomCode).emit(SOCKET_EVENTS.ROOM_EXPIRED, {
+      message: '방 유효 시간이 만료되어 종료되었습니다.',
+    });
+
+    server.in(roomCode).disconnectSockets(true);
+
+    this.logger.log(
+      `Room [${roomCode}] expired notification sent & sockets disconnected.`,
+    );
   }
 }
