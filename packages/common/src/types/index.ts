@@ -157,9 +157,6 @@ export interface RoomPtsPayload {
  * @event room:expired
  */
 export interface RoomExpiredPayload {
-  /** 만료된 방의 코드 */
-  roomCode: string;
-
   /** 사용자에게 보여줄 메시지 (Optional) */
   message?: string;
 }
