@@ -7,10 +7,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, LessThan, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
-import { Pt, PtRole } from '../pt/pt.entity';
+import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
+import { PtService } from '../pt/pt.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 import { RoomCreationOptions } from './room.interface';
-import { PtService } from '../pt/pt.service';
 
 /** 방의 생명 주기 관리 */
 
@@ -47,6 +47,15 @@ export class RoomService {
     return true;
   }
 
+  /**
+   * roomCode로 Room 엔티티 조회 (방 유효성 검사용)
+   */
+  async findRoomByCode(roomCode: string): Promise<Room | null> {
+    return this.roomRepository.findOne({
+      where: { roomCode: roomCode.toUpperCase() },
+    });
+  }
+
   async createQuickRoom(): Promise<CreateRoomResponseDto> {
     const options: RoomCreationOptions = {
       hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
@@ -81,9 +90,9 @@ export class RoomService {
         room: savedRoom,
         ptHash: this.ptService.generatePtHash(),
         role: PtRole.HOST,
-        code: '0000',
         nickname: 'Host',
         color: '#E0E0E0',
+        presence: PtPresence.ONLINE,
       });
 
       const savedPt = await queryRunner.manager.save(hostPt);

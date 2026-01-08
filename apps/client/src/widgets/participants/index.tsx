@@ -3,20 +3,20 @@ import { Participant } from "./Participant";
 import { sorter } from "./sorter";
 import { usePtsStore } from "@/stores/pts";
 import { checkHost } from "@/shared/api/room";
-import { useParams } from "react-router-dom";
 import { ptStorage } from "@/shared/lib/storage";
+import { useRoomJoin } from "@/shared/lib/hooks/useRoomJoin";
 
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
-  const { roomCode } = useParams();
-  const myPtId = ptStorage.myId(roomCode);
+  const { paramCode } = useRoomJoin();
+  const myPtId = ptStorage.myId(paramCode);
   const sorted = useMemo(() => Object.values(pts).sort(sorter), [pts]);
   const [ hasPermission, setHasPermission ] = useState(false);
   const count = sorted.length;
 
   useEffect(() => {
     const localPermission = async () => {
-      const permission = await checkHost(roomCode || "", myPtId || "");
+      const permission = await checkHost(paramCode || "", myPtId || "");
       setHasPermission(permission);
     };
 

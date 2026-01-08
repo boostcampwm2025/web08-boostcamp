@@ -2,22 +2,30 @@ import { CodeEditor } from "@/widgets/code-editor";
 import { Header } from "@/widgets/header";
 import { Participants } from "@/widgets/participants";
 import { useSocket } from "@/shared/lib/hooks/useSocket";
+import { useRoomJoin } from "@/shared/lib/hooks/useRoomJoin";
 import { useRoomStore } from "@/stores/room";
 import { usePt } from "@/stores/pts";
-import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { ptStorage } from "@/shared/lib/storage";
+import { NicknameInputDialog } from "@/widgets/nickname-input";
 
 function RoomPage() {
   // Initialize socket connection
-  const { roomCode } = useParams();
   const { setMyPtId, setRoomCode } = useRoomStore();
 
-  useSocket(roomCode || "");
+  const {
+    paramCode,
+    isNicknameDialogOpen,
+    setIsNicknameDialogOpen,
+    roomError,
+    handleNicknameConfirm,
+  } = useRoomJoin();
+
+  useSocket(paramCode || "");
   useEffect(() => {
-    setRoomCode(roomCode || "");
-    setMyPtId(ptStorage.myId(roomCode) || "");
-  }, [roomCode, setMyPtId, setRoomCode]);
+    setRoomCode(paramCode || "");
+    setMyPtId(ptStorage.myId(paramCode) || "");
+  }, [paramCode, setMyPtId, setRoomCode]);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || "");
@@ -26,18 +34,26 @@ function RoomPage() {
   return (
     <div className="flex flex-col h-screen">
       <Header />
+      {roomError && (
+        <div className="bg-red-500 text-white p-4 text-center">{roomError}</div>
+      )}
       <main className="flex-1 overflow-hidden flex">
         <div className="border-r h-full overflow-y-auto scrollbar-thin">
           <Participants />
         </div>
         <div className="flex-1 h-full">
           <CodeEditor
-            fileId="prototype"
+            fileId={paramCode || "prototype"}
             language="javascript"
             readOnly={isViewer}
           />
         </div>
       </main>
+      <NicknameInputDialog
+        open={isNicknameDialogOpen}
+        onOpenChange={setIsNicknameDialogOpen}
+        onConfirm={handleNicknameConfirm}
+      />
     </div>
   );
 }

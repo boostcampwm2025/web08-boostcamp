@@ -1,6 +1,7 @@
 export interface Pt {
   ptId: string;
   nickname: string;
+  ptHash: string;
   role: "host" | "editor" | "viewer";
   color: string;
   presence: "online" | "offline";
