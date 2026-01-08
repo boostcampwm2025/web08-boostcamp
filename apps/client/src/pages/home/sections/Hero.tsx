@@ -2,7 +2,7 @@ import logoAnimation from "@/assets/logo_animation.svg";
 
 export function Hero() {
   return (
-    <div className="text-center mb-14 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="text-center my-14 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="inline-flex flex-col items-center gap-4 mb-6">
         <img src={logoAnimation} alt="CodeJam Logo" className="h-16 w-16" />
         <div className="flex items-center gap-2 font-mono">

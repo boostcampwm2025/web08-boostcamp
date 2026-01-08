@@ -13,7 +13,7 @@ interface ActionCardProps {
   title: string;
   description: string;
   colorKey: string;
-  onClick?: () => void;
+  children?: React.ReactNode;
 }
 
 export function ActionCard({
@@ -21,16 +21,13 @@ export function ActionCard({
   title,
   description,
   colorKey,
-  onClick,
+  children,
 }: ActionCardProps) {
   const colors = cardColorSchemes[colorKey];
 
   return (
-    <Card
-      className={`cursor-pointer bg-gray-50 border-gray-200 ${colors.hoverCardBg} ${colors.hoverBorderColor} hover:shadow-sm transition-all duration-150 shadow-none`}
-      onClick={onClick}
-    >
-      <CardHeader className="pb-4">
+    <Card className="bg-gray-50 border-gray-200 shadow-none">
+      <CardHeader className="pb-4 flex flex-col items-center text-center">
         <div
           className={`${colors.iconBg} border ${colors.borderColor} w-12 h-12 mb-2 rounded-sm flex items-center justify-center`}
         >
@@ -41,7 +38,9 @@ export function ActionCard({
           {description}
         </CardDescription>
       </CardHeader>
-      <CardContent />
+      <CardContent className="flex flex-col items-center justify-center">
+        {children}
+      </CardContent>
     </Card>
   );
 }
