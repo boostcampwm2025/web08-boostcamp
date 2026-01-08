@@ -35,6 +35,15 @@ export class RoomService {
     return count > 0;
   }
 
+  /**
+   * roomCode로 Room 엔티티 조회 (방 유효성 검사용)
+   */
+  async findRoomByCode(roomCode: string): Promise<Room | null> {
+    return this.roomRepository.findOne({
+      where: { roomCode: roomCode.toUpperCase() },
+    });
+  }
+
   async createQuickRoom(): Promise<CreateRoomResponseDto> {
     const options: RoomCreationOptions = {
       hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
