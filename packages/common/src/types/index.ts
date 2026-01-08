@@ -13,13 +13,13 @@ export interface Pt {
   /** * 참가자의 권한 역할
    * @note 'host'는 현재 사용하지 않음 (확장성 고려)
    */
-  role: "host" | "editor" | "viewer";
+  role: 'host' | 'editor' | 'viewer';
 
   /** 사용자 식별용 색상 코드 (HEX 등) */
   color: string;
 
   /** 현재 접속 상태 */
-  presence: "online" | "offline";
+  presence: 'online' | 'offline';
 
   /** 방 입장 시간 (ISO 8601 String) */
   createdAt: string;
@@ -149,4 +149,17 @@ export interface RoomPtsPayload {
 
   /** 현재 방에 존재하는 모든 참가자(Pt) 목록 */
   pts: Pt[];
+}
+
+/**
+ * 방이 만료되어 삭제될 때(`room:expired`) 전송되는 페이로드.
+ * @direction Server -> Client (Broadcast)
+ * @event room:expired
+ */
+export interface RoomExpiredPayload {
+  /** 만료된 방의 코드 */
+  roomCode: string;
+
+  /** 사용자에게 보여줄 메시지 (Optional) */
+  message?: string;
 }
