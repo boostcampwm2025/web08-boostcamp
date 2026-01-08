@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useSocketStore } from "@/stores/socket";
 import { useFileStore } from "@/stores/file";
 
-export const useSocket = (roomId: string) => {
+export const useSocket = (roomCode: string) => {
   const connect = useSocketStore((state) => state.connect);
   const disconnect = useSocketStore((state) => state.disconnect);
   const isConnected = useSocketStore((state) => state.isConnected);
@@ -13,21 +13,21 @@ export const useSocket = (roomId: string) => {
 
   // Connect socket and cleanup on unmount
   useEffect(() => {
-    connect(roomId);
+    connect(roomCode);
     return () => disconnect();
-  }, [roomId, connect, disconnect]);
+  }, [roomCode, connect, disconnect]);
 
   // Initialize files after socket connection
   useEffect(() => {
     if (isConnected && !isInitialized) {
-      initialize(roomId);
+      initialize(roomCode);
     }
     return () => {
       if (isInitialized) {
         destroy();
       }
     };
-  }, [roomId, isConnected, isInitialized, initialize, destroy]);
+  }, [roomCode, isConnected, isInitialized, initialize, destroy]);
 
   return {
     isConnected,
