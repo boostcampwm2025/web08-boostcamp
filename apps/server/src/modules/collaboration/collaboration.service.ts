@@ -4,6 +4,7 @@ import {
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type Pt,
+  PtUpdateRolePayload,
 } from '@codejam/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
@@ -109,6 +110,28 @@ export class CollaborationService {
     });
   }
 
+  /** 참가자 권한 업데이트 */
+  async handleUpdatePtRole(
+    server: Server,
+    payload: PtUpdateRolePayload,
+  ): Promise<void> {
+    const { roomCode, ptId, role } = payload;
+
+    await this.ptService.updatePtRole(
+      server,
+      roomCode,
+      ptId,
+      role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
+    );
+
+    const pt = await this.ptService.getPt(roomCode, ptId);
+    if (!pt) {
+      return;
+    }
+
+    this.notifyUpdatePt(server, roomCode, pt);
+  }
+
   /** 참가자 조회 또는 생성 */
   private async findOrCreateParticipant(
     roomCode: string,
@@ -147,6 +170,11 @@ export class CollaborationService {
     // 본인에게: 현재 방의 모든 참가자 목록 전달
     const pts = await this.ptService.getAllPts(roomCode);
     client.emit(SOCKET_EVENTS.ROOM_PTS, { pts });
+  }
+
+  /** 참가자 정보 업데이트 데이터 전송 */
+  private notifyUpdatePt(server: Server, roomCode: string, pt: Pt): void {
+    server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt });
   }
 
   /** 방 문서(Y.Doc) 및 기본 파일 준비 */
