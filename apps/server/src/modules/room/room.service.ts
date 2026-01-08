@@ -114,8 +114,7 @@ export class RoomService {
   }
 
   protected generateRoomCode(roomCodeLength = 6): string {
-    const alphabet =
-      '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const nanoid = customAlphabet(alphabet, roomCodeLength);
     return nanoid();
   }
@@ -125,7 +124,7 @@ export class RoomService {
    */
   async findRoomIdByCode(roomCode: string): Promise<number | null> {
     const room = await this.roomRepository.findOne({
-      where: { code: roomCode },
+      where: { roomCode },
       select: ['roomId'],
     });
     return room?.roomId ?? null;

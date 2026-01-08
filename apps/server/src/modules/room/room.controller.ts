@@ -2,13 +2,14 @@ import {
   Controller,
   Get,
   Param,
-  NotFoundException,
   Post,
+  Redirect,
+  NotFoundException,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 
-@Controller('api/room')
+@Controller('api/rooms')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
@@ -19,6 +20,16 @@ export class RoomController {
       throw new NotFoundException({ exists: false });
     }
     return { exists: true };
+  }
+
+  @Get(':roomCode/join')
+  @Redirect()
+  async redirectToRoom(@Param('roomCode') roomCode: string) {
+    const exists = await this.roomService.roomExists(roomCode);
+    if (!exists) throw new NotFoundException();
+
+    const redirectUrl = `/rooms/${roomCode}`;
+    return { url: redirectUrl };
   }
 
   @Post('quick')

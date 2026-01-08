@@ -3,6 +3,7 @@ import { Users, Hash } from "lucide-react";
 import { ActionCard } from "../cards/ActionCard";
 import { RoomCodeInput, ROOM_CODE_LENGTH } from "../components/RoomCodeInput";
 import { Button } from "@/shared/ui/button";
+import { createQuickRoom, joinRoom } from "@/shared/api/room";
 
 interface ErrorMessageProps {
   message: string;
@@ -10,8 +11,12 @@ interface ErrorMessageProps {
 
 function ErrorMessage({ message }: ErrorMessageProps) {
   return (
-    <div className="h-5 -mt-2">
-      {message && <p className="text-sm text-red-500 text-center">{message}</p>}
+    <div className="min-h-5 -mt-2 w-full">
+      {message && (
+        <p className="font-mono text-sm text-red-500 text-center wrap-break-words">
+          {message}
+        </p>
+      )}
     </div>
   );
 }
@@ -20,18 +25,50 @@ export function ActionCards() {
   const [roomCode, setRoomCode] = useState<string[]>(
     Array(ROOM_CODE_LENGTH).fill("")
   );
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [quickStartError, setQuickStartError] = useState<string>("");
+  const [joinRoomError, setJoinRoomError] = useState<string>("");
+  const [isQuickStartLoading, setIsQuickStartLoading] = useState<boolean>(false);
+  const [isJoinRoomLoading, setIsJoinRoomLoading] = useState<boolean>(false);
 
-  const handleQuickStart = () => {
-    console.log("Quick Start clicked");
-    // Add your room creation logic here
+  const handleQuickStart = async () => {
+    if (isQuickStartLoading) return;
+
+    setIsQuickStartLoading(true);
+    setQuickStartError("");
+
+    try {
+      const { roomCode, myPtId } = await createQuickRoom();
+
+      // Save PT ID first
+      const key = `ptId:${roomCode}`;
+      localStorage.setItem(key, myPtId);
+
+      // Then join the room
+      await joinRoom(roomCode);
+    } catch (e) {
+      const error = e as Error;
+      setQuickStartError(error.message);
+    } finally {
+      setIsQuickStartLoading(false);
+    }
   };
 
-  const handleJoinRoom = () => {
+  const handleJoinRoom = async () => {
     const code = roomCode.join("");
     if (code.length !== ROOM_CODE_LENGTH) return;
+    if (isJoinRoomLoading) return;
 
-    // Add your room join logic here
+    setIsJoinRoomLoading(true);
+    setJoinRoomError("");
+
+    try {
+      await joinRoom(code);
+    } catch (e) {
+      const error = e as Error;
+      setJoinRoomError(error.message);
+    } finally {
+      setIsJoinRoomLoading(false);
+    }
   };
 
   return (
@@ -43,12 +80,16 @@ export function ActionCards() {
           description="새로운 협업 공간을 생성하고 팀원들을 초대하세요"
           colorKey="blue"
         >
-          <Button
-            onClick={handleQuickStart}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer"
-          >
-            Quick Start
-          </Button>
+          <div className="flex flex-col items-center gap-4 w-full">
+            <Button
+              onClick={handleQuickStart}
+              disabled={isQuickStartLoading}
+              className={`w-full ${quickStartError ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400`}
+            >
+              {isQuickStartLoading ? "Loading..." : "Quick Start"}
+            </Button>
+            <ErrorMessage message={quickStartError} />
+          </div>
         </ActionCard>
 
         <ActionCard
@@ -61,16 +102,16 @@ export function ActionCards() {
             <RoomCodeInput
               value={roomCode}
               onChange={setRoomCode}
-              hasError={!!errorMessage}
+              hasError={!!joinRoomError}
               onSubmit={handleJoinRoom}
             />
-            <ErrorMessage message={errorMessage} />
+            <ErrorMessage message={joinRoomError} />
             <Button
               onClick={handleJoinRoom}
-              disabled={roomCode.some((digit) => digit === "")}
+              disabled={roomCode.some((digit) => digit === "") || isJoinRoomLoading}
               className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
             >
-              입장하기
+              {isJoinRoomLoading ? "입장 중..." : "입장하기"}
             </Button>
           </div>
         </ActionCard>
