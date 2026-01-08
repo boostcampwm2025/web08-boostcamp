@@ -125,7 +125,7 @@ export class RoomService {
    */
   async findRoomIdByCode(roomCode: string): Promise<number | null> {
     const room = await this.roomRepository.findOne({
-      where: { code: roomCode },
+      where: { roomCode },
       select: ['roomId'],
     });
     return room?.roomId ?? null;
