@@ -212,9 +212,12 @@ export class PtService {
     server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, updatePayload);
   }
 
-  /** 참가자 해시 생성 (숫자 4자리) */
-  private generatePtHash(): string {
-    const nanoid = customAlphabet('0123456789', PT_HASH_LENGTH);
+  /** 참가자 해시 생성 (혼동 방지 사전 사용, 4자리) */
+  generatePtHash(): string {
+    const nanoid = customAlphabet(
+      '23456789ABCDEFGHJKLMNPQRSTUVWXYZ',
+      PT_HASH_LENGTH,
+    );
     return nanoid();
   }
 
