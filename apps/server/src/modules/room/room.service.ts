@@ -7,7 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
-import { Pt, PtRole } from '../pt/pt.entity';
+import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
+import { PtService } from '../pt/pt.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 import { RoomCreationOptions } from './room.interface';
 
@@ -21,6 +22,7 @@ export class RoomService {
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
     private dataSource: DataSource,
+    private ptService: PtService,
   ) {}
 
   /**
@@ -62,11 +64,12 @@ export class RoomService {
       const savedRoom = await queryRunner.manager.save(newRoom);
 
       const hostPt = queryRunner.manager.create(Pt, {
-        roomId: savedRoom.roomId,
+        roomCode: savedRoom.roomCode,
+        ptHash: this.ptService.generatePtHash(),
         role: PtRole.HOST,
-        code: '0000',
         nickname: 'Host',
         color: '#E0E0E0',
+        presence: PtPresence.ONLINE,
       });
 
       const savedPt = await queryRunner.manager.save(hostPt);
