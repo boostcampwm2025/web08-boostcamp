@@ -42,7 +42,7 @@ export class Pt {
   roomId: number;
 
   @ManyToOne(() => Room, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'roomId' })
+  @JoinColumn({ name: 'room_id' })
   room: Room;
 
   @Column({

@@ -3,19 +3,23 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RoomModule } from './modules/room/room.module';
 import { CollaborationModule } from './modules/collaboration/collaboration.module';
 import { FileModule } from './modules/file/file.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { RedisModule } from './config/redis.module';
-import * as Joi from 'joi';
+import { validationSchema } from './config/env.validation';
+import { config as databaseConfig } from './config/database.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validationSchema: Joi.object({
-        PORT: Joi.number().default(3000),
-        REDIS_HOST: Joi.string().required(),
-        REDIS_PORT: Joi.number().required(),
-      }),
+      validationSchema,
+      load: [databaseConfig],
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService): TypeOrmModuleOptions =>
+        configService.get<TypeOrmModuleOptions>('database')!,
     }),
     RedisModule,
     AuthModule,

@@ -33,7 +33,7 @@ export class Room {
   roomId: number;
 
   @Column({ type: 'varchar', unique: true })
-  code: string;
+  roomCode: string;
 
   @Column({ type: 'varchar', nullable: true })
   roomPassword: string | null;

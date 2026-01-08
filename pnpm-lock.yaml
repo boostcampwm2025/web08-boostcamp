@@ -178,6 +178,9 @@ importers:
       lib0:
         specifier: ^0.2.115
         version: 0.2.115
+      nanoid:
+        specifier: ^5.1.6
+        version: 5.1.6
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -193,6 +196,9 @@ importers:
       typeorm:
         specifier: ^0.3.28
         version: 0.3.28(ioredis@5.8.2)(pg@8.16.3)(ts-node@10.9.2(@types/node@22.19.3)(typescript@5.9.3))
+      typeorm-naming-strategies:
+        specifier: ^4.1.0
+        version: 4.1.0(typeorm@0.3.28(ioredis@5.8.2)(pg@8.16.3)(ts-node@10.9.2(@types/node@22.19.3)(typescript@5.9.3)))
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
@@ -228,7 +234,7 @@ importers:
         specifier: ^30.0.0
         version: 30.0.0
       '@types/node':
-        specifier: ^22.10.7
+        specifier: ^22.19.3
         version: 22.19.3
       '@types/supertest':
         specifier: ^6.0.2
@@ -3436,6 +3442,11 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nanoid@5.1.6:
+    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
+
   napi-postinstall@0.3.4:
     resolution: {integrity: sha512-PHI5f1O0EP5xJ9gQmFGMS6IZcrVvTjpXjz7Na41gTE7eE2hK11lg04CECCYEEjdc17EV4DO+fkGEtt7TpTaTiQ==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
@@ -4232,6 +4243,11 @@ packages:
 
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
+
+  typeorm-naming-strategies@4.1.0:
+    resolution: {integrity: sha512-vPekJXzZOTZrdDvTl1YoM+w+sUIfQHG4kZTpbFYoTsufyv9NIBRe4Q+PdzhEAFA2std3D9LZHEb1EjE9zhRpiQ==}
+    peerDependencies:
+      typeorm: ^0.2.0 || ^0.3.0
 
   typeorm@0.3.28:
     resolution: {integrity: sha512-6GH7wXhtfq2D33ZuRXYwIsl/qM5685WZcODZb7noOOcRMteM9KF2x2ap3H0EBjnSV0VO4gNAfJT5Ukp0PkOlvg==}
@@ -8026,6 +8042,8 @@ snapshots:
 
   nanoid@3.3.11: {}
 
+  nanoid@5.1.6: {}
+
   napi-postinstall@0.3.4: {}
 
   natural-compare@1.4.0: {}
@@ -8829,6 +8847,10 @@ snapshots:
       is-typed-array: 1.1.15
 
   typedarray@0.0.6: {}
+
+  typeorm-naming-strategies@4.1.0(typeorm@0.3.28(ioredis@5.8.2)(pg@8.16.3)(ts-node@10.9.2(@types/node@22.19.3)(typescript@5.9.3))):
+    dependencies:
+      typeorm: 0.3.28(ioredis@5.8.2)(pg@8.16.3)(ts-node@10.9.2(@types/node@22.19.3)(typescript@5.9.3))
 
   typeorm@0.3.28(ioredis@5.8.2)(pg@8.16.3)(ts-node@10.9.2(@types/node@22.19.3)(typescript@5.9.3)):
     dependencies:
