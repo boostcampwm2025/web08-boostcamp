@@ -90,4 +90,11 @@ export class CollaborationGateway
       payload,
     );
   }
+
+  /**
+   * [Scheduler용]
+   */
+  notifyAndDisconnectRoom(roomCode: string) {
+    this.collaborationService.handleRoomExpired(this.server, roomCode);
+  }
 }

@@ -12,3 +12,6 @@ build
 .env.*.local
 
 .turbo
+
+# Test
+coverage

@@ -8,6 +8,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { RedisModule } from './config/redis.module';
 import { validationSchema } from './config/env.validation';
 import { config as databaseConfig } from './config/database.config';
+import { CleanupModule } from './modules/cleanup/cleanup.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { config as databaseConfig } from './config/database.config';
     RoomModule,
     CollaborationModule,
     FileModule,
+    CleanupModule,
   ],
 })
 export class AppModule {}
