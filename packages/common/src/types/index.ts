@@ -16,7 +16,8 @@ export interface Pt {
  */
 export interface JoinRoomPayload {
   roomCode: string;
-  ptId?: string; // 재접속 시 전달
+  ptId?: string;
+  nickname?: string;
 }
 
 /**
