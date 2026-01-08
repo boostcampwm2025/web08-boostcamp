@@ -281,6 +281,7 @@ export class PtService {
     return {
       ptId: entity.ptId,
       nickname: entity.nickname,
+      ptHash: entity.ptHash,
       color: entity.color,
       role: entity.role,
       presence: entity.presence,
