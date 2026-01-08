@@ -4,7 +4,7 @@ import {
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
 } from '@codejam/common';
-import { OnModuleInit } from '@nestjs/common';
+import { OnModuleInit, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -17,6 +17,7 @@ import {
 import { Server } from 'socket.io';
 import { CollaborationService } from './collaboration.service';
 import type { CollabSocket } from './collaboration.types';
+import { PermissionGuard } from './guards/permission.guard';
 
 @WebSocketGateway({
   cors: {
@@ -44,7 +45,7 @@ export class CollaborationGateway
   // ==================================================================
 
   handleConnection(client: CollabSocket) {
-    this.collaborationService.handleConnection(client, this.server);
+    this.collaborationService.handleConnection(client);
   }
 
   async handleDisconnect(client: CollabSocket) {
@@ -73,6 +74,7 @@ export class CollaborationGateway
     this.collaborationService.handleRequestAwareness(client, this.server);
   }
 
+  @UseGuards(PermissionGuard)
   @SubscribeMessage(SOCKET_EVENTS.UPDATE_FILE)
   handleFileUpdate(
     @ConnectedSocket() client: CollabSocket,
@@ -81,6 +83,7 @@ export class CollaborationGateway
     this.collaborationService.handleFileUpdate(client, this.server, payload);
   }
 
+  @UseGuards(PermissionGuard)
   @SubscribeMessage(SOCKET_EVENTS.UPDATE_AWARENESS)
   handleAwarenessUpdate(
     @ConnectedSocket() client: CollabSocket,

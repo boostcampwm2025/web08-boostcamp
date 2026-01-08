@@ -5,17 +5,24 @@ import {
   PtUpdatePayload,
 } from '@codejam/common';
 import { Injectable, Inject, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Redis } from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
 import { randomBytes } from 'crypto';
 import { Server } from 'socket.io';
 import { CollabSocket } from '../collaboration/collaboration.types';
+import { Pt as PtEntity, PtRole } from './pt.entity';
 
 @Injectable()
 export class PtService {
   private readonly logger = new Logger(PtService.name);
 
-  constructor(@Inject('REDIS_CLIENT') private redis: Redis) {}
+  constructor(
+    @Inject('REDIS_CLIENT') private redis: Redis,
+    @InjectRepository(PtEntity)
+    private ptRepository: Repository<PtEntity>,
+  ) {}
 
   private readonly colors = [
     '#ef4444',
@@ -30,7 +37,7 @@ export class PtService {
   // Handle Methods
   // ==================================================================
 
-  handleConnection(client: CollabSocket, server: Server) {
+  handleConnection(client: CollabSocket) {
     this.logger.log(`Client connected: ${client.id}`);
   }
 
@@ -52,29 +59,28 @@ export class PtService {
     server: Server,
     payload: JoinRoomPayload,
   ) {
-    const { roomId } = payload;
-    const ptId = (payload as any).ptId;
+    const { roomCode, ptId } = payload;
 
     let pt: Pt | null = null;
 
     // Try to restore if ptId is provided
     if (ptId) {
-      pt = await this.restorePt(roomId, ptId);
+      pt = await this.restorePt(roomCode, ptId);
     }
 
     // Create new if not found
     if (!pt) {
-      pt = await this.createPt(roomId);
+      pt = await this.createPt(roomCode);
     }
 
-    await client.join(roomId);
+    await client.join(roomCode);
     client.emit(SOCKET_EVENTS.WELCOME, { myPtId: pt.ptId });
-    client.to(roomId).emit(SOCKET_EVENTS.PT_JOINED, { pt });
+    client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });
 
-    const pts = await this.getAllPts(roomId);
-    client.emit(SOCKET_EVENTS.ROOM_PTS, { roomId, pts });
+    const pts = await this.getAllPts(roomCode);
+    client.emit(SOCKET_EVENTS.ROOM_PTS, { roomCode, pts });
 
-    return { pt, roomId };
+    return { pt, roomCode };
   }
 
   async handlePtLeftByTTL(
@@ -111,7 +117,7 @@ export class PtService {
       color,
       role,
       presence: 'online',
-      joinedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
 
     await this.redis.set(`room:${roomId}:pt:${ptId}`, JSON.stringify(pt));
@@ -171,9 +177,12 @@ export class PtService {
     if (!keys.length) return [];
 
     const values = await this.redis.mget(keys);
-    const pts = values.filter(Boolean).map((v) => JSON.parse(v!));
+    const pts = values.filter(Boolean).map((v) => JSON.parse(v!) as Pt);
 
-    return pts.sort((a, b) => a.joinedAt.localeCompare(b.joinedAt));
+    return pts.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
   }
 
   private generateRandomNickname(length: number = 10): string {
@@ -225,5 +234,64 @@ export class PtService {
         server.to(roomId).emit(SOCKET_EVENTS.UPDATE_PT, updatePayload);
       }
     }
+  }
+
+  // ==================================================================
+  // 권한 검증 (Redis + DB Look-aside)
+  // ==================================================================
+
+  /**
+   * 사용자의 권한을 조회합니다 (Redis 캐시 우선, Cache Miss 시 DB 조회)
+   * @param roomId 방 ID
+   * @param ptId 참가자 ID
+   * @returns 권한 (PtRole) 또는 null (사용자 없음)
+   */
+  async getUserRole(roomId: number, ptId: string): Promise<PtRole | null> {
+    const cacheKey = `room:${roomId}:pt:${ptId}:role`;
+
+    // 1️⃣ Redis 캐시 조회
+    const cachedRole = await this.redis.get(cacheKey);
+    if (cachedRole) {
+      this.logger.debug(`[Cache HIT] ${cacheKey} = ${cachedRole}`);
+      return cachedRole as PtRole;
+    }
+
+    // 2️⃣ DB 조회 (Cache Miss)
+    this.logger.debug(`[Cache MISS] ${cacheKey}, querying DB...`);
+    const pt = await this.ptRepository.findOne({
+      where: { roomId, ptId },
+      select: ['role'],
+    });
+
+    if (!pt) {
+      this.logger.warn(`Pt not found: roomId=${roomId}, ptId=${ptId}`);
+      return null;
+    }
+
+    // 3️⃣ Redis 캐싱 (TTL 5분)
+    await this.redis.set(cacheKey, pt.role, 'EX', 300);
+    this.logger.debug(`[Cache SET] ${cacheKey} = ${pt.role} (TTL 300s)`);
+
+    return pt.role;
+  }
+
+  /**
+   * 권한 변경 시 캐시 무효화
+   * @param roomId 방 ID
+   * @param ptId 참가자 ID
+   * @param newRole 새로운 권한
+   */
+  async updatePtRole(
+    roomId: number,
+    ptId: string,
+    newRole: PtRole,
+  ): Promise<void> {
+    // 1. DB 업데이트
+    await this.ptRepository.update({ roomId, ptId }, { role: newRole });
+
+    // 2. Redis 캐시 삭제 (중요!)
+    const cacheKey = `room:${roomId}:pt:${ptId}:role`;
+    await this.redis.del(cacheKey);
+    this.logger.log(`[Cache INVALIDATE] ${cacheKey}`);
   }
 }

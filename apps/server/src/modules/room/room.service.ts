@@ -21,4 +21,15 @@ export class RoomService {
     const keys = await this.redis.keys(`room:${roomId}:*`);
     return keys.length > 0;
   }
+
+  /**
+   * Room code로 Room ID 조회
+   */
+  async findRoomIdByCode(roomCode: string): Promise<number | null> {
+    const room = await this.roomRepository.findOne({
+      where: { code: roomCode },
+      select: ['roomId'],
+    });
+    return room?.roomId ?? null;
+  }
 }

@@ -6,6 +6,8 @@ export type CollabSocket = Socket<
   DefaultEventsMap,
   {
     clientId?: number;
-    roomId?: string;
+    roomId?: number;
+    roomCode?: string;
+    ptId?: string;
   }
 >;
