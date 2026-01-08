@@ -11,6 +11,16 @@ export interface ParticipantProps {
 }
 
 /**
+ * 권한을 수정할 수 있는지 확인하는 타입 
+ */
+export interface PermissionPtProps {
+  /**
+   * 수정할 수 있는 권한인지 확인
+   */
+  hasPermission: boolean;
+}
+
+/**
  * 역할별 텍스트 색상 매핑
  */
 export const ROLE_TEXT_COLORS: Record<Pt["role"], string> = {
