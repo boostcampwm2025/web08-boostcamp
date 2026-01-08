@@ -3,6 +3,7 @@ import {
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
+  type PtUpdateRolePayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -18,6 +19,7 @@ import { Server } from 'socket.io';
 import { CollaborationService } from './collaboration.service';
 import type { CollabSocket } from './collaboration.types';
 import { PermissionGuard } from './guards/permission.guard';
+import { HostGuard } from './guards/host.guard';
 
 @WebSocketGateway({
   cors: {
@@ -89,5 +91,12 @@ export class CollaborationGateway
       this.server,
       payload,
     );
+  }
+
+  /** C -> S PtRole 업데이트 */
+  @UseGuards(HostGuard)
+  @SubscribeMessage(SOCKET_EVENTS.UPDATE_PT)
+  async handlePtUpdate(@MessageBody() payload: PtUpdateRolePayload) {
+    await this.collaborationService.handleUpdatePtRole(this.server, payload);
   }
 }
