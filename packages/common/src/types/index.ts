@@ -1,6 +1,7 @@
 export interface Pt {
   ptId: string;
   nickname: string;
+  ptHash: string;
   role: "host" | "editor" | "viewer";
   color: string;
   presence: "online" | "offline";
@@ -14,6 +15,60 @@ export interface JoinRoomPayload {
   nickname?: string;
 }
 
+/**
+ * 환영 메시지
+ * Server -> Client
+ */
+export interface WelcomePayload {
+  myPtId: string;
+}
+
+/**
+ * 참가자 목록
+ * Server -> Client
+ */
+export interface RoomPtsPayload {
+  pts: Pt[];
+}
+
+/**
+ * 문서 상태
+ * Server -> Client
+ */
+export interface RoomDocPayload {
+  message: Uint8Array;
+}
+
+/**
+ * Awareness 상태
+ * Server -> Client
+ */
+export interface RoomAwarenessPayload {
+  message: Uint8Array;
+}
+
+/**
+ * 참가자 정보 업데이트
+ * Server -> Client (Broadcast)
+ */
+export interface PtUpdatePayload {
+  pt: Pt;
+}
+
+/**
+ * 참가자 권한 업데이트
+ * Client -> Server
+ */
+export interface PtUpdateRolePayload {
+  roomCode: string;
+  ptId: string;
+  role: "editor" | "viewer";
+}
+
+/**
+ * 파일 변경
+ * Client <-> Server
+ */
 /** 파일 내용 변경 (C -> S) */
 export interface FileUpdatePayload {
   message: Uint8Array;

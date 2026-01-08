@@ -26,6 +26,8 @@ import {
   Moon,
 } from "lucide-react";
 
+const roomId = "PROTOTYPE";
+
 export default function Header() {
   const roomCode = useRoomStore((state) => state.roomCode);
 
@@ -39,7 +41,7 @@ export default function Header() {
 
   const copyRoomCode = async () => {
     try {
-      await navigator.clipboard.writeText(roomCode ?? "");
+      await navigator.clipboard.writeText(roomCode || "");
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
@@ -70,7 +72,7 @@ export default function Header() {
           ROOM ID
         </span>
         <div className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-md bg-secondary/50">
-          <span className="font-mono text-sm font-semibold">{roomCode}</span>
+          <span className="font-mono text-sm font-semibold">{roomId}</span>
           <Button
             variant="ghost"
             size="icon"

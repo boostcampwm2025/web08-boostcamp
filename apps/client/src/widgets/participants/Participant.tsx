@@ -1,15 +1,34 @@
 import { memo } from "react";
 import { usePt } from "@/stores/pts";
-import { ParticipantAvatar, ParticipantMenu } from "./ui";
+import { ParticipantAvatar } from "./ui";
 import { ParticipantInfo } from "./ParticipantInfo";
-import type { ParticipantProps } from "./types";
+import type { ParticipantProps, PermissionPtProps } from "./types";
+import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
+import { useRoomStore } from "@/stores/room";
+import { MenuButton } from "@/shared/ui";
+import { useSocketStore } from "@/stores/socket";
+import { SOCKET_EVENTS } from "@codejam/common";
 
-export const Participant = memo(({ ptId }: ParticipantProps) => {
+export const Participant = memo(({ ptId, hasPermission = false }: ParticipantProps & PermissionPtProps) => {
   const pt = usePt(ptId);
+  const { myPtId, roomCode } = useRoomStore();
+  const { socket } = useSocketStore();
   if (!pt) return null;
 
   const isOnline = pt.presence === "online";
   const opacity = isOnline ? "opacity-100" : "opacity-40";
+
+  const handleClick = () => {
+    if (!socket || !socket.connected) {
+      return;
+    }
+
+    socket.emit(SOCKET_EVENTS.UPDATE_PT, {
+      roomCode,
+      ptId: pt.ptId,
+      role: pt.role === "editor" ? "viewer" : "editor",
+    });
+  };
 
   return (
     <div
@@ -20,7 +39,23 @@ export const Participant = memo(({ ptId }: ParticipantProps) => {
         <ParticipantAvatar ptId={ptId} />
         <ParticipantInfo ptId={ptId} />
       </div>
-      <ParticipantMenu />
+      { 
+        hasPermission && pt.ptId !== myPtId &&
+        <Popover>
+          <PopoverTrigger>
+            <div className="outline-none bg-transparent border-none">
+              <svg width="16px" height="16px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+              </svg>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="z-50">
+            <div className="flex p-4 bg-background rounded-md border">
+              <MenuButton label={pt.role === "editor" ? "Convert Viewer" : "Convert Editor"} onClick={handleClick} /> 
+            </div>
+          </PopoverContent>
+        </Popover>
+      }
     </div>
   );
 });

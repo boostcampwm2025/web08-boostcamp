@@ -7,7 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, LessThan, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
-import { Pt, PtRole } from '../pt/pt.entity';
+import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
+import { PtService } from '../pt/pt.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 import { RoomCreationOptions } from './room.interface';
 
@@ -20,6 +21,7 @@ export class RoomService {
   constructor(
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
+    private ptService: PtService,
     private dataSource: DataSource,
   ) {}
 
@@ -31,6 +33,27 @@ export class RoomService {
       where: { roomCode },
     });
     return count > 0;
+  }
+
+  /**
+   * 해당 방의 호스트인지 확인
+   */
+  async checkHost(roomCode: string, ptId: string): Promise<boolean> {
+    const role = await this.ptService.checkRole(roomCode, ptId);
+    if (!role || role !== PtRole.HOST) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * roomCode로 Room 엔티티 조회 (방 유효성 검사용)
+   */
+  async findRoomByCode(roomCode: string): Promise<Room | null> {
+    return this.roomRepository.findOne({
+      where: { roomCode: roomCode.toUpperCase() },
+    });
   }
 
   async createQuickRoom(): Promise<CreateRoomResponseDto> {
@@ -64,11 +87,12 @@ export class RoomService {
       const savedRoom = await queryRunner.manager.save(newRoom);
 
       const hostPt = queryRunner.manager.create(Pt, {
-        roomId: savedRoom.roomId,
+        room: savedRoom,
+        ptHash: this.ptService.generatePtHash(),
         role: PtRole.HOST,
-        code: '0000',
         nickname: 'Host',
         color: '#E0E0E0',
+        presence: PtPresence.ONLINE,
       });
 
       const savedPt = await queryRunner.manager.save(hostPt);

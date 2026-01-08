@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { customAlphabet } from 'nanoid';
 import { Server } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
 import { CollabSocket } from '../collaboration/collaboration.types';
 import { Pt as PtEntity, PtRole, PtPresence } from './pt.entity';
 import { Room, DefaultRolePolicy } from '../room/room.entity';
@@ -54,8 +55,8 @@ export class PtService {
   }
 
   /** 새 참가자 생성 */
-  async createPt(roomCode: string, ptId: string): Promise<Pt> {
-    const nickname = this.generateRandomNickname();
+  async createPt(roomCode: string, nickname: string): Promise<Pt> {
+    const ptId = uuidv4();
     const color = await this.generateRandomColor(roomCode);
     const role = await this.assignRole(roomCode);
     const ptHash = this.generatePtHash();
@@ -85,6 +86,24 @@ export class PtService {
     return this.entityToPt(ptEntity);
   }
 
+  /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
+  async restorePt(roomCode: string, ptId: string): Promise<Pt | null> {
+    const ptEntity = await this.ptRepository.findOne({
+      where: { roomCode, ptId },
+    });
+
+    if (!ptEntity) return null;
+
+    // presence를 ONLINE으로 업데이트
+    await this.ptRepository.update(
+      { roomCode, ptId },
+      { presence: PtPresence.ONLINE },
+    );
+
+    ptEntity.presence = PtPresence.ONLINE;
+    return this.entityToPt(ptEntity);
+  }
+
   /** 방의 모든 참가자 조회 */
   async getAllPts(roomCode: string): Promise<Pt[]> {
     const ptEntities = await this.ptRepository.find({
@@ -93,6 +112,19 @@ export class PtService {
     });
 
     return ptEntities.map((pt) => this.entityToPt(pt));
+  }
+
+  /** 참가자 권한 조회 */
+  async checkRole(roomCode: string, ptId: string): Promise<PtRole | undefined> {
+    const pt = await this.ptRepository.findOne({
+      where: { roomCode, ptId },
+    });
+
+    if (!pt) {
+      return undefined;
+    }
+
+    return pt.role;
   }
 
   /** 역할 할당: 방 정책에 따라 EDITOR 또는 VIEWER 할당 */
@@ -116,6 +148,29 @@ export class PtService {
     }
 
     return PtRole.VIEWER;
+  }
+
+  /** 참가자 역할 업데이트 (소켓 + DB) */
+  async updatePtRole(
+    server: Server,
+    roomCode: string,
+    ptId: string,
+    role: PtRole,
+  ): Promise<void> {
+    // 소켓 데이터 업데이트
+    const sockets = await server.in(roomCode).fetchSockets();
+    const socketToUpdate = sockets.find((socket) => {
+      const data = socket.data as CollabSocket['data'];
+      return data.ptId === ptId;
+    });
+
+    if (socketToUpdate) {
+      const data = socketToUpdate.data as CollabSocket['data'];
+      data.role = role;
+    }
+
+    // DB 업데이트
+    await this.ptRepository.update({ roomCode, ptId }, { role });
   }
 
   /** 참가자 상태 업데이트 */
@@ -176,29 +231,6 @@ export class PtService {
     });
   }
 
-  /** 참가자 역할 업데이트 (소켓 + DB) */
-  private async updatePtRole(
-    server: Server,
-    roomCode: string,
-    ptId: string,
-    role: PtRole,
-  ): Promise<void> {
-    // 소켓 데이터 업데이트
-    const sockets = await server.in(roomCode).fetchSockets();
-    const socketToUpdate = sockets.find((socket) => {
-      const data = socket.data as CollabSocket['data'];
-      return data.ptId === ptId;
-    });
-
-    if (socketToUpdate) {
-      const data = socketToUpdate.data as CollabSocket['data'];
-      data.role = role;
-    }
-
-    // DB 업데이트
-    await this.ptRepository.update({ roomCode, ptId }, { role });
-  }
-
   /** 참가자 역할 변경 알림 */
   private async notifyPtRoleUpdate(
     server: Server,
@@ -213,7 +245,7 @@ export class PtService {
   }
 
   /** 참가자 해시 생성 (숫자 4자리) */
-  private generatePtHash(): string {
+  public generatePtHash(): string {
     const nanoid = customAlphabet('0123456789', PT_HASH_LENGTH);
     return nanoid();
   }
@@ -239,9 +271,13 @@ export class PtService {
 
   /** 랜덤 색상 생성 (최근 6명과 중복되지 않도록) */
   private async generateRandomColor(roomCode: string): Promise<string> {
-    const pts = await this.getAllPts(roomCode);
-    const numColors = 6;
-    const ptColors = pts.slice(-numColors).map((pt) => pt.color);
+    // DB에서 직접 조회 (새 참가자 생성 시점에는 server가 없으므로)
+    const ptEntities = await this.ptRepository.find({
+      where: { roomCode },
+      order: { createdAt: 'DESC' },
+      take: 6,
+    });
+    const ptColors = ptEntities.map((entity) => entity.color);
     const availableColors = this.colors.filter(
       (color) => !ptColors.includes(color),
     );
@@ -255,6 +291,7 @@ export class PtService {
     return {
       ptId: entity.ptId,
       nickname: entity.nickname,
+      ptHash: entity.ptHash,
       color: entity.color,
       role: entity.role,
       presence: entity.presence,
