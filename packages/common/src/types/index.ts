@@ -61,6 +61,16 @@ export interface PtUpdatePayload {
 }
 
 /**
+ * 참가자 권한 업데이트
+ * Client -> Server
+ */
+export interface PtUpdateRolePayload {
+  roomCode: string;
+  ptId: string;
+  role: "editor" | "viewer";
+}
+
+/**
  * 파일 변경
  * Client <-> Server
  */
