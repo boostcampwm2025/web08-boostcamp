@@ -42,10 +42,11 @@ export class CollaborationService {
     server: Server,
     payload: JoinRoomPayload,
   ): Promise<void> {
-    const { roomCode, ptId, nickname } = payload;
+    const { roomCode: rawRoomCode, ptId, nickname } = payload;
+    const roomCode = rawRoomCode.toUpperCase(); // 대문자 변환
 
     // 방 유효성 검사
-    const room = await this.roomService.findRoomByCode(roomCode.toUpperCase());
+    const room = await this.roomService.findRoomByCode(roomCode);
     if (!room) {
       throw new Error('ROOM_NOT_FOUND');
     }
@@ -55,7 +56,7 @@ export class CollaborationService {
 
     // ptId가 있으면 DB에서 조회 (호스트 또는 재접속 유저)
     if (ptId) {
-      pt = await this.ptService.restorePt(roomCode.toUpperCase(), ptId);
+      pt = await this.ptService.restorePt(roomCode, ptId);
     }
 
     // 신규 유저는 닉네임 필수
@@ -63,20 +64,20 @@ export class CollaborationService {
       if (!nickname) {
         throw new Error('NICKNAME_REQUIRED');
       }
-      pt = await this.ptService.createPt(roomCode.toUpperCase(), nickname);
+      pt = await this.ptService.createPt(roomCode, nickname);
     }
 
     // socket.data 설정
-    this.setupSocketData(client, roomCode.toUpperCase(), pt);
-    await client.join(roomCode.toUpperCase());
+    this.setupSocketData(client, roomCode, pt);
+    await client.join(roomCode);
 
     // 클라이언트가 REQUEST_DOC을 보내기 전에 문서 준비 완료
-    this.prepareRoomDoc(client, server, roomCode.toUpperCase());
+    this.prepareRoomDoc(client, server, roomCode);
 
-    await this.notifyParticipantJoined(client, roomCode.toUpperCase(), pt);
+    await this.notifyParticipantJoined(client, roomCode, pt);
 
     this.logger.log(
-      `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode.toUpperCase()} as ${pt.role}`,
+      `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
     );
   }
 

@@ -40,7 +40,7 @@ export class RoomService {
    */
   async findRoomByCode(roomCode: string): Promise<Room | null> {
     return this.roomRepository.findOne({
-      where: { roomCode: roomCode.toUpperCase() },
+      where: { roomCode },
     });
   }
 
