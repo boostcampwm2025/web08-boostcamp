@@ -114,9 +114,19 @@ export class RoomService {
   }
 
   protected generateRoomCode(roomCodeLength = 6): string {
-    const alphabet =
-      '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const nanoid = customAlphabet(alphabet, roomCodeLength);
     return nanoid();
+  }
+
+  /**
+   * Room code로 Room ID 조회
+   */
+  async findRoomIdByCode(roomCode: string): Promise<number | null> {
+    const room = await this.roomRepository.findOne({
+      where: { roomCode },
+      select: ['roomId'],
+    });
+    return room?.roomId ?? null;
   }
 }
