@@ -114,6 +114,19 @@ export class PtService {
     return ptEntities.map((pt) => this.entityToPt(pt));
   }
 
+  /** 참가자 권한 조회 */
+  async checkRole(roomCode: string, ptId: string): Promise<PtRole | undefined> {
+    const pt = await this.ptRepository.findOne({
+      where: { roomCode, ptId },
+    });
+
+    if (!pt) {
+      return undefined;
+    }
+
+    return pt.role;
+  }
+
   /** 역할 할당: 방 정책에 따라 EDITOR 또는 VIEWER 할당 */
   async assignRole(roomCode: string): Promise<PtRole> {
     const room = await this.roomRepository.findOne({
@@ -135,6 +148,29 @@ export class PtService {
     }
 
     return PtRole.VIEWER;
+  }
+
+  /** 참가자 역할 업데이트 (소켓 + DB) */
+  async updatePtRole(
+    server: Server,
+    roomCode: string,
+    ptId: string,
+    role: PtRole,
+  ): Promise<void> {
+    // 소켓 데이터 업데이트
+    const sockets = await server.in(roomCode).fetchSockets();
+    const socketToUpdate = sockets.find((socket) => {
+      const data = socket.data as CollabSocket['data'];
+      return data.ptId === ptId;
+    });
+
+    if (socketToUpdate) {
+      const data = socketToUpdate.data as CollabSocket['data'];
+      data.role = role;
+    }
+
+    // DB 업데이트
+    await this.ptRepository.update({ roomCode, ptId }, { role });
   }
 
   /** 참가자 상태 업데이트 */
@@ -195,29 +231,6 @@ export class PtService {
     });
   }
 
-  /** 참가자 역할 업데이트 (소켓 + DB) */
-  private async updatePtRole(
-    server: Server,
-    roomCode: string,
-    ptId: string,
-    role: PtRole,
-  ): Promise<void> {
-    // 소켓 데이터 업데이트
-    const sockets = await server.in(roomCode).fetchSockets();
-    const socketToUpdate = sockets.find((socket) => {
-      const data = socket.data as CollabSocket['data'];
-      return data.ptId === ptId;
-    });
-
-    if (socketToUpdate) {
-      const data = socketToUpdate.data as CollabSocket['data'];
-      data.role = role;
-    }
-
-    // DB 업데이트
-    await this.ptRepository.update({ roomCode, ptId }, { role });
-  }
-
   /** 참가자 역할 변경 알림 */
   private async notifyPtRoleUpdate(
     server: Server,
@@ -231,12 +244,9 @@ export class PtService {
     server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, updatePayload);
   }
 
-  /** 참가자 해시 생성 (혼동 방지 사전 사용, 4자리) */
-  generatePtHash(): string {
-    const nanoid = customAlphabet(
-      '23456789ABCDEFGHJKLMNPQRSTUVWXYZ',
-      PT_HASH_LENGTH,
-    );
+  /** 참가자 해시 생성 (숫자 4자리) */
+  public generatePtHash(): string {
+    const nanoid = customAlphabet('0123456789', PT_HASH_LENGTH);
     return nanoid();
   }
 

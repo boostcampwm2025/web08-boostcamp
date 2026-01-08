@@ -4,6 +4,7 @@ import {
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type Pt,
+  PtUpdateRolePayload,
 } from '@codejam/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
@@ -45,8 +46,9 @@ export class CollaborationService {
     const { roomCode: rawRoomCode, ptId, nickname } = payload;
     const roomCode = rawRoomCode.toUpperCase(); // 대문자 변환
 
+    console.log(payload);
     // 방 유효성 검사
-    const room = await this.roomService.findRoomByCode(roomCode);
+    const room = await this.roomService.findRoomIdByCode(roomCode);
     if (!room) {
       throw new Error('ROOM_NOT_FOUND');
     }
@@ -133,6 +135,28 @@ export class CollaborationService {
     });
   }
 
+  /** 참가자 권한 업데이트 */
+  async handleUpdatePtRole(
+    server: Server,
+    payload: PtUpdateRolePayload,
+  ): Promise<void> {
+    const { roomCode, ptId, role } = payload;
+
+    await this.ptService.updatePtRole(
+      server,
+      roomCode,
+      ptId,
+      role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
+    );
+
+    const pt = await this.ptService.getPt(roomCode, ptId);
+    if (!pt) {
+      return;
+    }
+
+    this.notifyUpdatePt(server, roomCode, pt);
+  }
+
   /** 소켓 데이터 설정 */
   private setupSocketData(
     client: CollabSocket,
@@ -161,8 +185,13 @@ export class CollaborationService {
     client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });
 
     // 본인에게: 현재 방의 모든 참가자 목록 전달
-    const pts = await this.ptService.getAllPts(server, roomCode);
+    const pts = await this.ptService.getAllPts(roomCode);
     client.emit(SOCKET_EVENTS.ROOM_PTS, { pts });
+  }
+
+  /** 참가자 정보 업데이트 데이터 전송 */
+  private notifyUpdatePt(server: Server, roomCode: string, pt: Pt): void {
+    server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt });
   }
 
   /** 방 문서(Y.Doc) 및 기본 파일 준비 */

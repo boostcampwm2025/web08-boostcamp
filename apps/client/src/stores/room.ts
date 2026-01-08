@@ -1,19 +1,17 @@
 import { create } from "zustand";
 
-const roomId = "prototype";
-
 interface RoomState {
-  roomId: string | null;
+  roomCode: string | null;
   myPtId: string | null;
 
-  setRoomId: (roomId: string | null) => void;
-  setMyPtId: (myPtId: string | null) => void;
+  setRoomCode: (roomCode: string | undefined) => void;
+  setMyPtId: (myPtId: string | undefined) => void;
 }
 
 export const useRoomStore = create<RoomState>((set) => ({
-  roomId: roomId,
+  roomCode: '',
   myPtId: null,
 
-  setRoomId: (roomId) => set({ roomId }),
+  setRoomCode: (roomCode) => set({ roomCode }),
   setMyPtId: (myPtId) => set({ myPtId }),
 }));

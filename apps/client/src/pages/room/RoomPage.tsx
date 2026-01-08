@@ -5,19 +5,27 @@ import { useSocket } from "@/shared/lib/hooks/useSocket";
 import { useRoomJoin } from "@/shared/lib/hooks/useRoomJoin";
 import { useRoomStore } from "@/stores/room";
 import { usePt } from "@/stores/pts";
+import { useEffect } from "react";
+import { ptStorage } from "@/shared/lib/storage";
 import { NicknameInputDialog } from "@/widgets/nickname-input";
 
 function RoomPage() {
+  // Initialize socket connection
+  const { setMyPtId, setRoomCode } = useRoomStore();
+
   const {
-    roomCode,
-    roomId,
+    paramCode,
     isNicknameDialogOpen,
     setIsNicknameDialogOpen,
     roomError,
     handleNicknameConfirm,
   } = useRoomJoin();
 
-  useSocket(roomId || "");
+  useSocket(paramCode || "");
+  useEffect(() => {
+    setRoomCode(paramCode || "");
+    setMyPtId(ptStorage.myId(paramCode) || "");
+  }, [paramCode, setMyPtId, setRoomCode]);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || "");
@@ -35,7 +43,7 @@ function RoomPage() {
         </div>
         <div className="flex-1 h-full">
           <CodeEditor
-            fileId={roomCode || "prototype"}
+            fileId={paramCode || "prototype"}
             language="javascript"
             readOnly={isViewer}
           />

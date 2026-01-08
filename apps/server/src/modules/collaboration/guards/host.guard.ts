@@ -8,8 +8,8 @@ import { PtRole } from '../../pt/pt.entity';
 import type { CollabSocket } from '../collaboration.types';
 
 @Injectable()
-export class PermissionGuard implements CanActivate {
-  private readonly logger = new Logger(PermissionGuard.name);
+export class HostGuard implements CanActivate {
+  private readonly logger = new Logger(HostGuard.name);
 
   canActivate(context: ExecutionContext): boolean {
     const client = context.switchToWs().getClient<CollabSocket>();
@@ -28,15 +28,15 @@ export class PermissionGuard implements CanActivate {
     }
 
     // socket.data에서 직접 role 확인
-    if (role === PtRole.VIEWER) {
+    if (role !== PtRole.HOST) {
       this.logger.warn(
         `Permission denied: roomCode=${roomCode}, ptId=${ptId}, role=${role}`,
       );
       client.emit('error', {
         type: 'PERMISSION_DENIED',
-        message: '편집 권한이 없습니다',
+        message: '호스트 권한이 없습니다',
         currentRole: role,
-        requiredRoles: [PtRole.EDITOR, PtRole.HOST],
+        requiredRoles: [PtRole.HOST],
       });
       return false;
     }

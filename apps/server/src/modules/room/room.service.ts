@@ -21,8 +21,8 @@ export class RoomService {
   constructor(
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
-    private dataSource: DataSource,
     private ptService: PtService,
+    private dataSource: DataSource,
   ) {}
 
   /**
@@ -36,12 +36,15 @@ export class RoomService {
   }
 
   /**
-   * roomCode로 Room 엔티티 조회 (방 유효성 검사용)
+   * 해당 방의 호스트인지 확인
    */
-  async findRoomByCode(roomCode: string): Promise<Room | null> {
-    return this.roomRepository.findOne({
-      where: { roomCode },
-    });
+  async checkHost(roomCode: string, ptId: string): Promise<boolean> {
+    const role = await this.ptService.checkRole(roomCode, ptId);
+    if (!role || role !== PtRole.HOST) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -84,7 +87,7 @@ export class RoomService {
       const savedRoom = await queryRunner.manager.save(newRoom);
 
       const hostPt = queryRunner.manager.create(Pt, {
-        roomCode: savedRoom.roomCode,
+        room: savedRoom,
         ptHash: this.ptService.generatePtHash(),
         role: PtRole.HOST,
         nickname: 'Host',

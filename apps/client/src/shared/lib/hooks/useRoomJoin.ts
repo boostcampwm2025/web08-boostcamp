@@ -5,19 +5,19 @@ import { emitJoinRoom } from "@/stores/socket-events";
 import { useRoomStore } from "@/stores/room";
 
 export function useRoomJoin() {
-  const { roomCode } = useParams<{ roomCode: string }>();
+  const { roomCode: paramCode } = useParams<{ roomCode: string }>();
   const [isNicknameDialogOpen, setIsNicknameDialogOpen] = useState(false);
   const [roomError, setRoomError] = useState<string>("");
 
-  const setRoomId = useRoomStore((state) => state.setRoomId);
-  const roomId = useRoomStore((state) => state.roomId);
+  const setRoomCode = useRoomStore((state) => state.setRoomCode);
+  const roomCode = useRoomStore((state) => state.roomCode);
 
-  // roomCode를 roomStore에 설정
+  // paramCode를 roomStore에 설정
   useEffect(() => {
-    if (roomCode) {
-      setRoomId(roomCode);
+    if (paramCode) {
+      setRoomCode(paramCode);
     }
-  }, [roomCode, setRoomId]);
+  }, [paramCode, roomCode, setRoomCode]);
 
   // Socket 에러 핸들링
   useEffect(() => {
@@ -46,30 +46,31 @@ export function useRoomJoin() {
 
   // 신규 사용자 판단 및 닉네임 모달 표시
   useEffect(() => {
-    if (!roomCode) return;
+    if (!paramCode) return;
 
-    const savedPtId = localStorage.getItem(`ptId:${roomCode}`);
+    const savedPtId = localStorage.getItem(`ptId:${paramCode}`);
     // localStorage에 ptId가 없으면 신규 유저 → 모달 표시
     if (!savedPtId) {
       setIsNicknameDialogOpen(true);
     }
     // 재접속 유저는 socket.connect()에서 자동으로 emitJoinRoom 호출됨
-  }, [roomCode]);
+  }, [paramCode]);
 
   const handleNicknameConfirm = useCallback(
     (nickname: string) => {
-      if (!roomCode) return;
+      if (!paramCode) return;
 
       setRoomError("");
-      emitJoinRoom(roomCode, nickname);
+      console.log(paramCode);
+      emitJoinRoom(paramCode, nickname);
       setIsNicknameDialogOpen(false);
     },
-    [roomCode]
+    [paramCode]
   );
 
   return {
-    roomCode: roomCode || undefined,
-    roomId,
+    paramCode: paramCode || undefined,
+    roomCode,
     isNicknameDialogOpen,
     setIsNicknameDialogOpen,
     roomError,
