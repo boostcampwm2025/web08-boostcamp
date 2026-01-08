@@ -1,15 +1,17 @@
 import {
+  SOCKET_EVENTS,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
+  type Pt,
 } from '@codejam/common';
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { CollabSocket } from './collaboration.types';
-import { Redis } from 'ioredis';
 import { PtService } from '../pt/pt.service';
 import { FileService } from '../file/file.service';
-import { RoomService } from '../room/room.service';
+import { PtRole } from '../pt/pt.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class CollaborationService {
@@ -18,106 +20,44 @@ export class CollaborationService {
   constructor(
     private readonly ptService: PtService,
     private readonly fileService: FileService,
-    private readonly roomService: RoomService,
-    @Inject('REDIS_SUBSCRIBER') private readonly redisSubscriber: Redis,
   ) {}
 
-  /**
-   * Subscribe to Redis expiration events
-   * Called from gateway's onModuleInit
-   */
-  async subscribeToRedisExpiration(server: Server) {
-    // __keyevent@0__:expired 채널 구독 (DB 0번의 만료 이벤트)
-    await this.redisSubscriber.subscribe('__keyevent@0__:expired');
-
-    this.redisSubscriber.on('message', (channel, expiredKey) => {
-      if (channel !== '__keyevent@0__:expired') return;
-
-      // 키 형식: room:{roomId}:pt:{ptId}
-      const match = expiredKey.match(/^room:(.+):pt:(.+)$/);
-      if (!match) return;
-
-      const [, roomId, ptId] = match;
-      this.handlePtLeftByTTL(server, { roomId, ptId });
-    });
-
-    this.logger.log('🔔 Subscribed to Redis keyspace expiration events');
-  }
-
-  /**
-   * Handle client connection
-   */
+  /** 클라이언트 연결 시 초기화 */
   handleConnection(client: CollabSocket): void {
     this.ptService.handleConnection(client);
   }
 
-  /**
-   * Handle client disconnection
-   */
+  /** 클라이언트 연결 종료 시 정리 */
   async handleDisconnect(client: CollabSocket, server: Server): Promise<void> {
-    const { roomCode, ptId, clientId } = client.data;
+    const { roomCode, ptId, role } = client.data;
     if (!roomCode || !ptId) return;
 
-    // Clean up awareness states
-    if (clientId) {
-      this.fileService.handleRemoveAwareness(client, server, {
-        roomId: roomCode,
-        clientId,
-      });
-    }
-
-    // Clean up participant
-    await this.ptService.handleDisconnect(client, server, {
-      roomId: roomCode,
-      ptId,
-    });
+    await this.ptService.handleDisconnect(server, roomCode, ptId, role);
   }
 
-  /**
-   * Handle join room request
-   */
+  /** 방 입장: 참가자 생성/복원, 소켓 룸 참여, 초기 데이터 전송 */
   async handleJoinRoom(
     client: CollabSocket,
     server: Server,
     payload: JoinRoomPayload,
   ): Promise<void> {
-    // Delegate to PT service
-    const { pt, roomCode } = await this.ptService.handleJoinRoom(
-      client,
-      server,
-      payload,
+    const { roomCode, ptId } = payload;
+
+    const pt = await this.findOrCreateParticipant(roomCode, ptId);
+    this.setupSocketData(client, roomCode, pt);
+    await client.join(roomCode);
+
+    // 클라이언트가 REQUEST_DOC을 보내기 전에 문서 준비 완료
+    this.prepareRoomDoc(client, server, roomCode);
+
+    await this.notifyParticipantJoined(client, roomCode, pt);
+
+    this.logger.log(
+      `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
     );
-
-    // Find roomId by roomCode
-    const roomId = await this.roomService.findRoomIdByCode(roomCode);
-    if (!roomId) {
-      this.logger.error(`Room not found: roomCode=${roomCode}`);
-      client.emit('error', {
-        type: 'ROOM_NOT_FOUND',
-        message: '방을 찾을 수 없습니다',
-      });
-      return;
-    }
-
-    // Store in socket.data
-    client.data.roomId = roomId;
-    client.data.roomCode = roomCode;
-    client.data.ptId = pt.ptId;
-
-    // TODO: Change file creation timing
-    // Create file if not exists (idempotent)
-
-    const fileId = 'prototype';
-
-    this.fileService.handleCreateFile(client, server, {
-      roomId: roomCode,
-      fileId,
-    });
   }
 
-  /**
-   * Handle document request
-   */
+  /** 초기 로드: 문서 상태 요청 */
   handleRequestDoc(client: CollabSocket, server: Server): void {
     const { roomCode } = client.data;
     if (!roomCode) return;
@@ -125,22 +65,17 @@ export class CollaborationService {
     this.fileService.handleRequestDoc(client, server, { roomId: roomCode });
   }
 
-  /**
-   * Handle awareness request
-   */
+  /** 초기 로드: Awareness 상태 요청 */
   handleRequestAwareness(client: CollabSocket, server: Server): void {
     const { roomCode } = client.data;
     if (!roomCode) return;
 
-    // TODO: fileService 부분은 아직 수정 전. 타입오류만 안나게 해둠.
     this.fileService.handleRequestAwareness(client, server, {
       roomId: roomCode,
     });
   }
 
-  /**
-   * Handle file update
-   */
+  /** 파일 변경사항 브로드캐스트 */
   handleFileUpdate(
     client: CollabSocket,
     server: Server,
@@ -157,9 +92,7 @@ export class CollaborationService {
     });
   }
 
-  /**
-   * Handle awareness update
-   */
+  /** Awareness 변경사항 브로드캐스트 */
   handleAwarenessUpdate(
     client: CollabSocket,
     server: Server,
@@ -176,14 +109,55 @@ export class CollaborationService {
     });
   }
 
-  /**
-   * Handle participant left by TTL expiration
-   */
-  private async handlePtLeftByTTL(
+  /** 참가자 조회 또는 생성 */
+  private async findOrCreateParticipant(
+    roomCode: string,
+    ptId?: string,
+  ): Promise<Pt> {
+    if (ptId) {
+      const existingPt = await this.ptService.getPt(roomCode, ptId);
+      if (existingPt) return existingPt;
+    }
+    return this.ptService.createPt(roomCode, uuidv4());
+  }
+
+  /** 소켓 데이터 설정 */
+  private setupSocketData(
+    client: CollabSocket,
+    roomCode: string,
+    pt: Pt,
+  ): void {
+    client.data.roomCode = roomCode;
+    client.data.ptId = pt.ptId;
+    client.data.role = pt.role as PtRole;
+  }
+
+  /** 참가자 입장 알림 및 참가자 데이터 전송 */
+  private async notifyParticipantJoined(
+    client: CollabSocket,
+    roomCode: string,
+    pt: Pt,
+  ): Promise<void> {
+    // 본인에게: 내 ptId 전달
+    client.emit(SOCKET_EVENTS.WELCOME, { myPtId: pt.ptId });
+
+    // 다른 참가자들에게: 새 참가자 입장 알림
+    client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });
+
+    // 본인에게: 현재 방의 모든 참가자 목록 전달
+    const pts = await this.ptService.getAllPts(roomCode);
+    client.emit(SOCKET_EVENTS.ROOM_PTS, { pts });
+  }
+
+  /** 방 문서(Y.Doc) 및 기본 파일 준비 */
+  private prepareRoomDoc(
+    client: CollabSocket,
     server: Server,
-    payload: { roomId: string; ptId: string },
-  ) {
-    const { roomId, ptId } = payload;
-    await this.ptService.handlePtLeftByTTL(server, { roomId, ptId });
+    roomCode: string,
+  ): void {
+    this.fileService.handleCreateFile(client, server, {
+      roomId: roomCode,
+      fileId: roomCode,
+    });
   }
 }
