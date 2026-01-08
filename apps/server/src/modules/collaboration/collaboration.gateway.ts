@@ -48,11 +48,20 @@ export class CollaborationGateway
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: JoinRoomPayload,
   ) {
-    await this.collaborationService.handleJoinRoom(
-      client,
-      this.server,
-      payload,
-    );
+    try {
+      await this.collaborationService.handleJoinRoom(
+        client,
+        this.server,
+        payload,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR';
+      client.emit('error', {
+        type: errorMessage,
+        message: errorMessage,
+      });
+    }
   }
 
   /** C -> S: 문서 동기화 요청 */

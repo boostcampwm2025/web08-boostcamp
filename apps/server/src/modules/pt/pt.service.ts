@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { customAlphabet } from 'nanoid';
 import { Server } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
 import { CollabSocket } from '../collaboration/collaboration.types';
 import { Pt as PtEntity, PtRole, PtPresence } from './pt.entity';
 import { Room, DefaultRolePolicy } from '../room/room.entity';
@@ -54,8 +55,8 @@ export class PtService {
   }
 
   /** 새 참가자 생성 */
-  async createPt(roomCode: string, ptId: string): Promise<Pt> {
-    const nickname = this.generateRandomNickname();
+  async createPt(roomCode: string, nickname: string): Promise<Pt> {
+    const ptId = uuidv4();
     const color = await this.generateRandomColor(roomCode);
     const role = await this.assignRole(roomCode);
     const ptHash = this.generatePtHash();
@@ -82,6 +83,24 @@ export class PtService {
     });
 
     if (!ptEntity) return null;
+    return this.entityToPt(ptEntity);
+  }
+
+  /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
+  async restorePt(roomCode: string, ptId: string): Promise<Pt | null> {
+    const ptEntity = await this.ptRepository.findOne({
+      where: { roomCode, ptId },
+    });
+
+    if (!ptEntity) return null;
+
+    // presence를 ONLINE으로 업데이트
+    await this.ptRepository.update(
+      { roomCode, ptId },
+      { presence: PtPresence.ONLINE },
+    );
+
+    ptEntity.presence = PtPresence.ONLINE;
     return this.entityToPt(ptEntity);
   }
 
@@ -212,9 +231,12 @@ export class PtService {
     server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, updatePayload);
   }
 
-  /** 참가자 해시 생성 (숫자 4자리) */
-  private generatePtHash(): string {
-    const nanoid = customAlphabet('0123456789', PT_HASH_LENGTH);
+  /** 참가자 해시 생성 (혼동 방지 사전 사용, 4자리) */
+  generatePtHash(): string {
+    const nanoid = customAlphabet(
+      '23456789ABCDEFGHJKLMNPQRSTUVWXYZ',
+      PT_HASH_LENGTH,
+    );
     return nanoid();
   }
 
@@ -239,9 +261,13 @@ export class PtService {
 
   /** 랜덤 색상 생성 (최근 6명과 중복되지 않도록) */
   private async generateRandomColor(roomCode: string): Promise<string> {
-    const pts = await this.getAllPts(roomCode);
-    const numColors = 6;
-    const ptColors = pts.slice(-numColors).map((pt) => pt.color);
+    // DB에서 직접 조회 (새 참가자 생성 시점에는 server가 없으므로)
+    const ptEntities = await this.ptRepository.find({
+      where: { roomCode },
+      order: { createdAt: 'DESC' },
+      take: 6,
+    });
+    const ptColors = ptEntities.map((entity) => entity.color);
     const availableColors = this.colors.filter(
       (color) => !ptColors.includes(color),
     );
@@ -255,6 +281,7 @@ export class PtService {
     return {
       ptId: entity.ptId,
       nickname: entity.nickname,
+      ptHash: entity.ptHash,
       color: entity.color,
       role: entity.role,
       presence: entity.presence,
