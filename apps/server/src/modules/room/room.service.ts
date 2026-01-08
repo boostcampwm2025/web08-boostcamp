@@ -26,9 +26,11 @@ export class RoomService {
   /**
    * 방 존재 여부 확인
    */
-  async roomExists(roomId: string): Promise<boolean> {
-    // TODO: DB에서 해당 방 존재 여부 판단 필요
-    return true;
+  async roomExists(roomCode: string): Promise<boolean> {
+    const count = await this.roomRepository.count({
+      where: { roomCode },
+    });
+    return count > 0;
   }
 
   async createQuickRoom(): Promise<CreateRoomResponseDto> {
