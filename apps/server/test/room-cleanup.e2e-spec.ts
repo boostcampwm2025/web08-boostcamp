@@ -7,6 +7,7 @@ import { Room } from './../src/modules/room/room.entity';
 import { CleanupService } from './../src/modules/cleanup/cleanup.service';
 import { CollaborationGateway } from './../src/modules/collaboration/collaboration.gateway';
 import { RoomService } from './../src/modules/room/room.service';
+import Redis from 'ioredis';
 
 describe('Room Cleanup Scheduler (E2E)', () => {
   let app: INestApplication<App>;
@@ -16,7 +17,7 @@ describe('Room Cleanup Scheduler (E2E)', () => {
   let collaborationGateway: CollaborationGateway;
   let roomService: RoomService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -33,8 +34,20 @@ describe('Room Cleanup Scheduler (E2E)', () => {
     roomRepository = dataSource.getRepository(Room);
   });
 
-  afterEach(async () => {
-    await app.close();
+  afterAll(async () => {
+    try {
+      const redisClient = app.get<Redis>('REDIS_CLIENT');
+      const redisSubscriber = app.get<Redis>('REDIS_SUBSCRIBER');
+
+      if (redisClient) redisClient.disconnect();
+      if (redisSubscriber) redisSubscriber.disconnect();
+    } catch (e) {
+      // Redis Provider를 못 찾거나 이미 닫혔으면 무시
+    }
+
+    if (app) {
+      await app.close();
+    }
   });
 
   describe('handleRoomCleanup', () => {
