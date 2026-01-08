@@ -80,7 +80,12 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": "<rootDir>../test/tsconfig.e2e.json"
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
@@ -89,6 +94,11 @@
     "testEnvironment": "node",
     "transformIgnorePatterns": [
       "node_modules/(?!.pnpm/(nanoid|uuid)|nanoid|uuid)"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^@codejam/common$": "<rootDir>/../../../packages/common/src/index.ts",
+      "^@codejam/common/(.*)$": "<rootDir>/../../../packages/common/src/$1",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
   }
 }
