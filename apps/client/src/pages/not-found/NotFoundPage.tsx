@@ -9,10 +9,10 @@ function NotFoundPage() {
       </h2>
       <p className="text-gray-500 mb-8">요청하신 페이지가 존재하지 않습니다.</p>
       <Link
-        to="/room/prototype"
+        to="/"
         className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
-        방으로 이동
+        메인 페이지로 이동
       </Link>
     </div>
   );

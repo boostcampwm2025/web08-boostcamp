@@ -1,5 +1,6 @@
 import { PROJECT_NAME } from "@codejam/common";
 import { useState } from "react";
+import { useRoomStore } from "@/stores/room";
 import LogoAnimation from "@/assets/logo_animation.svg";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -25,9 +26,9 @@ import {
   Moon,
 } from "lucide-react";
 
-const roomCode = "PROTOTYPE";
-
 export default function Header() {
+  const roomCode = useRoomStore((state) => state.roomCode);
+
   const [isDark, setIsDark] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -38,7 +39,7 @@ export default function Header() {
 
   const copyRoomCode = async () => {
     try {
-      await navigator.clipboard.writeText(roomCode);
+      await navigator.clipboard.writeText(roomCode ?? "");
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {

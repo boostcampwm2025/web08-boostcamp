@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { CodeEditor } from "@/widgets/code-editor";
 import { Header } from "@/widgets/header";
 import { Participants } from "@/widgets/participants";
@@ -6,8 +8,19 @@ import { useRoomStore } from "@/stores/room";
 import { usePt } from "@/stores/pts";
 
 function RoomPage() {
+  // Parse Room Code from URL
+  const { roomCode: urlRoomCode } = useParams<{ roomCode: string }>();
+  const roomCode = useRoomStore((state) => state.roomCode);
+  const setRoomCode = useRoomStore((state) => state.setRoomCode);
+
+  // Set roomCode from URL parameter
+  useEffect(() => {
+    if (urlRoomCode) {
+      setRoomCode(urlRoomCode);
+    }
+  }, [urlRoomCode, setRoomCode]);
+
   // Initialize socket connection
-  const roomCode= useRoomStore((state) => state.roomCode);
   useSocket(roomCode || "");
 
   const myPtId = useRoomStore((state) => state.myPtId);
