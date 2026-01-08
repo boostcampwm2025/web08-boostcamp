@@ -11,7 +11,7 @@ import type { CollabSocket } from '../collaboration.types';
 export class PermissionGuard implements CanActivate {
   private readonly logger = new Logger(PermissionGuard.name);
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const client = context.switchToWs().getClient<CollabSocket>();
 
     const { roomCode, ptId, role } = client.data;
