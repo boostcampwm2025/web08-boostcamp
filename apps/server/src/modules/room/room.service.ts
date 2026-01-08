@@ -10,6 +10,7 @@ import { customAlphabet } from 'nanoid';
 import { Pt, PtRole } from '../pt/pt.entity';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 import { RoomCreationOptions } from './room.interface';
+import { PtService } from '../pt/pt.service';
 
 /** 방의 생명 주기 관리 */
 
@@ -20,14 +21,27 @@ export class RoomService {
   constructor(
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
+    private ptService: PtService,
     private dataSource: DataSource,
   ) {}
 
   /**
    * 방 존재 여부 확인
    */
-  async roomExists(roomId: string): Promise<boolean> {
-    // TODO: DB에서 해당 방 존재 여부 판단 필요
+  async roomExists(roomCode: string): Promise<boolean> {
+    const room = await this.roomRepository.findOne({ where: { roomCode } });
+    return room !== null;
+  }
+
+  /**
+   * 해당 방의 호스트인지 확인
+   */
+  async checkHost(roomCode: string, ptId: string): Promise<boolean> {
+    const role = await this.ptService.checkRole(roomCode, ptId);
+    if (!role || role !== PtRole.HOST) {
+      return false;
+    }
+
     return true;
   }
 
@@ -62,7 +76,8 @@ export class RoomService {
       const savedRoom = await queryRunner.manager.save(newRoom);
 
       const hostPt = queryRunner.manager.create(Pt, {
-        roomId: savedRoom.roomId,
+        room: savedRoom,
+        ptHash: this.ptService.generatePtHash(),
         role: PtRole.HOST,
         code: '0000',
         nickname: 'Host',
