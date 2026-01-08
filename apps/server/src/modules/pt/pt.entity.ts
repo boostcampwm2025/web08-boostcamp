@@ -8,28 +8,14 @@ import {
 } from 'typeorm';
 import { Room } from '../room/room.entity';
 
-/**
- * 참가자 역할
- */
 export enum PtRole {
-  /** 방장 */
   HOST = 'host',
-
-  /** 편집 가능 */
   EDITOR = 'editor',
-
-  /** 읽기 전용 */
   VIEWER = 'viewer',
 }
 
-/**
- * 참여자 접속 상태
- */
 export enum PtPresence {
-  /** 온라인 */
   ONLINE = 'online',
-
-  /** 오프라인 */
   OFFLINE = 'offline',
 }
 
@@ -38,12 +24,21 @@ export class Pt {
   @PrimaryGeneratedColumn('uuid')
   ptId: string;
 
-  @Column({ type: 'int' })
-  roomId: number;
+  @Column({ type: 'varchar' })
+  roomCode: string;
 
   @ManyToOne(() => Room, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'room_id' })
+  @JoinColumn({ name: 'room_code', referencedColumnName: 'roomCode' })
   room: Room;
+
+  @Column({ type: 'varchar', length: 4 })
+  ptHash: string;
+
+  @Column({ type: 'varchar' })
+  nickname: string;
+
+  @Column({ type: 'varchar' })
+  color: string;
 
   @Column({
     type: 'enum',
@@ -58,18 +53,6 @@ export class Pt {
   })
   presence: PtPresence;
 
-  @Column({ type: 'varchar' })
-  nickname: string;
-
-  @Column({ type: 'varchar' })
-  code: string;
-
-  @Column({ type: 'varchar' })
-  color: string;
-
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  expiresAt: Date | null;
 }
