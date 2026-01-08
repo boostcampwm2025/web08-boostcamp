@@ -4,11 +4,20 @@ import { Participants } from "@/widgets/participants";
 import { useSocket } from "@/shared/lib/hooks/useSocket";
 import { useRoomStore } from "@/stores/room";
 import { usePt } from "@/stores/pts";
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { ptStorage } from "@/shared/lib/storage";
 
 function RoomPage() {
   // Initialize socket connection
-  const roomId = useRoomStore((state) => state.roomId);
-  useSocket(roomId || "");
+  const { roomCode } = useParams();
+  const { setMyPtId, setRoomCode } = useRoomStore();
+
+  useSocket(roomCode || "");
+  useEffect(() => {
+    setRoomCode(roomCode || "");
+    setMyPtId(ptStorage.myId(roomCode) || "");
+  }, [roomCode, setMyPtId, setRoomCode]);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || "");
