@@ -10,8 +10,8 @@ import { Server } from 'socket.io';
 import { CollabSocket } from './collaboration.types';
 import { PtService } from '../pt/pt.service';
 import { FileService } from '../file/file.service';
+import { RoomService } from '../room/room.service';
 import { PtRole } from '../pt/pt.entity';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class CollaborationService {
@@ -20,6 +20,7 @@ export class CollaborationService {
   constructor(
     private readonly ptService: PtService,
     private readonly fileService: FileService,
+    private readonly roomService: RoomService,
   ) {}
 
   /** 클라이언트 연결 시 초기화 */
@@ -41,19 +42,46 @@ export class CollaborationService {
     server: Server,
     payload: JoinRoomPayload,
   ): Promise<void> {
-    const { roomCode, ptId } = payload;
+    const { roomCode, ptId, nickname } = payload;
 
-    const pt = await this.findOrCreateParticipant(roomCode, ptId);
-    this.setupSocketData(client, roomCode, pt);
-    await client.join(roomCode);
+    // 방 유효성 검사
+    const room = await this.roomService.findRoomByCode(roomCode.toUpperCase());
+    if (!room) {
+      throw new Error('ROOM_NOT_FOUND');
+    }
+
+    // 참가자 조회 또는 생성
+    let pt: Pt | null = null;
+
+    // ptId가 있으면 DB에서 조회 (호스트 또는 재접속 유저)
+    if (ptId) {
+      pt = await this.ptService.restorePt(roomCode.toUpperCase(), ptId);
+    }
+
+    // 신규 유저는 닉네임 필수
+    if (!pt) {
+      if (!nickname) {
+        throw new Error('NICKNAME_REQUIRED');
+      }
+      pt = await this.ptService.createPt(roomCode.toUpperCase(), nickname);
+    }
+
+    // socket.data 설정
+    this.setupSocketData(client, roomCode.toUpperCase(), pt);
+    await client.join(roomCode.toUpperCase());
 
     // 클라이언트가 REQUEST_DOC을 보내기 전에 문서 준비 완료
-    this.prepareRoomDoc(client, server, roomCode);
+    this.prepareRoomDoc(client, server, roomCode.toUpperCase());
 
-    await this.notifyParticipantJoined(client, roomCode, pt);
+    await this.notifyParticipantJoined(
+      client,
+      server,
+      roomCode.toUpperCase(),
+      pt,
+    );
 
     this.logger.log(
-      `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
+      `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode.toUpperCase()} as ${pt.role}`,
     );
   }
 
@@ -109,18 +137,6 @@ export class CollaborationService {
     });
   }
 
-  /** 참가자 조회 또는 생성 */
-  private async findOrCreateParticipant(
-    roomCode: string,
-    ptId?: string,
-  ): Promise<Pt> {
-    if (ptId) {
-      const existingPt = await this.ptService.getPt(roomCode, ptId);
-      if (existingPt) return existingPt;
-    }
-    return this.ptService.createPt(roomCode, uuidv4());
-  }
-
   /** 소켓 데이터 설정 */
   private setupSocketData(
     client: CollabSocket,
@@ -130,11 +146,15 @@ export class CollaborationService {
     client.data.roomCode = roomCode;
     client.data.ptId = pt.ptId;
     client.data.role = pt.role as PtRole;
+    client.data.nickname = pt.nickname;
+    client.data.color = pt.color;
+    client.data.createdAt = pt.createdAt;
   }
 
   /** 참가자 입장 알림 및 참가자 데이터 전송 */
   private async notifyParticipantJoined(
     client: CollabSocket,
+    server: Server,
     roomCode: string,
     pt: Pt,
   ): Promise<void> {

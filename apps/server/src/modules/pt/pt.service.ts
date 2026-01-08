@@ -261,9 +261,13 @@ export class PtService {
 
   /** 랜덤 색상 생성 (최근 6명과 중복되지 않도록) */
   private async generateRandomColor(roomCode: string): Promise<string> {
-    const pts = await this.getAllPts(roomCode);
-    const numColors = 6;
-    const ptColors = pts.slice(-numColors).map((pt) => pt.color);
+    // DB에서 직접 조회 (새 참가자 생성 시점에는 server가 없으므로)
+    const ptEntities = await this.ptRepository.find({
+      where: { roomCode },
+      order: { createdAt: 'DESC' },
+      take: 6,
+    });
+    const ptColors = ptEntities.map((entity) => entity.color);
     const availableColors = this.colors.filter(
       (color) => !ptColors.includes(color),
     );
