@@ -39,52 +39,34 @@ export default function CodeEditor({
   const { yText, awareness } = useYText(fileId);
 
   useEffect(() => {
-    if (!editorRef.current) return;
-
-    // 기존 뷰가 있으면 정리
-    if (viewRef.current) {
-      viewRef.current.destroy();
-      viewRef.current = null;
-    }
-
-    // yText나 awareness가 없어도 기본 에디터는 렌더링 (Viewer도 코드를 볼 수 있어야 함)
-    const docContent = yText ? yText.toString() : "";
-
-    const extensions = [
-      basicSetup,
-      getLanguageExtension(language),
-      githubLight,
-      EditorState.readOnly.of(readOnly),
-      EditorView.theme({
-        "&": { height: "100%" },
-        ".cm-scroller": { overflow: "auto" },
-        ...(readOnly && {
-          ".cm-cursor, .cm-dropCursor": { display: "none !important" },
-          // ".cm-selectionBackground": { display: "none !important" },
-          // ".cm-ySelectionCaret, .cm-ySelectionCaretDot": { display: "none !important" },
-        }),
-      }),
-    ];
-
-    // yText와 awareness가 모두 있을 때만 협업 기능 추가
-    // yCollab은 Y.Text와 CodeMirror를 자동으로 동기화함
-    if (yText && awareness) {
-      extensions.push(yCollab(yText, awareness));
-    }
+    if (!editorRef.current || !yText || !awareness) return;
 
     const view = new EditorView({
-      doc: docContent,
-      extensions,
+      doc: yText.toString(),
+      extensions: [
+        basicSetup,
+        javascript(),
+        yCollab(yText, awareness),
+        getLanguageExtension(language),
+        githubLight,
+        EditorState.readOnly.of(readOnly),
+        EditorView.theme({
+          "&": { height: "100%" },
+          ".cm-scroller": { overflow: "auto" },
+          ...(readOnly && {
+            ".cm-cursor, .cm-dropCursor": { display: "none !important" },
+            // ".cm-selectionBackground": { display: "none !important" },
+            // ".cm-ySelectionCaret, .cm-ySelectionCaretDot": { display: "none !important" },
+          }),
+        }),
+      ],
       parent: editorRef.current,
     });
 
     viewRef.current = view;
 
     return () => {
-      if (viewRef.current) {
-        viewRef.current.destroy();
-        viewRef.current = null;
-      }
+      view.destroy();
     };
   }, [yText, awareness, language, readOnly]);
 
