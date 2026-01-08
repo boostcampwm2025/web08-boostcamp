@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, LessThan, Repository } from 'typeorm';
+import { DataSource, In, LessThan, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole } from '../pt/pt.entity';
@@ -144,5 +144,18 @@ export class RoomService {
       },
       select: ['roomId', 'roomCode'],
     });
+  }
+
+  /**
+   * [Scheduler용] 방 ID 목록을 받아 일괄 삭제
+   */
+  async deleteRooms(roomIds: number[]): Promise<number> {
+    if (roomIds.length === 0) return 0;
+
+    const result = await this.roomRepository.delete({
+      roomId: In(roomIds),
+    });
+
+    return result.affected ?? 0;
   }
 }
