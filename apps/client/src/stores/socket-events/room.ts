@@ -1,8 +1,9 @@
-import { socket } from "@/shared/api/socket";
-import { SOCKET_EVENTS, type WelcomePayload } from "@codejam/common";
-import { useRoomStore } from "../room";
-import { getRoomPtId } from "@/shared/lib/storage";
-import { saveRoomPtId } from "@/shared/lib/storage";
+import { socket } from '@/shared/api/socket';
+import { SOCKET_EVENTS, type WelcomePayload } from '@codejam/common';
+import { useRoomStore } from '../room';
+import { useFileStore } from '../file';
+import { getRoomPtId } from '@/shared/lib/storage';
+import { saveRoomPtId } from '@/shared/lib/storage';
 
 export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {
@@ -15,6 +16,10 @@ export const setupRoomEventHandlers = () => {
 
     setMyPtId(data.myPtId);
     saveRoomPtId(roomCode, myPtId);
+
+    // Initialize filestore after joining room
+    const { initialize } = useFileStore.getState();
+    initialize(roomCode);
   };
 
   socket.on(SOCKET_EVENTS.WELCOME, onWelcome);
