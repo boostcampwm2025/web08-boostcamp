@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { CodeEditor } from "@/widgets/code-editor";
 import { Header } from "@/widgets/header";
 import { Participants } from "@/widgets/participants";

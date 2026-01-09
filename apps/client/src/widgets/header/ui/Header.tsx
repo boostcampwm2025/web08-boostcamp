@@ -26,8 +26,6 @@ import {
   Moon,
 } from "lucide-react";
 
-const roomId = "PROTOTYPE";
-
 export default function Header() {
   const roomCode = useRoomStore((state) => state.roomCode);
 
@@ -72,7 +70,7 @@ export default function Header() {
           ROOM ID
         </span>
         <div className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-md bg-secondary/50">
-          <span className="font-mono text-sm font-semibold">{roomId}</span>
+          <span className="font-mono text-sm font-semibold">{roomCode}</span>
           <Button
             variant="ghost"
             size="icon"
