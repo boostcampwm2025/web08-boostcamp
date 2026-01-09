@@ -12,7 +12,7 @@ interface SocketState {
   // Actions
   connect: (roomCode: string) => void;
   disconnect: () => void;
-  send: (event: string, payload: unknown) => void;
+  send: (event: string, ...args: unknown[]) => void;
 }
 
 export const useSocketStore = create<SocketState>((set, get) => ({
@@ -77,8 +77,8 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     set({ isConnected: false, roomCode: null });
   },
 
-  send: (event: string, payload?: unknown) => {
+  send: (event: string, ...args: unknown[]) => {
     if (!socket.connected) return;
-    socket.emit(event, payload);
+    socket.emit(event, ...args);
   },
 }));

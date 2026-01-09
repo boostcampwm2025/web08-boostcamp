@@ -1,12 +1,20 @@
 import { socket } from "@/shared/api/socket";
 import { SOCKET_EVENTS, type WelcomePayload } from "@codejam/common";
 import { useRoomStore } from "../room";
+import { getRoomPtId } from "@/shared/lib/storage";
+import { saveRoomPtId } from "@/shared/lib/storage";
 
-export const setupRoomEventHandlers = (roomId: string) => {
+export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {
     console.log(`🎉 [WELCOME] My PtId: ${data.myPtId}`);
-    localStorage.setItem(`ptId:${roomId}`, data.myPtId);
-    useRoomStore.getState().setMyPtId(data.myPtId);
+
+    const myPtId = data.myPtId;
+    const { roomCode, setMyPtId } = useRoomStore.getState();
+
+    if (!roomCode) return;
+
+    setMyPtId(data.myPtId);
+    saveRoomPtId(roomCode, myPtId);
   };
 
   socket.on(SOCKET_EVENTS.WELCOME, onWelcome);
@@ -17,7 +25,8 @@ export const setupRoomEventHandlers = (roomId: string) => {
 };
 
 export const emitJoinRoom = (roomCode: string, nickname?: string) => {
-  const savedPtId = localStorage.getItem(`ptId:${roomCode}`);
+  const savedPtId = getRoomPtId(roomCode);
+
   socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
     roomCode,
     ptId: savedPtId || undefined,

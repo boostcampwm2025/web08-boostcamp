@@ -10,11 +10,11 @@ export { emitJoinRoom, emitFileUpdate, emitAwarenessUpdate };
 
 /**
  * Setup all domain-specific event handlers
- * @param roomId - The room ID to join
+ * @param roomCode - The room code to join
  * @returns Cleanup function that removes all event listeners
  */
-export const setupDomainEventHandlers = (roomId: string) => {
-  const cleanupRoom = setupRoomEventHandlers(roomId);
+export const setupDomainEventHandlers = () => {
+  const cleanupRoom = setupRoomEventHandlers();
   const cleanupPts = setupPtsEventHandlers();
   const cleanupFile = setupFileEventHandlers();
 

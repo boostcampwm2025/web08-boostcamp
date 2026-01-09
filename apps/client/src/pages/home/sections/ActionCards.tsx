@@ -4,6 +4,7 @@ import { ActionCard } from "../cards/ActionCard";
 import { RoomCodeInput, ROOM_CODE_LENGTH } from "../components/RoomCodeInput";
 import { Button } from "@/shared/ui/button";
 import { createQuickRoom, joinRoom } from "@/shared/api/room";
+import { saveRoomPtId } from "@/shared/lib/storage";
 
 interface ErrorMessageProps {
   message: string;
@@ -40,8 +41,7 @@ export function ActionCards() {
       const { roomCode, myPtId } = await createQuickRoom();
 
       // Save PT ID first
-      const key = `ptId:${roomCode}`;
-      localStorage.setItem(key, myPtId);
+      saveRoomPtId(roomCode, myPtId);
 
       // Then join the room
       await joinRoom(roomCode);

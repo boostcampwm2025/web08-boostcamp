@@ -42,20 +42,20 @@ export const setupFileEventHandlers = () => {
   };
 };
 
-export const emitFileUpdate = (roomId: string, message: Uint8Array) => {
+export const emitFileUpdate = (roomCode: string, message: Uint8Array) => {
   if (!socket.connected) return;
 
   socket.emit(SOCKET_EVENTS.UPDATE_FILE, {
-    roomId,
+    roomCode,
     message,
   });
 };
 
-export const emitAwarenessUpdate = (roomId: string, message: Uint8Array) => {
+export const emitAwarenessUpdate = (roomCode: string, message: Uint8Array) => {
   if (!socket.connected) return;
 
   socket.emit(SOCKET_EVENTS.UPDATE_AWARENESS, {
-    roomId,
+    roomCode,
     message,
   });
 };

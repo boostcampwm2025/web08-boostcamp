@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { CodeEditor } from "@/widgets/code-editor";
 import { Header } from "@/widgets/header";
 import { Participants } from "@/widgets/participants";
@@ -5,14 +7,9 @@ import { useSocket } from "@/shared/lib/hooks/useSocket";
 import { useRoomJoin } from "@/shared/lib/hooks/useRoomJoin";
 import { useRoomStore } from "@/stores/room";
 import { usePt } from "@/stores/pts";
-import { useEffect } from "react";
-import { ptStorage } from "@/shared/lib/storage";
 import { NicknameInputDialog } from "@/widgets/nickname-input";
 
 function RoomPage() {
-  // Initialize socket connection
-  const { setMyPtId, setRoomCode } = useRoomStore();
-
   const {
     paramCode,
     isNicknameDialogOpen,
@@ -21,11 +18,13 @@ function RoomPage() {
     handleNicknameConfirm,
   } = useRoomJoin();
 
+  const setRoomCode = useRoomStore((state) => state.setRoomCode);
+
   useSocket(paramCode || "");
+
   useEffect(() => {
     setRoomCode(paramCode || "");
-    setMyPtId(ptStorage.myId(paramCode) || "");
-  }, [paramCode, setMyPtId, setRoomCode]);
+  }, [paramCode, setRoomCode]);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || "");

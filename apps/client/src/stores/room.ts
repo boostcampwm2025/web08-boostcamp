@@ -1,17 +1,24 @@
 import { create } from "zustand";
+import { saveRoomPtId } from "@/shared/lib/storage";
 
 interface RoomState {
   roomCode: string | null;
   myPtId: string | null;
 
-  setRoomCode: (roomCode: string | undefined) => void;
-  setMyPtId: (myPtId: string | undefined) => void;
+  setRoomCode: (roomCode: string | null) => void;
+  setMyPtId: (myPtId: string | null) => void;
 }
 
-export const useRoomStore = create<RoomState>((set) => ({
-  roomCode: '',
+export const useRoomStore = create<RoomState>((set, get) => ({
+  roomCode: null,
   myPtId: null,
 
   setRoomCode: (roomCode) => set({ roomCode }),
-  setMyPtId: (myPtId) => set({ myPtId }),
+  setMyPtId: (myPtId) => {
+    const { roomCode } = get();
+    set({ myPtId });
+
+    if (!roomCode || !myPtId) return;
+    saveRoomPtId(roomCode, myPtId);
+  },
 }));

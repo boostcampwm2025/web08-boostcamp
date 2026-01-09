@@ -3,15 +3,15 @@ import { Participant } from "./Participant";
 import { sorter } from "./sorter";
 import { usePtsStore } from "@/stores/pts";
 import { checkHost } from "@/shared/api/room";
-import { ptStorage } from "@/shared/lib/storage";
+import { getRoomPtId } from "@/shared/lib/storage";
 import { useRoomJoin } from "@/shared/lib/hooks/useRoomJoin";
 
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
   const { paramCode } = useRoomJoin();
-  const myPtId = ptStorage.myId(paramCode);
+  const myPtId = getRoomPtId(paramCode || "");
   const sorted = useMemo(() => Object.values(pts).sort(sorter), [pts]);
-  const [ hasPermission, setHasPermission ] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false);
   const count = sorted.length;
 
   useEffect(() => {
@@ -31,7 +31,11 @@ export function Participants() {
 
       <div className="space-y-1 mt-4">
         {sorted.map((p) => (
-          <Participant key={p.ptId} ptId={p.ptId} hasPermission={hasPermission} />
+          <Participant
+            key={p.ptId}
+            ptId={p.ptId}
+            hasPermission={hasPermission}
+          />
         ))}
       </div>
     </div>
