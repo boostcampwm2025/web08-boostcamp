@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { socket } from "@/shared/api/socket";
 import { emitJoinRoom } from "@/stores/socket-events";
 import { useRoomStore } from "@/stores/room";
+import { getRoomPtId } from "@/shared/lib/storage";
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
@@ -48,7 +49,7 @@ export function useRoomJoin() {
   useEffect(() => {
     if (!paramCode) return;
 
-    const savedPtId = localStorage.getItem(`ptId:${paramCode}`);
+    const savedPtId = getRoomPtId(paramCode);
     // localStorage에 ptId가 없으면 신규 유저 → 모달 표시
     if (!savedPtId) {
       setIsNicknameDialogOpen(true);
