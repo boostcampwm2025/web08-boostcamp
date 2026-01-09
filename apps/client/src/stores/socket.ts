@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { socket } from "@/shared/api/socket";
-import { setupDomainEventHandlers, emitJoinRoom } from "./socket-events";
+import { create } from 'zustand';
+import { socket } from '@/shared/api/socket';
+import { setupDomainEventHandlers, emitJoinRoom } from './socket-events';
 
 interface SocketState {
   socket: typeof socket;
@@ -36,28 +36,28 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     }
 
     const onConnect = () => {
-      console.log("🟢 Connected to Socket Server");
+      console.log('🟢 Connected to Socket Server');
       set({ isConnected: true });
 
       emitJoinRoom(roomCode);
     };
 
     const onDisconnect = () => {
-      console.log("🔴 Disconnected");
+      console.log('🔴 Disconnected');
       set({ isConnected: false });
     };
 
     // Setup connection event listeners
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
 
     // Setup domain-specific event handlers
-    const cleanupDomainEventHandlers = setupDomainEventHandlers(roomCode);
+    const cleanupDomainEventHandlers = setupDomainEventHandlers();
 
     // Store cleanup function
     const cleanupListeners = () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
       cleanupDomainEventHandlers();
     };
 
