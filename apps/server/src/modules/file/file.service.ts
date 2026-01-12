@@ -9,14 +9,15 @@ import { writeUpdate, readSyncMessage } from 'y-protocols/sync';
 import { Doc, encodeStateAsUpdate } from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { createDecoder } from 'lib0/decoding';
-import { SOCKET_EVENTS } from '@codejam/common';
+import {
+  AwarenessUpdatePayload,
+  FileUpdatePayload,
+  SOCKET_EVENTS,
+} from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
 
 const PROTOTYPE_ID = 'prototype';
-
-type RoomId = string;
-type FileId = string;
 
 export type AwarenessUpdate = {
   added: number[];
@@ -25,10 +26,10 @@ export type AwarenessUpdate = {
 };
 
 export type RoomDoc = {
-  roomId: RoomId;
+  roomId: number;
   doc: Doc;
   awareness: Awareness;
-  files: Set<FileId>;
+  files: Set<string>;
 };
 
 export type Language = 'javascript' | 'html' | 'css';
@@ -38,7 +39,7 @@ export class FileService {
   private readonly logger = new Logger(FileService.name);
 
   // One Y.Doc per room
-  private docs: Map<RoomId, RoomDoc> = new Map();
+  private docs: Map<number, RoomDoc> = new Map();
 
   constructor() {}
 
@@ -50,13 +51,7 @@ export class FileService {
    * Create Y.Doc for a room
    * Should be called when room is initialized (before files are created)
    */
-  createDoc(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string },
-  ): RoomDoc {
-    const { roomId } = payload;
-
+  createDoc(roomId: number): RoomDoc {
     // Check if already exists
     if (this.docs.has(roomId)) {
       return this.docs.get(roomId)!;
@@ -67,14 +62,14 @@ export class FileService {
     const awareness = new Awareness(doc);
 
     // Set up listeners
-    doc.on('update', this.docListener(server, roomId));
-    awareness.on('update', this.awarenessListener(awareness, roomId));
+    doc.on('update', this.docListener());
+    awareness.on('update', this.awarenessListener(awareness));
 
     const roomDoc: RoomDoc = {
       roomId,
       doc,
       awareness,
-      files: new Set(),
+      files: new Set<string>(),
     };
 
     this.docs.set(roomId, roomDoc);
@@ -87,29 +82,17 @@ export class FileService {
    * Ensure Y.Doc exists for room (creates if not exists)
    * Idempotent - safe to call multiple times
    */
-  ensureDoc(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string },
-  ): RoomDoc {
-    const { roomId } = payload;
+  ensureDoc(roomId: number): RoomDoc {
     const existing = this.docs.get(roomId);
-    if (existing) {
-      return existing;
-    }
+    if (existing) return existing;
 
-    return this.createDoc(client, server, { roomId });
+    return this.createDoc(roomId);
   }
 
   /**
    * Get Y.Doc for a room (throws if not found)
    */
-  getDoc(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string },
-  ): RoomDoc {
-    const { roomId } = payload;
+  getDoc(roomId: number): RoomDoc {
     const roomDoc = this.docs.get(roomId);
 
     if (!roomDoc) {
@@ -123,23 +106,17 @@ export class FileService {
    * Remove Y.Doc for a room (cleanup when room is closed)
    * TODO: Call this when room is closed or last participant leaves
    */
-  removeDoc(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string },
-  ): boolean {
-    const { roomId } = payload;
+  removeDoc(client: CollabSocket, server: Server): boolean {
+    const { roomId } = client.data;
     const roomDoc = this.docs.get(roomId);
 
-    if (!roomDoc) {
-      return false;
-    }
+    if (!roomDoc) return false;
 
     const { doc, awareness } = roomDoc;
 
     // Clean up listeners
-    doc.off('update', this.docListener(server, roomId));
-    awareness.off('update', this.awarenessListener(awareness, roomId));
+    doc.off('update', this.docListener());
+    awareness.off('update', this.awarenessListener(awareness));
 
     // Remove from map
     this.docs.delete(roomId);
@@ -156,20 +133,9 @@ export class FileService {
    * Create a file within a room's Y.Doc
    * The Y.Doc must already exist
    */
-  createFile(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string; fileId: string; language: Language },
-  ) {
-    const { roomId, fileId, language } = payload;
-    const roomDoc = this.getDoc(client, server, { roomId });
+  createFile(roomId: number, fileId: string, language?: Language) {
+    const roomDoc = this.getDoc(roomId);
     const { doc, files } = roomDoc;
-
-    // Check if file already exists
-    if (files.has(fileId)) {
-      this.logger.debug(`File ${fileId} already exists in room ${roomId}`);
-      return;
-    }
 
     // Create Y.Text for this file
     const yText = doc.getText(fileId);
@@ -191,19 +157,11 @@ export class FileService {
    * For prototype: creates default file if none specified
    * Idempotent - safe to call multiple times
    */
-  ensureFile(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string; fileId?: string; language?: Language },
-  ) {
-    const { roomId, fileId = PROTOTYPE_ID, language = 'javascript' } = payload;
-    const roomDoc = this.getDoc(client, server, { roomId });
+  ensureFile(roomId: number, fileId: string, language?: Language) {
+    const roomDoc = this.getDoc(roomId);
+    if (roomDoc.files.has(fileId)) return; // File already exists
 
-    if (roomDoc.files.has(fileId)) {
-      return; // File already exists
-    }
-
-    this.createFile(client, server, { roomId, fileId, language });
+    this.createFile(roomId, fileId, language);
   }
 
   // ==================================================================
@@ -214,30 +172,24 @@ export class FileService {
    * Handle create file request
    * Ensures Y.Doc exists for room and creates default file
    */
-  handleCreateFile(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string; fileId?: string; language?: Language },
-  ) {
-    const { roomId, fileId = PROTOTYPE_ID, language = 'javascript' } = payload;
+  handleCreateFile(client: CollabSocket, server: Server) {
+    const { roomId } = client.data;
+    const fileId = client.data.roomCode ?? PROTOTYPE_ID;
+    const language = 'javascript';
 
     // Ensure Y.Doc exists for room
-    this.ensureDoc(client, server, { roomId });
+    this.ensureDoc(roomId);
 
     // Ensure file exists in Y.Doc
-    this.ensureFile(client, server, { roomId, fileId, language });
+    this.ensureFile(roomId, fileId, language);
   }
 
   /**
    * Handle document request - send initial Y.Doc state to client
    */
-  handleRequestDoc(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string },
-  ) {
-    const { roomId } = payload;
-    const roomDoc = this.getDoc(client, server, { roomId });
+  handleRequestDoc(client: CollabSocket, server: Server) {
+    const { roomId } = client.data;
+    const roomDoc = this.getDoc(roomId);
     const { doc } = roomDoc;
 
     // Encode and send entire Y.Doc state
@@ -252,13 +204,9 @@ export class FileService {
   /**
    * Handle awareness request - send initial awareness states to client
    */
-  handleRequestAwareness(
-    client: CollabSocket,
-    server: Server,
-    payload: { roomId: string },
-  ) {
-    const { roomId } = payload;
-    const { awareness } = this.getDoc(client, server, { roomId });
+  handleRequestAwareness(client: CollabSocket, server: Server) {
+    const { roomId } = client.data;
+    const { awareness } = this.getDoc(roomId);
 
     // Send awareness states for this room
     const ids = Array.from(awareness.getStates().keys());
@@ -273,10 +221,11 @@ export class FileService {
   handleFileUpdate(
     client: CollabSocket,
     server: Server,
-    payload: { roomId: string; message: Uint8Array },
+    payload: FileUpdatePayload,
   ) {
-    const { roomId, message } = payload;
-    const { doc } = this.getDoc(client, server, { roomId });
+    const { roomId } = client.data;
+    const { message } = payload;
+    const { doc } = this.getDoc(roomId);
 
     this.logger.debug(`📝 [UPDATE] Room: ${roomId}, Length: ${message.length}`);
 
@@ -288,7 +237,7 @@ export class FileService {
     const reply = toUint8Array(encoder);
 
     if (reply.byteLength > 0) {
-      client.emit(SOCKET_EVENTS.UPDATE_FILE, { roomId, message: reply });
+      client.emit(SOCKET_EVENTS.UPDATE_FILE, { message: reply });
     }
   }
 
@@ -298,10 +247,11 @@ export class FileService {
   handleAwarenessUpdate(
     client: CollabSocket,
     server: Server,
-    payload: { roomId: string; message: Uint8Array },
+    payload: AwarenessUpdatePayload,
   ) {
-    const { roomId, message } = payload;
-    const { awareness } = this.getDoc(client, server, { roomId });
+    const { roomId } = client.data;
+    const { message } = payload;
+    const { awareness } = this.getDoc(roomId);
 
     applyAwarenessUpdate(awareness, message, client);
   }
@@ -312,10 +262,11 @@ export class FileService {
   handleRemoveAwareness(
     client: CollabSocket,
     server: Server,
-    payload: { roomId: string; clientId: number },
+    payload: { clientId: number },
   ) {
-    const { roomId, clientId } = payload;
-    const { awareness } = this.getDoc(client, server, { roomId });
+    const { roomId } = client.data;
+    const { clientId } = payload;
+    const { awareness } = this.getDoc(roomId);
 
     removeAwarenessStates(awareness, [clientId], client);
   }
@@ -324,7 +275,7 @@ export class FileService {
   // Private Helper Methods
   // ==================================================================
 
-  private initialCode(language: Language): string {
+  private initialCode(language?: Language): string {
     switch (language) {
       case 'javascript':
         return "// Write your JavaScript code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n";
@@ -332,27 +283,37 @@ export class FileService {
         return '<!-- Write your HTML code here -->\n\n<!DOCTYPE html>\n<html>\n  <head>\n    <title>CodeJam</title>\n  </head>\n  <body>\n    <h1>Hello, CodeJam!</h1>\n  </body>\n</html>\n';
       case 'css':
         return '/* Write your CSS code here */\n\n.container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n';
+      default:
+        return "// Write your JavaScript code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n";
     }
   }
 
-  private docListener(server: Server, roomId: RoomId) {
-    return (update: Uint8Array) => {
+  private docListener() {
+    return (update: Uint8Array, origin: unknown) => {
+      if (!origin || !(origin instanceof Socket)) return;
+
+      const client = origin as CollabSocket;
+      const { roomCode } = client.data;
+
       const encoder = createEncoder();
       writeUpdate(encoder, update);
       const message = toUint8Array(encoder);
-      server.to(roomId).emit(SOCKET_EVENTS.UPDATE_FILE, { roomId, message });
+
+      client.to(roomCode).emit(SOCKET_EVENTS.UPDATE_FILE, { message });
     };
   }
 
-  private awarenessListener(awareness: Awareness, roomId: RoomId) {
+  private awarenessListener(awareness: Awareness) {
     return ({ added, updated, removed }: AwarenessUpdate, origin: unknown) => {
+      if (!origin || !(origin instanceof Socket)) return;
+
+      const client = origin as CollabSocket;
+      const { roomCode } = client.data;
+
       const changed = added.concat(updated, removed);
       const message = encodeAwarenessUpdate(awareness, changed);
-      if (origin && origin instanceof Socket) {
-        origin
-          .to(roomId)
-          .emit(SOCKET_EVENTS.UPDATE_AWARENESS, { roomId, message });
-      }
+
+      client.to(roomCode).emit(SOCKET_EVENTS.UPDATE_AWARENESS, { message });
     };
   }
 }

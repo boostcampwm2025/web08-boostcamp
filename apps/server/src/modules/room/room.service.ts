@@ -38,8 +38,8 @@ export class RoomService {
   /**
    * 해당 방의 호스트인지 확인
    */
-  async checkHost(roomCode: string, ptId: string): Promise<boolean> {
-    const role = await this.ptService.checkRole(roomCode, ptId);
+  async checkHost(roomId: number, ptId: string): Promise<boolean> {
+    const role = await this.ptService.checkRole(roomId, ptId);
     if (!role || role !== PtRole.HOST) {
       return false;
     }

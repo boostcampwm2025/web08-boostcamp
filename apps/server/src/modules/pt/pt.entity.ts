@@ -24,11 +24,11 @@ export class Pt {
   @PrimaryGeneratedColumn('uuid')
   ptId: string;
 
-  @Column({ type: 'varchar' })
-  roomCode: string;
+  @Column()
+  roomId: number;
 
   @ManyToOne(() => Room, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'room_code', referencedColumnName: 'roomCode' })
+  @JoinColumn({ name: 'room_id', referencedColumnName: 'roomId' })
   room: Room;
 
   @Column({ type: 'varchar' })
