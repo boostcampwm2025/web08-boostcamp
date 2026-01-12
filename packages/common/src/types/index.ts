@@ -1,3 +1,5 @@
+export * from "./auth.types.js";
+
 export interface Pt {
   ptId: string;
   nickname: string;
@@ -11,7 +13,7 @@ export interface Pt {
 /** 방 입장 요청 (C -> S) */
 export interface JoinRoomPayload {
   roomCode: string;
-  ptId?: string;
+  token?: string;
   nickname?: string;
 }
 
@@ -21,6 +23,7 @@ export interface JoinRoomPayload {
  */
 export interface WelcomePayload {
   myPtId: string;
+  token: string;
 }
 
 /**

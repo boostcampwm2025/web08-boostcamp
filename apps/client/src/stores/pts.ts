@@ -36,6 +36,6 @@ export const usePts = () => {
   return usePtsStore((state) => state.pts);
 };
 
-export const usePt = (ptId: string) => {
-  return usePtsStore((state) => state.pts[ptId]);
+export const usePt = (ptId: string | null | undefined) => {
+  return usePtsStore((state) => (ptId ? state.pts[ptId] : undefined));
 };

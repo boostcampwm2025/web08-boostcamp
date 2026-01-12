@@ -6,9 +6,10 @@ import { Room } from './room.entity';
 import { PtModule } from '../pt/pt.module';
 import { Pt } from '../pt/pt.entity';
 import { PtService } from '../pt/pt.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Pt, Room]), PtModule],
+  imports: [TypeOrmModule.forFeature([Pt, Room]), PtModule, AuthModule],
   controllers: [RoomController],
   providers: [RoomService, PtService],
   exports: [RoomService], // 다른 모듈에서 사용 가능하도록 export

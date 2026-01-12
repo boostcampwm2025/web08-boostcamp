@@ -1,27 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Participant } from "./Participant";
 import { sorter } from "./sorter";
-import { usePtsStore } from "@/stores/pts";
-import { checkHost } from "@/shared/api/room";
-import { getRoomPtId } from "@/shared/lib/storage";
-import { useRoomJoin } from "@/shared/lib/hooks/useRoomJoin";
+import { usePt, usePtsStore } from "@/stores/pts";
+import { useRoomStore } from "@/stores/room";
 
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
-  const { paramCode } = useRoomJoin();
-  const myPtId = getRoomPtId(paramCode || "");
+
+  const myPtId = useRoomStore((state) => state.myPtId);
+  const me = usePt(myPtId);
+  const hasPermission = me?.role === "host";
+
   const sorted = useMemo(() => Object.values(pts).sort(sorter), [pts]);
-  const [hasPermission, setHasPermission] = useState(false);
   const count = sorted.length;
-
-  useEffect(() => {
-    const localPermission = async () => {
-      const permission = await checkHost(paramCode || "", myPtId || "");
-      setHasPermission(permission);
-    };
-
-    localPermission();
-  }, []);
 
   return (
     <div className="w-full min-w-3xs bg-white dark:bg-gray-800 p-4 font-sans">

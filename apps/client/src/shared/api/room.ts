@@ -1,3 +1,5 @@
+import type { RoomToken } from "@codejam/common";
+
 // Room REST API
 // TODO: Error message mapping
 
@@ -5,7 +7,7 @@ const ROOM_API_PREFIX = "/api/rooms";
 
 interface CreateQuickRoomResponse {
   roomCode: string;
-  myPtId: string;
+  token: RoomToken;
 }
 
 export async function checkRoomExists(roomCode: string): Promise<boolean> {

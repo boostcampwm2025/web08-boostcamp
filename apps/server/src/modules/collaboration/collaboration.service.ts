@@ -4,6 +4,7 @@ import {
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type Pt,
+  type RoomToken,
   PtUpdateRolePayload,
 } from '@codejam/common';
 import { Injectable, Logger } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { CollabSocket } from './collaboration.types';
 import { PtService } from '../pt/pt.service';
 import { FileService } from '../file/file.service';
 import { RoomService } from '../room/room.service';
+import { RoomTokenService } from '../auth/room-token.service';
 import { PtRole } from '../pt/pt.entity';
 import { Room } from '../room/room.entity';
 
@@ -23,6 +25,7 @@ export class CollaborationService {
     private readonly ptService: PtService,
     private readonly fileService: FileService,
     private readonly roomService: RoomService,
+    private readonly roomTokenService: RoomTokenService,
   ) {}
 
   /** 클라이언트 연결 시 초기화 */
@@ -41,7 +44,7 @@ export class CollaborationService {
     server: Server,
     payload: JoinRoomPayload,
   ): Promise<void> {
-    const { roomCode: rawRoomCode, ptId, nickname } = payload;
+    const { roomCode: rawRoomCode, token, nickname } = payload;
     const roomCode = rawRoomCode.toUpperCase(); // 대문자 변환
 
     // 방 유효성 검사
@@ -49,6 +52,21 @@ export class CollaborationService {
     if (!room) throw new Error('ROOM_NOT_FOUND');
 
     const roomId = room.roomId;
+
+    // 토큰 검증 및 ptId 추출
+    let ptId: string | null = null;
+
+    if (token) {
+      const tokenPayload = this.roomTokenService.verify(token);
+      if (!tokenPayload) {
+        throw new Error('INVALID_TOKEN');
+      }
+      // 토큰의 roomCode와 요청 roomCode 일치 여부 확인
+      if (tokenPayload.roomCode.toUpperCase() !== roomCode) {
+        throw new Error('TOKEN_ROOM_MISMATCH');
+      }
+      ptId = tokenPayload.ptId;
+    }
 
     // 참가자 조회 또는 생성
     let pt: Pt | null = null;
@@ -66,6 +84,12 @@ export class CollaborationService {
       pt = await this.ptService.createPt(roomId, nickname);
     }
 
+    // 새 토큰 발급
+    const newToken = this.roomTokenService.sign({
+      roomCode,
+      ptId: pt.ptId,
+    });
+
     // socket.data 설정
     this.setupSocketData(client, room, pt);
     await client.join(roomCode);
@@ -73,7 +97,7 @@ export class CollaborationService {
     // 클라이언트가 REQUEST_DOC을 보내기 전에 문서 준비 완료
     this.prepareRoomDoc(client, server);
 
-    await this.notifyParticipantJoined(client, server, pt);
+    await this.notifyParticipantJoined(client, server, pt, newToken);
 
     this.logger.log(
       `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
@@ -158,11 +182,12 @@ export class CollaborationService {
     client: CollabSocket,
     server: Server,
     pt: Pt,
+    token: RoomToken,
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
 
-    // 본인에게: 내 ptId 전달
-    client.emit(SOCKET_EVENTS.WELCOME, { myPtId: pt.ptId });
+    // 본인에게: 내 ptId 및 토큰 전달
+    client.emit(SOCKET_EVENTS.WELCOME, { myPtId: pt.ptId, token });
 
     // 다른 참가자들에게: 새 참가자 입장 알림
     client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });

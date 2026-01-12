@@ -1,28 +1,20 @@
-/**
- * Generate localStorage key for storing participant ID
- * @param roomCode - The room code
- * @returns localStorage key string
- */
-export const getRoomPtIdKey = (roomCode: string): string => {
-  return `room:${roomCode}:ptId`;
+import type { RoomToken } from "@codejam/common";
+
+export const getRoomTokenKey = (roomCode: string): string => {
+  return `room:${roomCode}`;
 };
 
-/**
- * Save participant ID to localStorage
- * @param roomCode - The room code
- * @param ptId - The participant ID
- */
-export const saveRoomPtId = (roomCode: string, ptId: string): void => {
-  const key = getRoomPtIdKey(roomCode);
-  localStorage.setItem(key, ptId);
-};
-
-/**
- * Get participant ID from localStorage
- * @param roomCode - The room code
- * @returns The participant ID or null if not found
- */
-export const getRoomPtId = (roomCode: string): string | null => {
-  const key = getRoomPtIdKey(roomCode);
+export const getRoomToken = (roomCode: string): string | null => {
+  const key = getRoomTokenKey(roomCode);
   return localStorage.getItem(key);
+};
+
+export const setRoomToken = (roomCode: string, token: RoomToken): void => {
+  const key = getRoomTokenKey(roomCode);
+  localStorage.setItem(key, token);
+};
+
+export const removeRoomToken = (roomCode: string): void => {
+  const key = getRoomTokenKey(roomCode);
+  localStorage.removeItem(key);
 };

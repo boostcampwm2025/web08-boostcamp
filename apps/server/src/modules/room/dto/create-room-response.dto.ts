@@ -1,4 +1,6 @@
+import { RoomToken } from '@codejam/common';
+
 export class CreateRoomResponseDto {
   roomCode: string;
-  myPtId: string;
+  token: RoomToken;
 }

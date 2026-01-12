@@ -6,7 +6,7 @@ import { RoomCodeInput, ROOM_CODE_LENGTH } from "../components/RoomCodeInput";
 import { Button } from "@/shared/ui/button";
 import { createQuickRoom, checkRoomExists } from "@/shared/api/room";
 import { getRoomUrl } from "@/shared/lib/routes";
-import { saveRoomPtId } from "@/shared/lib/storage";
+import { setRoomToken } from "@/shared/lib/storage";
 
 interface ErrorMessageProps {
   message: string;
@@ -43,10 +43,10 @@ export function ActionCards() {
     setQuickStartError("");
 
     try {
-      const { roomCode, myPtId } = await createQuickRoom();
+      const { roomCode, token } = await createQuickRoom();
 
       // Save PT ID first
-      saveRoomPtId(roomCode, myPtId);
+      setRoomToken(roomCode, token);
 
       // Then join the room
       const url = getRoomUrl(roomCode);
