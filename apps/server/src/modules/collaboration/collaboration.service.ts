@@ -137,10 +137,12 @@ export class CollaborationService {
 
   /** 참가자 권한 업데이트 */
   async handleUpdatePtRole(
+    client: CollabSocket,
     server: Server,
     payload: PtUpdateRolePayload,
   ): Promise<void> {
-    const { roomCode, ptId, role } = payload;
+    const { roomCode } = client.data;
+    const { ptId, role } = payload;
 
     await this.ptService.updatePtRole(
       server,

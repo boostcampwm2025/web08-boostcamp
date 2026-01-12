@@ -60,7 +60,6 @@ export interface PtUpdatePayload {
  * Client -> Server
  */
 export interface PtUpdateRolePayload {
-  roomCode: string;
   ptId: string;
   role: "editor" | "viewer";
 }
@@ -86,7 +85,6 @@ export interface WelcomePayload {
 
 /** 방 참가자 목록 (S -> C) */
 export interface RoomPtsPayload {
-  roomId: string;
   pts: Pt[];
 }
 

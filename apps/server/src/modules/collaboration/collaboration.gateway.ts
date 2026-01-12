@@ -105,8 +105,15 @@ export class CollaborationGateway
   /** C -> S PtRole 업데이트 */
   @UseGuards(HostGuard)
   @SubscribeMessage(SOCKET_EVENTS.UPDATE_PT)
-  async handlePtUpdate(@MessageBody() payload: PtUpdateRolePayload) {
-    await this.collaborationService.handleUpdatePtRole(this.server, payload);
+  async handlePtUpdate(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: PtUpdateRolePayload,
+  ) {
+    await this.collaborationService.handleUpdatePtRole(
+      client,
+      this.server,
+      payload,
+    );
   }
 
   /**
