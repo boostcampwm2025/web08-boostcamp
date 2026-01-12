@@ -17,18 +17,9 @@ export class RoomController {
   @Get(':roomCode/exists')
   async checkRoomExists(@Param('roomCode') roomCode: string) {
     const room = await this.roomService.findRoomByCode(roomCode);
-    if (!room) throw new NotFoundException({ exists: false });
-
-    return { exists: true };
-  }
-
-  @Get(':roomCode/join')
-  async redirectToRoom(@Param('roomCode') roomCode: string) {
-    const room = await this.roomService.findRoomByCode(roomCode);
     if (!room) throw new NotFoundException('ROOM_NOT_FOUND');
 
-    const redirectUrl = `/rooms/${roomCode}`;
-    return { url: redirectUrl };
+    return { exists: true };
   }
 
   @Post(':roomCode/checkHost')
