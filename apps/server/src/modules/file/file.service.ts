@@ -61,10 +61,6 @@ export class FileService {
     const doc = new Doc();
     const awareness = new Awareness(doc);
 
-    // Initialize Y.Map structures for multi-file support
-    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
-    doc.getMap('meta'); // For future snapshot versioning
-
     // Set up listeners
     doc.on('update', this.docListener());
     awareness.on('update', this.awarenessListener(awareness));
@@ -137,38 +133,23 @@ export class FileService {
    * Create a file within a room's Y.Doc
    * The Y.Doc must already exist
    */
-  createFile(
-    roomId: number,
-    fileId: string,
-    fileName: string,
-    language?: Language,
-  ) {
+  createFile(roomId: number, fileId: string, language?: Language) {
     const roomDoc = this.getDoc(roomId);
     const { doc, files } = roomDoc;
 
-    // Get files Y.Map
-    const filesMap = doc.getMap('files');
+    // Create Y.Text for this file
+    const yText = doc.getText(fileId);
 
-    // Create hierarchical structure: fileId -> { name, content }
-    doc.transact(() => {
-      const fileMap = new Map<string, unknown>();
-      const yText = doc.getText(`file:${fileId}:content`); // Unique Y.Text
-
-      // Initialize with default content
-      if (yText.length === 0) {
+    // Initialize with default content
+    if (yText.length === 0) {
+      doc.transact(() => {
         yText.insert(0, this.initialCode(language));
-      }
-
-      fileMap.set('name', fileName);
-      fileMap.set('content', yText);
-      filesMap.set(fileId, fileMap);
-    });
+      });
+    }
 
     // Track file
     files.add(fileId);
-    this.logger.log(
-      `📝 Created file ${fileName} (${fileId}) in room ${roomId}`,
-    );
+    this.logger.log(`📝 Created file ${fileId} in room ${roomId}`);
   }
 
   /**
@@ -176,16 +157,11 @@ export class FileService {
    * For prototype: creates default file if none specified
    * Idempotent - safe to call multiple times
    */
-  ensureFile(
-    roomId: number,
-    fileId: string,
-    fileName: string,
-    language?: Language,
-  ) {
+  ensureFile(roomId: number, fileId: string, language?: Language) {
     const roomDoc = this.getDoc(roomId);
     if (roomDoc.files.has(fileId)) return; // File already exists
 
-    this.createFile(roomId, fileId, fileName, language);
+    this.createFile(roomId, fileId, language);
   }
 
   // ==================================================================
@@ -199,14 +175,13 @@ export class FileService {
   handleCreateFile(client: CollabSocket, server: Server) {
     const { roomId } = client.data;
     const fileId = client.data.roomCode ?? PROTOTYPE_ID;
-    const fileName = 'main.js'; // Default file name
     const language = 'javascript';
 
     // Ensure Y.Doc exists for room
     this.ensureDoc(roomId);
 
     // Ensure file exists in Y.Doc
-    this.ensureFile(roomId, fileId, fileName, language);
+    this.ensureFile(roomId, fileId, language);
   }
 
   /**
