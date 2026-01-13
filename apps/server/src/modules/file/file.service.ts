@@ -167,6 +167,15 @@ export class FileService {
     this.logger.log(
       `📝 Created file ${fileName} (${fileId}) in room ${roomId}`,
     );
+
+    // [DEBUG] Y.Map 구조 검증 로그
+    const createdFileMap = filesMap.get(fileId) as YMap<unknown> | undefined;
+    this.logger.debug(
+      `🗂️ [Y.Map 구조] roomId=${roomId}, fileId=${fileId}, ` +
+        `filesMap.size=${filesMap.size}, ` +
+        `fileMap.has('name')=${createdFileMap?.has('name')}, ` +
+        `fileMap.has('content')=${createdFileMap?.has('content')}`,
+    );
   }
 
   /**
