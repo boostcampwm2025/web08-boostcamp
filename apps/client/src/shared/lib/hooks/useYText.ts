@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { Text as YText } from "yjs";
 import { useFileStore } from "@/stores/file";
 
 export const useYText = (fileId: string) => {
@@ -14,7 +15,7 @@ export const useYText = (fileId: string) => {
     const fileMap = filesMap.get(fileId) as Map<string, unknown> | undefined;
     if (!fileMap) return null;
 
-    return fileMap.get("content") as ReturnType<typeof yDoc.getText> | null;
+    return fileMap.get("content") as YText | null;
   }, [yDoc, fileId]);
 
   // Update active file when the component mounts
