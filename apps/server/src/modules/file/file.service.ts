@@ -61,9 +61,9 @@ export class FileService {
     const doc = new Doc();
     const awareness = new Awareness(doc);
 
-    // Initialize Y.Map structures for multi-file support
+    // 멀티파일 구조를 위한 Y.Map 초기화
     doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
-    doc.getMap('meta'); // For future snapshot versioning
+    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
 
     // Set up listeners
     doc.on('update', this.docListener());
@@ -146,15 +146,15 @@ export class FileService {
     const roomDoc = this.getDoc(roomId);
     const { doc, files } = roomDoc;
 
-    // Get files Y.Map
+    // files Y.Map 가져오기
     const filesMap = doc.getMap('files');
 
-    // Create hierarchical structure: fileId -> { name, content }
+    // 계층형 구조 생성: fileId -> { name, content }
     doc.transact(() => {
       const fileMap = new Map<string, unknown>();
-      const yText = doc.getText(`file:${fileId}:content`); // Unique Y.Text
+      const yText = doc.getText(`file:${fileId}:content`); // 고유한 Y.Text
 
-      // Initialize with default content
+      // 기본 코드로 초기화
       if (yText.length === 0) {
         yText.insert(0, this.initialCode(language));
       }
@@ -164,7 +164,7 @@ export class FileService {
       filesMap.set(fileId, fileMap);
     });
 
-    // Track file
+    // 파일 추적
     files.add(fileId);
     this.logger.log(
       `📝 Created file ${fileName} (${fileId}) in room ${roomId}`,
@@ -185,9 +185,9 @@ export class FileService {
     const roomDoc = this.getDoc(roomId);
     const { doc } = roomDoc;
 
-    // Check in Y.Map instead of Set
+    // Y.Map에서 파일 존재 여부 체크
     const filesMap = doc.getMap('files');
-    if (filesMap.has(fileId)) return; // File already exists
+    if (filesMap.has(fileId)) return; // 이미 존재하는 파일
 
     this.createFile(roomId, fileId, fileName, language);
   }
@@ -203,7 +203,7 @@ export class FileService {
   handleCreateFile(client: CollabSocket, server: Server) {
     const { roomId } = client.data;
     const fileId = client.data.roomCode ?? PROTOTYPE_ID;
-    const fileName = 'main.js'; // Default file name
+    const fileName = 'main.js'; // 기본 파일명
     const language = 'javascript';
 
     // Ensure Y.Doc exists for room
