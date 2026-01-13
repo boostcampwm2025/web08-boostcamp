@@ -6,7 +6,7 @@ import {
   removeAwarenessStates,
 } from 'y-protocols/awareness';
 import { writeUpdate, readSyncMessage } from 'y-protocols/sync';
-import { Doc, encodeStateAsUpdate } from 'yjs';
+import { Doc, encodeStateAsUpdate, Map as YMap, Text as YText } from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { createDecoder } from 'lib0/decoding';
 import {
@@ -60,6 +60,10 @@ export class FileService {
     // Create Y.Doc
     const doc = new Doc();
     const awareness = new Awareness(doc);
+
+    // 멀티파일 구조를 위한 Y.Map 초기화
+    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
+    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
 
     // Set up listeners
     doc.on('update', this.docListener());
@@ -133,23 +137,45 @@ export class FileService {
    * Create a file within a room's Y.Doc
    * The Y.Doc must already exist
    */
-  createFile(roomId: number, fileId: string, language?: Language) {
+  createFile(
+    roomId: number,
+    fileId: string,
+    fileName: string,
+    language?: Language,
+  ) {
     const roomDoc = this.getDoc(roomId);
     const { doc, files } = roomDoc;
 
-    // Create Y.Text for this file
-    const yText = doc.getText(fileId);
+    // files Y.Map 가져오기
+    const filesMap = doc.getMap('files');
 
-    // Initialize with default content
-    if (yText.length === 0) {
-      doc.transact(() => {
-        yText.insert(0, this.initialCode(language));
-      });
-    }
+    // 계층형 구조 생성: fileId -> { name, content }
+    doc.transact(() => {
+      const fileMap = new YMap<unknown>();
+      const yText = new YText(); // Y.Map 안에 넣을 독립 인스턴스 생성
 
-    // Track file
+      // 기본 코드로 초기화
+      yText.insert(0, this.initialCode(language));
+
+      fileMap.set('name', fileName);
+      fileMap.set('content', yText);
+      filesMap.set(fileId, fileMap);
+    });
+
+    // 파일 추적
     files.add(fileId);
-    this.logger.log(`📝 Created file ${fileId} in room ${roomId}`);
+    this.logger.log(
+      `📝 Created file ${fileName} (${fileId}) in room ${roomId}`,
+    );
+
+    // [DEBUG] Y.Map 구조 검증 로그
+    const createdFileMap = filesMap.get(fileId) as YMap<unknown> | undefined;
+    this.logger.debug(
+      `🗂️ [Y.Map 구조] roomId=${roomId}, fileId=${fileId}, ` +
+        `filesMap.size=${filesMap.size}, ` +
+        `fileMap.has('name')=${createdFileMap?.has('name')}, ` +
+        `fileMap.has('content')=${createdFileMap?.has('content')}`,
+    );
   }
 
   /**
@@ -157,11 +183,20 @@ export class FileService {
    * For prototype: creates default file if none specified
    * Idempotent - safe to call multiple times
    */
-  ensureFile(roomId: number, fileId: string, language?: Language) {
+  ensureFile(
+    roomId: number,
+    fileId: string,
+    fileName: string,
+    language?: Language,
+  ) {
     const roomDoc = this.getDoc(roomId);
-    if (roomDoc.files.has(fileId)) return; // File already exists
+    const { doc } = roomDoc;
 
-    this.createFile(roomId, fileId, language);
+    // Y.Map에서 파일 존재 여부 체크
+    const filesMap = doc.getMap('files');
+    if (filesMap.has(fileId)) return; // 이미 존재하는 파일
+
+    this.createFile(roomId, fileId, fileName, language);
   }
 
   // ==================================================================
@@ -175,13 +210,14 @@ export class FileService {
   handleCreateFile(client: CollabSocket, server: Server) {
     const { roomId } = client.data;
     const fileId = client.data.roomCode ?? PROTOTYPE_ID;
+    const fileName = 'main.js'; // 기본 파일명
     const language = 'javascript';
 
     // Ensure Y.Doc exists for room
     this.ensureDoc(roomId);
 
     // Ensure file exists in Y.Doc
-    this.ensureFile(roomId, fileId, language);
+    this.ensureFile(roomId, fileId, fileName, language);
   }
 
   /**
