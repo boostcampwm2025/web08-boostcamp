@@ -61,6 +61,10 @@ export class FileService {
     const doc = new Doc();
     const awareness = new Awareness(doc);
 
+    // Initialize Y.Map structures for multi-file support
+    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
+    doc.getMap('meta'); // For future snapshot versioning
+
     // Set up listeners
     doc.on('update', this.docListener());
     awareness.on('update', this.awarenessListener(awareness));
