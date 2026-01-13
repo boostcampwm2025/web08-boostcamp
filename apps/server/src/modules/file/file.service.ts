@@ -6,7 +6,7 @@ import {
   removeAwarenessStates,
 } from 'y-protocols/awareness';
 import { writeUpdate, readSyncMessage } from 'y-protocols/sync';
-import { Doc, encodeStateAsUpdate } from 'yjs';
+import { Doc, encodeStateAsUpdate, Map as YMap } from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { createDecoder } from 'lib0/decoding';
 import {
@@ -151,7 +151,7 @@ export class FileService {
 
     // 계층형 구조 생성: fileId -> { name, content }
     doc.transact(() => {
-      const fileMap = new Map<string, unknown>();
+      const fileMap = new YMap<unknown>();
       const yText = doc.getText(`file:${fileId}:content`); // 고유한 Y.Text
 
       // 기본 코드로 초기화

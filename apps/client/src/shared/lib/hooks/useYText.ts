@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { Text as YText } from "yjs";
+import { Text as YText, Map as YMap } from "yjs";
 import { useFileStore } from "@/stores/file";
 
 export const useYText = (fileId: string) => {
@@ -12,7 +12,7 @@ export const useYText = (fileId: string) => {
     if (!yDoc) return null;
 
     const filesMap = yDoc.getMap("files");
-    const fileMap = filesMap.get(fileId) as Map<string, unknown> | undefined;
+    const fileMap = filesMap.get(fileId) as YMap<unknown> | undefined;
     if (!fileMap) return null;
 
     return fileMap.get("content") as YText | null;
