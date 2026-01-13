@@ -183,7 +183,11 @@ export class FileService {
     language?: Language,
   ) {
     const roomDoc = this.getDoc(roomId);
-    if (roomDoc.files.has(fileId)) return; // File already exists
+    const { doc } = roomDoc;
+
+    // Check in Y.Map instead of Set
+    const filesMap = doc.getMap('files');
+    if (filesMap.has(fileId)) return; // File already exists
 
     this.createFile(roomId, fileId, fileName, language);
   }
