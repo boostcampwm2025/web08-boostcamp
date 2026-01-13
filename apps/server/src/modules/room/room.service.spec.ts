@@ -5,11 +5,15 @@ import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
 import { PtRole } from '../pt/pt.entity';
+import { PtService } from '../pt/pt.service';
+import { RoomTokenService } from '../auth/room-token.service';
 
 // 테스트 상수
 const MOCK_ROOM_CODE = 'UNI001';
 const MOCK_ROOM_ID = 100;
 const MOCK_PT_ID = 'uuid-host-1';
+const MOCK_PT_HASH = '1234';
+const MOCK_TOKEN = 'mock-jwt-token';
 
 const createMockQueryRunner = () => ({
   connect: jest.fn(),
@@ -28,6 +32,7 @@ describe('RoomService', () => {
   let repository: jest.Mocked<Repository<Room>>;
   let dataSource: jest.Mocked<DataSource>;
   let queryRunner: jest.Mocked<QueryRunner>;
+  let roomTokenService: jest.Mocked<RoomTokenService>;
 
   beforeEach(async () => {
     // 각 테스트마다 새로운 QueryRunner Mock 생성
@@ -50,12 +55,27 @@ describe('RoomService', () => {
               .mockReturnValue(mockQueryRunnerInstance),
           },
         },
+        {
+          provide: PtService,
+          useValue: {
+            generatePtHash: jest.fn().mockReturnValue(MOCK_PT_HASH),
+            checkRole: jest.fn(),
+          },
+        },
+        {
+          provide: RoomTokenService,
+          useValue: {
+            sign: jest.fn().mockReturnValue(MOCK_TOKEN),
+            verify: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<RoomService>(RoomService);
     repository = module.get(getRepositoryToken(Room));
     dataSource = module.get(DataSource);
+    roomTokenService = module.get(RoomTokenService);
     queryRunner = dataSource.createQueryRunner() as jest.Mocked<QueryRunner>;
 
     // 셋업 과정에서 생긴 호출 기록 초기화
@@ -82,7 +102,7 @@ describe('RoomService', () => {
       const savedRoom = { roomId: MOCK_ROOM_ID, roomCode: MOCK_ROOM_CODE };
       const savedPt = {
         ptId: MOCK_PT_ID,
-        roomId: MOCK_ROOM_ID,
+        room: savedRoom,
         role: PtRole.HOST,
       };
 
@@ -115,15 +135,22 @@ describe('RoomService', () => {
       expect(queryRunner.manager.save).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
+          room: savedRoom,
           role: PtRole.HOST,
-          code: '0000',
+          ptHash: MOCK_PT_HASH,
         }),
       );
 
-      // 3. 반환값 검증
+      // 3. 토큰 생성 검증
+      expect(roomTokenService.sign).toHaveBeenCalledWith({
+        roomCode: MOCK_ROOM_CODE,
+        ptId: MOCK_PT_ID,
+      });
+
+      // 4. 반환값 검증
       expect(result).toEqual({
         roomCode: MOCK_ROOM_CODE,
-        myPtId: MOCK_PT_ID,
+        token: MOCK_TOKEN,
       });
     });
 
