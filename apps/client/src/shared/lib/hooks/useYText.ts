@@ -6,10 +6,15 @@ export const useYText = (fileId: string) => {
   const awareness = useFileStore((state) => state.awareness);
   const setActiveFile = useFileStore((state) => state.setActiveFile);
 
-  // Get Y.Text instance for the file
+  // 계층형 구조에서 Y.Text 가져오기
   const yText = useMemo(() => {
     if (!yDoc) return null;
-    return yDoc.getText(fileId);
+
+    const filesMap = yDoc.getMap("files");
+    const fileMap = filesMap.get(fileId) as Map<string, unknown> | undefined;
+    if (!fileMap) return null;
+
+    return fileMap.get("content") as ReturnType<typeof yDoc.getText> | null;
   }, [yDoc, fileId]);
 
   // Update active file when the component mounts
