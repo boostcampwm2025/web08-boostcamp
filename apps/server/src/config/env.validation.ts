@@ -16,6 +16,10 @@ export const validationSchema = Joi.object({
   DB_USER: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
 
+  // JWT
+  JWT_ROOM_TOKEN_SECRET: Joi.string().required(),
+  JWT_ROOM_TOKEN_EXPIRES_IN: Joi.string().default('24h'),
+
   // Environment
   NODE_ENV: Joi.string()
     .valid('development', 'production', 'test')

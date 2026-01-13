@@ -1,23 +1,34 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "@/shared/api/socket";
 import { emitJoinRoom } from "@/stores/socket-events";
 import { useRoomStore } from "@/stores/room";
-import { getRoomPtId } from "@/shared/lib/storage";
+import { getRoomToken } from "@/shared/lib/storage";
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
-  const [isNicknameDialogOpen, setIsNicknameDialogOpen] = useState(false);
   const [roomError, setRoomError] = useState<string>("");
 
-  const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const roomCode = useRoomStore((state) => state.roomCode);
+  const setRoomCode = useRoomStore((state) => state.setRoomCode);
+
+  const shouldShowNicknameDialog = useMemo(() => {
+    if (!paramCode) return false;
+    const savedRoomToken = getRoomToken(paramCode);
+    return !savedRoomToken;
+  }, [paramCode]);
+
+  const [isNicknameDialogOpen, setIsNicknameDialogOpen] = useState(
+    shouldShowNicknameDialog
+  );
+
+  useEffect(() => {
+    setIsNicknameDialogOpen(shouldShowNicknameDialog);
+  }, [shouldShowNicknameDialog]);
 
   // paramCode를 roomStore에 설정
   useEffect(() => {
-    if (paramCode) {
-      setRoomCode(paramCode);
-    }
+    if (paramCode) setRoomCode(paramCode);
   }, [paramCode, roomCode, setRoomCode]);
 
   // Socket 에러 핸들링
@@ -49,9 +60,9 @@ export function useRoomJoin() {
   useEffect(() => {
     if (!paramCode) return;
 
-    const savedPtId = getRoomPtId(paramCode);
+    const savedRoomToken = getRoomToken(paramCode);
     // localStorage에 ptId가 없으면 신규 유저 → 모달 표시
-    if (!savedPtId) {
+    if (!savedRoomToken) {
       setIsNicknameDialogOpen(true);
     }
     // 재접속 유저는 socket.connect()에서 자동으로 emitJoinRoom 호출됨

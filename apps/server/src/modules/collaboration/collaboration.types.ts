@@ -16,6 +16,7 @@ import {
 } from '@codejam/common';
 
 export interface SocketData {
+  roomId: number;
   roomCode: string;
   ptId: string;
   role: PtRole;

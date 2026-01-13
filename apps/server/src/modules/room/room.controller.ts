@@ -5,6 +5,7 @@ import {
   Post,
   NotFoundException,
   Body,
+  BadRequestException,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
@@ -15,29 +16,27 @@ export class RoomController {
 
   @Get(':roomCode/exists')
   async checkRoomExists(@Param('roomCode') roomCode: string) {
-    const exists = await this.roomService.roomExists(roomCode);
-    if (!exists) {
-      throw new NotFoundException({ exists: false });
-    }
+    const room = await this.roomService.findRoomByCode(roomCode);
+    if (!room) throw new NotFoundException('ROOM_NOT_FOUND');
+
     return { exists: true };
-  }
-
-  @Get(':roomCode/join')
-  async redirectToRoom(@Param('roomCode') roomCode: string) {
-    const exists = await this.roomService.roomExists(roomCode);
-    if (!exists) throw new NotFoundException();
-
-    const redirectUrl = `/rooms/${roomCode}`;
-    return { url: redirectUrl };
   }
 
   @Post(':roomCode/checkHost')
   async checkHost(
     @Param('roomCode') roomCode: string,
-    @Body('ptId') ptId: string | undefined,
+    @Body('ptId') ptId: string,
   ) {
-    const ok = await this.roomService.checkHost(roomCode, ptId || '');
-    return { ok };
+    // TODO: Validation pipe
+    if (!roomCode || !ptId) throw new BadRequestException();
+
+    const room = await this.roomService.findRoomByCode(roomCode);
+    if (!room) throw new NotFoundException('ROOM_NOT_FOUND');
+
+    const roomId = room.roomId;
+    const isHost = await this.roomService.checkHost(roomId, ptId);
+
+    return { ok: isHost };
   }
 
   @Post('quick')

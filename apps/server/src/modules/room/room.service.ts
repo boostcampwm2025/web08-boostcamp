@@ -9,6 +9,7 @@ import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
 import { PtService } from '../pt/pt.service';
+import { RoomTokenService } from '../auth/room-token.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 import { RoomCreationOptions } from './room.interface';
 
@@ -22,6 +23,7 @@ export class RoomService {
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
     private ptService: PtService,
+    private roomTokenService: RoomTokenService,
     private dataSource: DataSource,
   ) {}
 
@@ -38,8 +40,8 @@ export class RoomService {
   /**
    * 해당 방의 호스트인지 확인
    */
-  async checkHost(roomCode: string, ptId: string): Promise<boolean> {
-    const role = await this.ptService.checkRole(roomCode, ptId);
+  async checkHost(roomId: number, ptId: string): Promise<boolean> {
+    const role = await this.ptService.checkRole(roomId, ptId);
     if (!role || role !== PtRole.HOST) {
       return false;
     }
@@ -99,13 +101,18 @@ export class RoomService {
 
       await queryRunner.commitTransaction();
 
+      const token = this.roomTokenService.sign({
+        roomCode: savedRoom.roomCode,
+        ptId: savedPt.ptId,
+      });
+
       this.logger.log(
         `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}]`,
       );
 
       return {
         roomCode: savedRoom.roomCode,
-        myPtId: savedPt.ptId,
+        token,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();

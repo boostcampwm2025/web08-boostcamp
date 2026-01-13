@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Users, Hash } from "lucide-react";
 import { ActionCard } from "../cards/ActionCard";
 import { RoomCodeInput, ROOM_CODE_LENGTH } from "../components/RoomCodeInput";
 import { Button } from "@/shared/ui/button";
-import { createQuickRoom, joinRoom } from "@/shared/api/room";
-import { saveRoomPtId } from "@/shared/lib/storage";
+import { createQuickRoom, checkRoomExists } from "@/shared/api/room";
+import { getRoomUrl } from "@/shared/lib/routes";
+import { setRoomToken } from "@/shared/lib/storage";
 
 interface ErrorMessageProps {
   message: string;
@@ -23,12 +25,15 @@ function ErrorMessage({ message }: ErrorMessageProps) {
 }
 
 export function ActionCards() {
+  const navigate = useNavigate();
+
   const [roomCode, setRoomCode] = useState<string[]>(
     Array(ROOM_CODE_LENGTH).fill("")
   );
   const [quickStartError, setQuickStartError] = useState<string>("");
   const [joinRoomError, setJoinRoomError] = useState<string>("");
-  const [isQuickStartLoading, setIsQuickStartLoading] = useState<boolean>(false);
+  const [isQuickStartLoading, setIsQuickStartLoading] =
+    useState<boolean>(false);
   const [isJoinRoomLoading, setIsJoinRoomLoading] = useState<boolean>(false);
 
   const handleQuickStart = async () => {
@@ -38,13 +43,14 @@ export function ActionCards() {
     setQuickStartError("");
 
     try {
-      const { roomCode, myPtId } = await createQuickRoom();
+      const { roomCode, token } = await createQuickRoom();
 
       // Save PT ID first
-      saveRoomPtId(roomCode, myPtId);
+      setRoomToken(roomCode, token);
 
       // Then join the room
-      await joinRoom(roomCode);
+      const url = getRoomUrl(roomCode);
+      navigate(url);
     } catch (e) {
       const error = e as Error;
       setQuickStartError(error.message);
@@ -62,7 +68,11 @@ export function ActionCards() {
     setJoinRoomError("");
 
     try {
-      await joinRoom(code);
+      const exists = await checkRoomExists(code);
+      if (!exists) return;
+
+      const roomUrl = getRoomUrl(code);
+      navigate(roomUrl);
     } catch (e) {
       const error = e as Error;
       setJoinRoomError(error.message);
@@ -84,7 +94,11 @@ export function ActionCards() {
             <Button
               onClick={handleQuickStart}
               disabled={isQuickStartLoading}
-              className={`w-full ${quickStartError ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400`}
+              className={`w-full ${
+                quickStartError
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              } text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400`}
             >
               {isQuickStartLoading ? "Loading..." : "Quick Start"}
             </Button>
