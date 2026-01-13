@@ -168,4 +168,59 @@ export const useFileStore = create<FileState>((set, get) => ({
       isInitialized: false,
     });
   },
+
+  // CRUD: 파일 생성
+  createFile: (name: string, content?: string) => {
+    const { yDoc } = get();
+    if (!yDoc) return "";
+
+    const fileId = uuidv7();
+    const filesMap = yDoc.getMap("files") as YMap<YMap<unknown>>;
+
+    yDoc.transact(() => {
+      const fileMap = new YMap<unknown>();
+      const yText = new YText();
+
+      fileMap.set("name", name);
+      fileMap.set("content", yText);
+
+      if (content) {
+        yText.insert(0, content);
+      }
+
+      filesMap.set(fileId, fileMap);
+    });
+
+    return fileId;
+  },
+
+  // CRUD: 파일 삭제
+  deleteFile: (fileId: string) => {
+    const { yDoc } = get();
+    if (!yDoc) return;
+
+    const filesMap = yDoc.getMap("files");
+    filesMap.delete(fileId);
+  },
+
+  // CRUD: 파일 이름 변경
+  renameFile: (fileId: string, newName: string) => {
+    const { yDoc } = get();
+    if (!yDoc) return;
+
+    const filesMap = yDoc.getMap("files") as YMap<YMap<unknown>>;
+    const fileMap = filesMap.get(fileId);
+
+    if (fileMap) {
+      fileMap.set("name", newName);
+    }
+  },
+
+  // CRUD: filesMap 반환 (Observer 등록용)
+  getFilesMap: () => {
+    const { yDoc } = get();
+    if (!yDoc) return null;
+
+    return yDoc.getMap("files") as YMap<YMap<unknown>>;
+  },
 }));
