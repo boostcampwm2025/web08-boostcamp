@@ -82,6 +82,7 @@ function createInputPopup(pos: number, initialValue: string): Tooltip {
       input.value = initialValue;
 
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.textContent = '↵';
       btn.style.cssText = styles.button;
 
