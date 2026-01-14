@@ -46,7 +46,6 @@ export default function CodeEditor({
       doc: yText.toString(),
       extensions: [
         basicSetup,
-        javascript(),
         yCollab(yText, awareness),
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
