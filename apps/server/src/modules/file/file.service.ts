@@ -16,8 +16,7 @@ import {
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
-
-const PROTOTYPE_ID = 'prototype';
+import { v7 as uuidv7 } from 'uuid';
 
 export type AwarenessUpdate = {
   added: number[];
@@ -209,7 +208,7 @@ export class FileService {
    */
   handleCreateFile(client: CollabSocket, server: Server) {
     const { roomId } = client.data;
-    const fileId = client.data.roomCode ?? PROTOTYPE_ID;
+    const fileId = uuidv7(); 
     const fileName = 'main.js'; // 기본 파일명
     const language = 'javascript';
 
