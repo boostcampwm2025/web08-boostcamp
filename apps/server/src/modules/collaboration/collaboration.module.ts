@@ -5,7 +5,7 @@ import { RoomModule } from '../room/room.module';
 import { PtModule } from '../pt/pt.module';
 import { FileModule } from '../file/file.module';
 import { AuthModule } from '../auth/auth.module';
-import { RedisModule } from '../../config/redis.module';
+import { RedisModule } from '../redis/redis.module';
 import { PermissionGuard } from './guards/permission.guard';
 
 @Module({

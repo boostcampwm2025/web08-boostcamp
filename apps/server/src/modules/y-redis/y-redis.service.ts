@@ -1,10 +1,10 @@
 import {
   Injectable,
+  Inject,
   Logger,
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as Y from 'yjs';
 import { Redis } from 'ioredis';
 import { YRedis } from './y-redis.types';
@@ -18,19 +18,11 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   private redis: YRedis;
   private sub: Redis;
 
-  private readonly REDIS_HOST;
-  private readonly REDIS_PORT;
-
-  constructor(private readonly configService: ConfigService) {
-    this.REDIS_HOST = this.configService.get<string>('REDIS_HOST');
-    this.REDIS_PORT = this.configService.get<number>('REDIS_PORT');
-  }
+  constructor(@Inject('REDIS_YJS') private readonly _redis: Redis) {}
 
   onModuleInit() {
-    const config = { host: this.REDIS_HOST, port: this.REDIS_PORT };
-
-    this.redis = new Redis(config) as YRedis;
-    this.sub = new Redis(config);
+    this.redis = this._redis.duplicate() as YRedis;
+    this.sub = this._redis.duplicate();
 
     this.sub.on('message', (channel: string, sclock: string) => {
       const pdoc = this.docs.get(channel);

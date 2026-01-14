@@ -3,12 +3,10 @@
  * @see https://www.npmjs.com/package/y-redis
  */
 import { Module, Global } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { YRedisService } from './y-redis.service';
 
 @Global()
 @Module({
-  imports: [ConfigModule],
   providers: [YRedisService],
   exports: [YRedisService],
 })
