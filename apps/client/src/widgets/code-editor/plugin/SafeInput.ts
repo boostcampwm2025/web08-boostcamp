@@ -89,7 +89,7 @@ function createInputPopup(pos: number, initialValue: string): Tooltip {
       row.appendChild(btn);
 
       const hint = document.createElement('div');
-      hint.textContent = 'Enter: 입력 / Esc: 취소 / 외부클릭: 저장';
+      hint.textContent = 'Enter: 입력 / Esc: 취소 / 외부클릭: 임시저장';
       hint.style.cssText = styles.hint;
 
       dom.appendChild(row);
