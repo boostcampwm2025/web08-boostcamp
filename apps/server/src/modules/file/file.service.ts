@@ -133,8 +133,8 @@ export class FileService {
     const { doc, awareness } = roomDoc;
 
     // Clean up YRedisService first
-    const roomKey = this.getDocKey(roomId);
-    await this.yRedis.closeDoc(roomKey);
+    const docKey = this.getDocKey(roomId);
+    await this.yRedis.closeDoc(docKey);
 
     // Clean up listeners
     doc.off('update', this.docListener());
