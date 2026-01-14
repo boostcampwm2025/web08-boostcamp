@@ -12,8 +12,9 @@ export interface SafeInputOptions {
 }
 
 interface SafeInputState {
-  active: boolean;
-  pos: number;
+  active: boolean; // 팝업 표시 여부
+  pos: number; // 팝업이 뜰 위치
+  tempValue: string; // 작성 중이던 텍스트 임시 저장
 }
 
 const safeInputAnnotation = Annotation.define<boolean>();
@@ -25,13 +26,19 @@ const styles = {
   popup: `
     padding: 8px; background: white; border: 1px solid #ccc;
     border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    display: flex; gap: 6px; z-index: 9999; min-width: 200px;
+    display: flex; flex-direction: column; gap: 4px; z-index: 9999; min-width: 220px;
+  `,
+  inputRow: `
+    display: flex; gap: 6px; width: 100%;
   `,
   input: `
-    flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 4px; outline: none;
+    flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 14px;
   `,
   button: `
-    padding: 0 8px; cursor: pointer; background: #f3f4f6; border: none; border-radius: 4px;
+    padding: 0 10px; cursor: pointer; background: #f3f4f6; border: none; border-radius: 4px; font-weight: bold; color: #555;
+  `,
+  hint: `
+    font-size: 11px; color: #999; text-align: right; margin-top: 2px; padding-right: 2px; user-select: none;
   `,
 };
 
@@ -39,7 +46,7 @@ const styles = {
 const setSafeInputState = StateEffect.define<SafeInputState>();
 
 const safeInputField = StateField.define<SafeInputState>({
-  create: () => ({ active: false, pos: 0 }),
+  create: () => ({ active: false, pos: 0, tempValue: '' }),
   update(value, tr) {
     for (const effect of tr.effects) {
       if (effect.is(setSafeInputState)) return effect.value;
@@ -49,12 +56,12 @@ const safeInputField = StateField.define<SafeInputState>({
   provide: (field) =>
     showTooltip.from(field, (state) => {
       if (!state.active) return null;
-      return createInputPopup(state.pos);
+      return createInputPopup(state.pos, state.tempValue);
     }),
 });
 
 // --- 4. UI 렌더링 ---
-function createInputPopup(pos: number): Tooltip {
+function createInputPopup(pos: number, initialValue: string): Tooltip {
   return {
     pos,
     above: true,
@@ -64,68 +71,121 @@ function createInputPopup(pos: number): Tooltip {
       dom.className = 'safe-input-popup';
       dom.style.cssText = styles.popup;
 
+      const row = document.createElement('div');
+      row.style.cssText = styles.inputRow;
+
       const input = document.createElement('input');
       input.className = 'safe-input-field';
       input.placeholder = '텍스트 입력...';
       input.style.cssText = styles.input;
+      // 기존에 작성하다 끈 내용이 있다면 복구
+      input.value = initialValue;
 
       const btn = document.createElement('button');
       btn.textContent = '↵';
       btn.style.cssText = styles.button;
 
-      // 닫기 액션
-      const close = () => {
-        view.dispatch({
-          effects: setSafeInputState.of({ active: false, pos: 0 }),
-          annotations: safeInputAnnotation.of(true),
-        });
-        view.focus();
-      };
+      row.appendChild(input);
+      row.appendChild(btn);
 
-      // 제출 액션
+      const hint = document.createElement('div');
+      hint.textContent = 'Enter: 입력 / Esc: 취소 / 외부클릭: 저장';
+      hint.style.cssText = styles.hint;
+
+      dom.appendChild(row);
+      dom.appendChild(hint);
+
+      // --- 로직 ---
+
+      // Submit: 에디터에 반영하고 종료 (Enter, 버튼)
       const submit = () => {
         const text = input.value;
         if (!text) {
-          close();
+          cancel();
           return;
         }
         view.dispatch({
           changes: { from: pos, insert: text },
           selection: { anchor: pos + text.length },
-          effects: setSafeInputState.of({ active: false, pos: 0 }),
+          effects: setSafeInputState.of({
+            active: false,
+            pos: 0,
+            tempValue: '',
+          }),
           annotations: safeInputAnnotation.of(true),
         });
         view.focus();
       };
 
-      // 이벤트 리스너
+      // Suspend: 반영하지 않고 상태만 저장하고 닫기 (외부 클릭)
+      const suspend = () => {
+        // 현재 입력된 값을 tempValue에 저장하고 active만 false로 변경
+        view.dispatch({
+          effects: setSafeInputState.of({
+            active: false,
+            pos: 0,
+            tempValue: input.value, // 값 보존
+          }),
+          annotations: safeInputAnnotation.of(true),
+        });
+      };
+
+      // Cancel: 저장 없이 그냥 닫기 (ESC)
+      const cancel = () => {
+        view.dispatch({
+          effects: setSafeInputState.of({
+            active: false,
+            pos: 0,
+            tempValue: '',
+          }),
+          annotations: safeInputAnnotation.of(true),
+        });
+        view.focus();
+      };
+
+      // --- 이벤트 핸들러 ---
+
+      const onClickOutside = (e: MouseEvent) => {
+        if (e.target instanceof Node && !dom.contains(e.target)) {
+          suspend();
+        }
+      };
+
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.isComposing) {
           e.preventDefault();
           submit();
         } else if (e.key === 'Escape') {
           e.preventDefault();
-          close();
+          cancel();
         }
       });
+
       btn.onclick = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         submit();
       };
 
-      dom.appendChild(input);
-      dom.appendChild(btn);
-
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          input.value = '';
+          const len = input.value.length;
           input.focus();
-          // 혹시라도 딸려온 값이 있다면 제거
-          if (input.value.length > 0) input.value = '';
+          input.setSelectionRange(len, len);
         });
       });
 
-      return { dom };
+      return {
+        dom,
+        // 팝업이 화면에 나타날 때 실행
+        mount() {
+          document.addEventListener('mousedown', onClickOutside);
+        },
+        // 팝업이 사라질 때 실행 (클린업)
+        destroy() {
+          document.removeEventListener('mousedown', onClickOutside);
+        },
+      };
     },
   };
 }
@@ -146,6 +206,7 @@ export function safeInput(
         effects: setSafeInputState.of({
           active: true,
           pos: view.state.selection.main.from,
+          tempValue: currentState.tempValue,
         }),
         annotations: safeInputAnnotation.of(true),
         filter: false,
@@ -170,7 +231,9 @@ export function safeInput(
         if (
           type.startsWith('insert') &&
           type !== 'insertFromPaste' &&
-          type !== 'insertFromDrop'
+          type !== 'insertFromDrop' &&
+          type !== 'insertParagraph' &&
+          type !== 'insertLineBreak'
         ) {
           // 옵션에 따라 ASCII 문자는 허용할지 결정
           if (options.allowAscii && event.data && isAscii(event.data)) {
