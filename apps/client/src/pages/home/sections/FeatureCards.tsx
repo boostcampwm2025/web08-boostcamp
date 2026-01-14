@@ -1,5 +1,5 @@
-import { CodeXml, Zap, UserCog } from "lucide-react";
-import { FeatureCard } from "../cards/FeatureCard";
+import { CodeXml, Zap, UserCog } from 'lucide-react';
+import { FeatureCard } from '../cards/FeatureCard';
 
 export function FeatureCards() {
   return (

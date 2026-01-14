@@ -208,7 +208,7 @@ export class FileService {
    */
   handleCreateFile(client: CollabSocket, server: Server) {
     const { roomId } = client.data;
-    const fileId = uuidv7(); 
+    const fileId = uuidv7();
     const fileName = 'main.js'; // 기본 파일명
     const language = 'javascript';
 

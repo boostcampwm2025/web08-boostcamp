@@ -1,1 +1,1 @@
-export { NicknameInputDialog } from "./NicknameInputDialog";
+export { NicknameInputDialog } from './NicknameInputDialog';

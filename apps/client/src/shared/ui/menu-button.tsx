@@ -18,18 +18,22 @@ export interface MenuButtonProps {
 /**
  * 더보기 메뉴 버튼 컴포넌트
  *
- * @examplepnpm 
+ * @examplepnpm
  * ```tsx
  * <MenuButton onClick={() => console.log('clicked')} />
  * ```
  */
-export function MenuButton({ onClick, className = "", label = "" }: MenuButtonProps) {
+export function MenuButton({
+  onClick,
+  className = '',
+  label = '',
+}: MenuButtonProps) {
   return (
     <button
       onClick={onClick}
       className={`text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 ${className}`}
     >
-      { label }
+      {label}
     </button>
   );
 }

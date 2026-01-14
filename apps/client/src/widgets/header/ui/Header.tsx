@@ -1,10 +1,10 @@
-import { PROJECT_NAME } from "@codejam/common";
-import { useState } from "react";
-import { useRoomStore } from "@/stores/room";
-import LogoAnimation from "@/assets/logo_animation.svg";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { PROJECT_NAME } from '@codejam/common';
+import { useState } from 'react';
+import { useRoomStore } from '@/stores/room';
+import LogoAnimation from '@/assets/logo_animation.svg';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from "@/shared/ui/dialog";
+} from '@/shared/ui/dialog';
 import {
   Check,
   Copy,
@@ -24,7 +24,7 @@ import {
   Settings,
   Sun,
   Moon,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function Header() {
   const roomCode = useRoomStore((state) => state.roomCode);
@@ -34,12 +34,12 @@ export default function Header() {
 
   const toggleDarkMode = () => {
     setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark");
+    document.documentElement.classList.toggle('dark');
   };
 
   const copyRoomCode = async () => {
     try {
-      await navigator.clipboard.writeText(roomCode || "");
+      await navigator.clipboard.writeText(roomCode || '');
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
@@ -92,7 +92,7 @@ export default function Header() {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8"
-          onClick={() => handleNotImplemented("Upload")}
+          onClick={() => handleNotImplemented('Upload')}
         >
           <Upload className="h-4 w-4" />
           <span>Upload</span>
@@ -101,7 +101,7 @@ export default function Header() {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8"
-          onClick={() => handleNotImplemented("Download")}
+          onClick={() => handleNotImplemented('Download')}
         >
           <Download className="h-4 w-4" />
           <span>Download</span>
@@ -110,7 +110,7 @@ export default function Header() {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8"
-          onClick={() => handleNotImplemented("Copy")}
+          onClick={() => handleNotImplemented('Copy')}
         >
           <Copy className="h-4 w-4" />
           <span>Copy</span>
@@ -158,7 +158,7 @@ export default function Header() {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8"
-          onClick={() => handleNotImplemented("Settings")}
+          onClick={() => handleNotImplemented('Settings')}
         >
           <Settings className="h-4 w-4" />
           <span>Settings</span>

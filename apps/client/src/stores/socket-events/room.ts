@@ -1,9 +1,9 @@
-import { socket } from "@/shared/api/socket";
-import { SOCKET_EVENTS, type WelcomePayload } from "@codejam/common";
-import { useRoomStore } from "../room";
-import { useFileStore } from "../file";
-import { getRoomToken } from "@/shared/lib/storage";
-import { setRoomToken } from "@/shared/lib/storage";
+import { socket } from '@/shared/api/socket';
+import { SOCKET_EVENTS, type WelcomePayload } from '@codejam/common';
+import { useRoomStore } from '../room';
+import { useFileStore } from '../file';
+import { getRoomToken } from '@/shared/lib/storage';
+import { setRoomToken } from '@/shared/lib/storage';
 
 export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {

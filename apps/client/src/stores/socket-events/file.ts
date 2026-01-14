@@ -1,12 +1,12 @@
-import { socket } from "@/shared/api/socket";
+import { socket } from '@/shared/api/socket';
 import {
   SOCKET_EVENTS,
   type RoomDocPayload,
   type RoomAwarenessPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
-} from "@codejam/common";
-import { useFileStore } from "../file";
+} from '@codejam/common';
+import { useFileStore } from '../file';
 
 export const setupFileEventHandlers = () => {
   const onRoomDoc = (data: RoomDocPayload) => {

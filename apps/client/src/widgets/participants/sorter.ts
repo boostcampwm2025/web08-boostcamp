@@ -1,10 +1,10 @@
-import type { Pt } from "@codejam/common";
+import type { Pt } from '@codejam/common';
 
-const timeOrder = (time: Pt["joinedAt"]) => {
+const timeOrder = (time: Pt['joinedAt']) => {
   return new Date(time).getTime();
 };
 
-const nicknameCompare = (x: Pt["nickname"], y: Pt["nickname"]) => {
+const nicknameCompare = (x: Pt['nickname'], y: Pt['nickname']) => {
   return x.localeCompare(y);
 };
 
