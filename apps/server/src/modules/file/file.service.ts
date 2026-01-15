@@ -62,6 +62,7 @@ export class FileService {
 
     // 멀티파일 구조를 위한 Y.Map 초기화
     doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
+    doc.getMap('map'); // 파일 이름 -> 파일 ID 추적용
     doc.getMap('meta'); // 추후 스냅샷 버전 관리용
 
     // Set up listeners
@@ -147,6 +148,7 @@ export class FileService {
 
     // files Y.Map 가져오기
     const filesMap = doc.getMap('files');
+    const fileIdMap = doc.getMap('map');
 
     // 계층형 구조 생성: fileId -> { name, content }
     doc.transact(() => {
@@ -159,6 +161,7 @@ export class FileService {
       fileMap.set('name', fileName);
       fileMap.set('content', yText);
       filesMap.set(fileId, fileMap);
+      fileIdMap.set(fileName, fileId);
     });
 
     // 파일 추적
@@ -175,6 +178,22 @@ export class FileService {
         `fileMap.has('name')=${createdFileMap?.has('name')}, ` +
         `fileMap.has('content')=${createdFileMap?.has('content')}`,
     );
+  }
+
+  /**
+   * 파일 중복 확인
+   */
+  checkDuplicate(roomId: number, fileName: string): boolean {
+    const roomDoc = this.getDoc(roomId);
+    const { doc } = roomDoc;
+
+    const fileIdMap = doc.getMap('map');
+
+    if (!fileIdMap) {
+      return false;
+    }
+
+    return fileIdMap.has(fileName);
   }
 
   /**
@@ -208,7 +227,7 @@ export class FileService {
    */
   handleCreateFile(client: CollabSocket, server: Server) {
     const { roomId } = client.data;
-    const fileId = uuidv7(); 
+    const fileId = uuidv7();
     const fileName = 'main.js'; // 기본 파일명
     const language = 'javascript';
 
@@ -335,6 +354,7 @@ export class FileService {
       const message = toUint8Array(encoder);
 
       client.to(roomCode).emit(SOCKET_EVENTS.UPDATE_FILE, { message });
+      client.to(roomCode).emit('update');
     };
   }
 

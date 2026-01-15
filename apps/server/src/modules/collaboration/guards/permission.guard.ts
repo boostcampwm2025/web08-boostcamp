@@ -44,6 +44,7 @@ export class PermissionGuard implements CanActivate {
     this.logger.debug(
       `Permission granted: roomCode=${roomCode}, ptId=${ptId}, role=${role}`,
     );
+    client.emit('update');
     return true;
   }
 }
