@@ -9,6 +9,8 @@ import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
 import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
+import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
+import { useFileStore } from '@/stores/file';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -39,6 +41,7 @@ export default function CodeEditor({
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const { yText, awareness } = useYText(fileId);
+  const isOverLimit = useFileStore((state) => state.isOverLimit);
 
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
@@ -51,8 +54,9 @@ export default function CodeEditor({
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
         githubLight,
-        EditorState.readOnly.of(readOnly),
+        EditorState.readOnly.of(readOnly), // viewer일 때만 완전 읽기 전용
         ...(readOnly ? [readOnlyToast()] : []),
+        ...(isOverLimit ? [capacityLimitInputBlocker()] : []), // 용량 초과 시 입력만 차단
         EditorView.theme({
           '&': { height: '100%' },
           '.cm-scroller': { overflow: 'auto' },
@@ -71,7 +75,7 @@ export default function CodeEditor({
     return () => {
       view.destroy();
     };
-  }, [yText, awareness, language, readOnly]);
+  }, [yText, awareness, language, readOnly, isOverLimit]); // isOverLimit 의존성 추가
 
   return <div ref={editorRef} className="h-full" />;
 }
