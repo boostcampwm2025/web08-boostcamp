@@ -5,10 +5,11 @@ import { CollaborationModule } from './modules/collaboration/collaboration.modul
 import { FileModule } from './modules/file/file.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { RedisModule } from './config/redis.module';
+import { RedisModule } from './modules/redis/redis.module';
 import { validationSchema } from './config/env.validation';
 import { config as databaseConfig } from './config/database.config';
 import { CleanupModule } from './modules/cleanup/cleanup.module';
+import { YRedisModule } from './modules/y-redis/y-redis.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CleanupModule } from './modules/cleanup/cleanup.module';
         configService.get<TypeOrmModuleOptions>('database')!,
     }),
     RedisModule,
+    YRedisModule,
     AuthModule,
     RoomModule,
     CollaborationModule,

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { YRedisService } from '../y-redis/y-redis.service';
 import {
   Awareness,
   encodeAwarenessUpdate,
@@ -40,7 +41,14 @@ export class FileService {
   // One Y.Doc per room
   private docs: Map<number, RoomDoc> = new Map();
 
-  constructor() {}
+  constructor(private readonly yRedis: YRedisService) {}
+
+  /**
+   * Generate Redis key for a room's Y.Doc
+   */
+  private getDocKey(roomId: number): string {
+    return roomId.toString();
+  }
 
   // ==================================================================
   // Y.Doc Management Methods
@@ -49,8 +57,9 @@ export class FileService {
   /**
    * Create Y.Doc for a room
    * Should be called when room is initialized (before files are created)
+   * Hydrates from Redis if data exists
    */
-  createDoc(roomId: number): RoomDoc {
+  async createDoc(roomId: number): Promise<RoomDoc> {
     // Check if already exists
     if (this.docs.has(roomId)) {
       return this.docs.get(roomId)!;
@@ -64,7 +73,13 @@ export class FileService {
     doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
     doc.getMap('meta'); // 추후 스냅샷 버전 관리용
 
+    // Bind to Redis for persistence and hydration
+    const docKey = this.getDocKey(roomId);
+    const pdoc = this.yRedis.bind(docKey, doc);
+    await pdoc.synced; // Wait for hydration from Redis
+
     // Set up listeners
+    // Do after hydration to avoid pushing existing data
     doc.on('update', this.docListener());
     awareness.on('update', this.awarenessListener(awareness));
 
@@ -85,7 +100,7 @@ export class FileService {
    * Ensure Y.Doc exists for room (creates if not exists)
    * Idempotent - safe to call multiple times
    */
-  ensureDoc(roomId: number): RoomDoc {
+  async ensureDoc(roomId: number): Promise<RoomDoc> {
     const existing = this.docs.get(roomId);
     if (existing) return existing;
 
@@ -109,13 +124,17 @@ export class FileService {
    * Remove Y.Doc for a room (cleanup when room is closed)
    * TODO: Call this when room is closed or last participant leaves
    */
-  removeDoc(client: CollabSocket, server: Server): boolean {
+  async removeDoc(client: CollabSocket, server: Server): Promise<boolean> {
     const { roomId } = client.data;
     const roomDoc = this.docs.get(roomId);
 
     if (!roomDoc) return false;
 
     const { doc, awareness } = roomDoc;
+
+    // Clean up YRedisService first
+    const docKey = this.getDocKey(roomId);
+    await this.yRedis.closeDoc(docKey);
 
     // Clean up listeners
     doc.off('update', this.docListener());
