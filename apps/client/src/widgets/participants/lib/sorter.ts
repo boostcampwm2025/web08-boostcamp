@@ -1,4 +1,5 @@
 import type { Pt } from '@codejam/common';
+import type { SortOrder } from './types';
 
 /**
  * 닉네임 정렬 가중치 계산
@@ -12,20 +13,28 @@ const getCharWeight = (char: string) => {
   return 0;
 };
 
-export const sortByTime = (a: Pt, b: Pt) => {
+export const sortByTime = (a: Pt, b: Pt, order: SortOrder) => {
   const timeA = new Date(a.createdAt).getTime();
   const timeB = new Date(b.createdAt).getTime();
-  return timeA - timeB;
+  const diff = timeA - timeB;
+
+  return order === 'asc' ? diff : -diff;
 };
 
-export const sortByNickname = (a: Pt, b: Pt) => {
+export const sortByNickname = (a: Pt, b: Pt, order: SortOrder) => {
   const charA = a.nickname.charAt(0);
   const charB = b.nickname.charAt(0);
   const weightA = getCharWeight(charA);
   const weightB = getCharWeight(charB);
 
-  if (weightA !== weightB) return weightA - weightB;
-  return a.nickname.localeCompare(b.nickname, undefined, {
-    sensitivity: 'base',
-  });
+  let result = 0;
+  if (weightA !== weightB) {
+    result = weightA - weightB;
+  } else {
+    result = a.nickname.localeCompare(b.nickname, undefined, {
+      sensitivity: 'base',
+    });
+  }
+
+  return order === 'asc' ? result : -result;
 };

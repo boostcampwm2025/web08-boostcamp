@@ -1,9 +1,22 @@
 import type { Pt } from '@codejam/common';
 
 /**
- * 정렬 모드 타입
+ * 정렬 모드 키
  */
-export type SortMode = 'name' | 'time';
+export type SortKey = 'name' | 'time';
+
+/**
+ * 정렬 순서
+ */
+export type SortOrder = 'asc' | 'desc';
+
+/**
+ * 정렬 상태 통합 인터페이스
+ */
+export interface SortState {
+  key: SortKey;
+  order: SortOrder;
+}
 
 /**
  * 참가자 컴포넌트의 공통 Props 타입

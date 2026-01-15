@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { sortByTime, sortByNickname } from '../lib/sorter';
 import type { Pt } from '@codejam/common';
-import type { SortMode } from '../lib/types';
+import type { SortState } from '../lib/types';
 
 interface UseParticipantsFilterProps {
   pts: Record<string, Pt>;
   myPtId: string | undefined;
   searchQuery: string;
-  sortMode: SortMode;
+  sortState: SortState;
 }
 
 interface UseParticipantsFilterResult {
@@ -23,7 +23,7 @@ export function useParticipantsFilter({
   pts,
   myPtId,
   searchQuery,
-  sortMode,
+  sortState,
 }: UseParticipantsFilterProps): UseParticipantsFilterResult {
   return useMemo(() => {
     let allPts = Object.values(pts);
@@ -52,10 +52,12 @@ export function useParticipantsFilter({
       if (a.role === 'host') return -1;
       if (b.role === 'host') return 1;
 
-      if (sortMode === 'time') return sortByTime(a, b);
-      return sortByNickname(a, b);
+      if (sortState.key === 'time') {
+        return sortByTime(a, b, sortState.order);
+      }
+      return sortByNickname(a, b, sortState.order);
     });
 
     return { me: myPt, others: otherPts, totalCount: total };
-  }, [pts, searchQuery, sortMode, myPtId]);
+  }, [pts, searchQuery, sortState, myPtId]);
 }
