@@ -59,6 +59,14 @@ jobs:
         if: steps.changes.outputs.client == 'true'
         run: |
           cd apps/client
+          mkdir -p .vercel
+          cat > .vercel/project.json <<'EOF'
+          {
+            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+            "projectName": "codejam"
+          }
+          EOF
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
