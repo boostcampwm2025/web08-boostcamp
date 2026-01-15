@@ -36,6 +36,15 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
+      - name: Setup Turbo cache
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Install dependencies and build common
         if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
         run: |

@@ -7,11 +7,17 @@ import { PtModule } from '../pt/pt.module';
 import { Pt } from '../pt/pt.entity';
 import { PtService } from '../pt/pt.service';
 import { AuthModule } from '../auth/auth.module';
+import { FileModule } from '../file/file.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Pt, Room]), PtModule, AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([Pt, Room]),
+    PtModule,
+    FileModule,
+    AuthModule,
+  ],
   controllers: [RoomController],
-  providers: [RoomService, PtService],
-  exports: [RoomService], // 다른 모듈에서 사용 가능하도록 export
+  providers: [RoomService],
+  exports: [RoomService],
 })
 export class RoomModule {}

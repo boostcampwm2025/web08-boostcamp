@@ -1,5 +1,7 @@
 import { useFileStore } from '@/stores/file';
 import { File } from './File';
+import { useRoomStore } from '@/stores/room';
+import { usePt } from '@/stores/pts';
 import { useState } from 'react';
 import { FileHeader } from './components/FileHeader';
 
@@ -9,8 +11,11 @@ export function FileList() {
   const count = fileMap?.size ?? 0;
   const entries: [string, string][] = Object.entries(fileMap?.toJSON() ?? {});
 
-  // 접기/펼치기 상태 관리
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const myPtId = useRoomStore((state) => state.myPtId);
+  const me = usePt(myPtId);
+  const hasPermission = me?.role === 'host' || me?.role === 'editor';
 
   return (
     <div className="w-full px-4">
@@ -26,7 +31,12 @@ export function FileList() {
         }`}
       >
         {entries.map(([fileName, fileId]) => (
-          <File key={fileId} fileId={fileId} fileName={fileName} />
+          <File
+            key={fileId}
+            fileId={fileId}
+            fileName={fileName}
+            hasPermission={hasPermission}
+          />
         ))}
       </div>
     </div>
