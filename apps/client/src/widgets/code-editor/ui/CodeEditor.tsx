@@ -4,7 +4,6 @@ import { Compartment, EditorState } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { githubLight } from '@fsegurai/codemirror-theme-github-light';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
@@ -52,8 +51,6 @@ export default function CodeEditor({
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
 
-    const initialTheme = isDark ? oneDark : githubLight;
-
     const view = new EditorView({
       doc: yText.toString(),
       extensions: [
@@ -61,7 +58,7 @@ export default function CodeEditor({
         yCollab(yText, awareness),
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
-        themeCompartment.of(initialTheme),
+        themeCompartment.of(isDark ? oneDark : []),
         fontSizeCompartment.of(
           EditorView.theme({
             '&': { fontSize: `${fontSize}px` },
@@ -100,7 +97,7 @@ export default function CodeEditor({
     const view = viewRef.current;
     if (!view) return;
 
-    const themeExtension = isDark ? oneDark : githubLight;
+    const themeExtension = isDark ? oneDark : [];
 
     view.dispatch({
       effects: themeCompartment.reconfigure(themeExtension),
