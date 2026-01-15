@@ -2,49 +2,46 @@ import { EditorView } from 'codemirror';
 import { toast } from 'sonner';
 import { useFileStore } from '@/stores/file';
 
+const MAX_LIMIT = 1_000_000; // 1MB
+
 export function capacityLimitInputBlocker() {
   return EditorView.domEventHandlers({
-    beforeinput: (event, _view) => {
-      const isOverLimit = useFileStore.getState().isOverLimit;
-      if (!isOverLimit) return false;
+    // 1. 붙여넣기 (Paste) 차단
+    paste: (event, view) => {
+      if (!event.clipboardData) return false;
 
-      // 삭제는 허용 (Backspace, Delete)
-      if (
-        event.inputType === 'deleteContentBackward' ||
-        event.inputType === 'deleteContentForward'
-      ) {
-        return false; // 허용
-      }
+      const pastedText = event.clipboardData.getData('text/plain');
+      if (!pastedText) return false;
 
-      // 입력만 차단
-      if (
-        event.inputType === 'insertText' ||
-        event.inputType === 'insertLineBreak'
-      ) {
-        toast.warning('1MB 용량에 도달했습니다. 삭제 후 다시 입력하세요.');
+      const { capacityBytes } = useFileStore.getState();
+
+      // 선택 영역 길이 (교체될 텍스트)
+      const selection = view.state.selection.main;
+      const selectedLength = selection.to - selection.from;
+
+      // 현재 파일에서 추가될 순 증가량 = 붙여넣을 길이 - 선택된 길이
+      const fileDelta = pastedText.length - selectedLength;
+
+      // 최종 예상 용량 = 전체 용량 + 현재 파일의 순 증가량
+      const futureCapacity = capacityBytes + fileDelta;
+
+      if (futureCapacity > MAX_LIMIT) {
+        toast.warning(
+          `복붙할 내용이 너무 큽니다. 1MB 용량을 초과합니다. (예상: ${(futureCapacity / 1_000_000).toFixed(2)}MB)`
+        );
         event.preventDefault();
         return true; // 차단
       }
 
-      return false;
+      return false; // 허용
     },
-    keydown: (event, _view) => {
-      const isOverLimit = useFileStore.getState().isOverLimit;
-      if (!isOverLimit) return false;
 
-      // 삭제 키는 허용
-      if (event.key === 'Backspace' || event.key === 'Delete') {
-        return false; // 허용
-      }
-
-      // Ctrl/Cmd + 키 조합은 모두 허용 (복사, 전체선택, 새로고침 등)
-      if (event.ctrlKey || event.metaKey) return false;
-
-      // 기능 키 허용 (F1-F12, Esc 등)
-      if (event.key.startsWith('F') || event.key === 'Escape') return false;
-
-      // 네비게이션 키 허용
-      const navigationKeys = [
+    // 2. 키 입력 (Typing) 차단
+    keydown: (event, view) => {
+      // 삭제 키, 네비게이션 키, 기능 키 등은 무조건 허용
+      const allowedKeys = [
+        'Backspace',
+        'Delete',
         'ArrowLeft',
         'ArrowRight',
         'ArrowUp',
@@ -54,20 +51,48 @@ export function capacityLimitInputBlocker() {
         'PageUp',
         'PageDown',
         'Tab',
+        'Escape',
       ];
-      if (navigationKeys.includes(event.key)) return false;
+      const isModifier = event.ctrlKey || event.metaKey || event.altKey;
 
-      // 수정 키만 허용하지 않음 (Shift, Alt, Control, Meta는 단독으로는 무해)
-      const modifierKeys = ['Shift', 'Control', 'Alt', 'Meta'];
-      if (modifierKeys.includes(event.key)) return false;
-
-      // 실제 문자/입력 키만 차단
-      // key length가 1이면 대부분 입력 가능한 문자
-      if (event.key.length === 1 || event.key === 'Enter') {
-        toast.warning('1MB 용량에 도달했습니다. 삭제 후 다시 입력하세요.');
-        return true; // 이벤트 중단
+      if (allowedKeys.includes(event.key) || isModifier || event.key.startsWith('F')) {
+        return false;
       }
 
+      // Enter 키는 줄바꿈이므로 체크 필요
+      if (event.key === 'Enter') {
+        const { capacityBytes } = useFileStore.getState();
+        const selection = view.state.selection.main;
+        const selectedLength = selection.to - selection.from;
+        
+        // Enter는 선택 영역을 삭제하고 줄바꿈 추가
+        const fileDelta = selectedLength > 0 ? -selectedLength + 1 : 1;
+        const futureCapacity = capacityBytes + fileDelta;
+
+        if (futureCapacity > MAX_LIMIT) {
+          toast.warning('최대 용량에 도달했습니다.');
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      }
+
+      // 입력 가능한 키인 경우 용량 체크
+      if (event.key.length === 1) {
+        const { capacityBytes } = useFileStore.getState();
+        const selection = view.state.selection.main;
+        const selectedLength = selection.to - selection.from;
+
+        // 한 글자 입력 시: 선택 영역이 있으면 교체, 없으면 +1
+        const fileDelta = selectedLength > 0 ? -selectedLength + 1 : 1;
+        const futureCapacity = capacityBytes + fileDelta;
+
+        if (futureCapacity > MAX_LIMIT) {
+          toast.warning('최대 용량에 도달했습니다.');
+          event.preventDefault();
+          return true;
+        }
+      }
       return false;
     },
   });
