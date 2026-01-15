@@ -8,6 +8,7 @@ import { getRoomToken } from "@/shared/lib/storage";
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
   const [roomError, setRoomError] = useState<string>("");
+  const [, setUpdate] = useState(0);
 
   const roomCode = useRoomStore((state) => state.roomCode);
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
@@ -49,10 +50,16 @@ export function useRoomJoin() {
       }
     };
 
+    const handleUpdate = () => {
+      setUpdate(Date.now());
+    };
+
     socket.on("error", handleError);
+    socket.on("update", handleUpdate);
 
     return () => {
       socket.off("error", handleError);
+      socket.off("update", handleUpdate);
     };
   }, []);
 
@@ -73,7 +80,6 @@ export function useRoomJoin() {
       if (!paramCode) return;
 
       setRoomError("");
-      console.log(paramCode);
       emitJoinRoom(paramCode, nickname);
       setIsNicknameDialogOpen(false);
     },
