@@ -44,11 +44,31 @@ export class DocumentService {
     return document;
   }
 
+  async getDocContentById(docId: string): Promise<Buffer | null> {
+    const document = await this.documentRepository.findOne({
+      where: { docId },
+      select: ['docId', 'content'],
+    });
+
+    return document?.content ?? null;
+  }
+
   async removeDocByRoomId(roomId: number): Promise<void> {
     await this.documentRepository.delete({ roomId });
   }
 
   async removeDocById(docId: string): Promise<void> {
     await this.documentRepository.delete({ docId });
+  }
+
+  async getDocIdsByRoomIds(roomIds: number[]): Promise<string[]> {
+    if (roomIds.length === 0) return [];
+
+    const documents = await this.documentRepository.find({
+      where: roomIds.map((roomId) => ({ roomId })),
+      select: ['docId'],
+    });
+
+    return documents.map((doc) => doc.docId);
   }
 }
