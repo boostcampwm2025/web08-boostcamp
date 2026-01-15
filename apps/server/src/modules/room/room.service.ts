@@ -8,6 +8,7 @@ import { DataSource, In, LessThan, Repository } from 'typeorm';
 import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
+import { Document } from '../document/document.entity';
 import { PtService } from '../pt/pt.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
@@ -99,6 +100,13 @@ export class RoomService {
 
       const savedPt = await queryRunner.manager.save(hostPt);
 
+      const document = queryRunner.manager.create(Document, {
+        room: savedRoom,
+        roomId: savedRoom.roomId,
+      });
+
+      await queryRunner.manager.save(document);
+
       await queryRunner.commitTransaction();
 
       const token = this.roomTokenService.sign({
@@ -107,7 +115,7 @@ export class RoomService {
       });
 
       this.logger.log(
-        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}]`,
+        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}], Doc Id: [${document.docId}]`,
       );
 
       return {

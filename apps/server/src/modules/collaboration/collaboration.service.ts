@@ -16,8 +16,10 @@ import { PtService } from '../pt/pt.service';
 import { FileService } from '../file/file.service';
 import { RoomService } from '../room/room.service';
 import { RoomTokenService } from '../auth/room-token.service';
+import { DocumentService } from '../document/document.service';
 import { PtRole } from '../pt/pt.entity';
 import { Room } from '../room/room.entity';
+import { Document } from '../document/document.entity';
 
 @Injectable()
 export class CollaborationService {
@@ -28,6 +30,7 @@ export class CollaborationService {
     private readonly fileService: FileService,
     private readonly roomService: RoomService,
     private readonly roomTokenService: RoomTokenService,
+    private readonly documentService: DocumentService,
   ) {}
 
   /** 클라이언트 연결 시 초기화 */
@@ -92,8 +95,12 @@ export class CollaborationService {
       ptId: pt.ptId,
     });
 
+    // 문서 조회
+    const doc = await this.documentService.getDocByRoomId(roomId);
+    if (!doc) throw new Error('DOCUMENT_NOT_FOUND');
+
     // socket.data 설정
-    this.setupSocketData(client, room, pt);
+    this.setupSocketData(client, room, pt, doc);
     await client.join(roomCode);
 
     // Y.Doc 준비
@@ -229,9 +236,15 @@ export class CollaborationService {
   }
 
   /** 소켓 데이터 설정 */
-  private setupSocketData(client: CollabSocket, room: Room, pt: Pt): void {
+  private setupSocketData(
+    client: CollabSocket,
+    room: Room,
+    pt: Pt,
+    doc: Document,
+  ): void {
     client.data.roomId = room.roomId;
     client.data.roomCode = room.roomCode;
+    client.data.docId = doc.docId;
     client.data.ptId = pt.ptId;
     client.data.role = pt.role as PtRole;
     client.data.nickname = pt.nickname;
