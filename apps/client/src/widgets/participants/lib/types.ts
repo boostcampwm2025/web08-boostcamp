@@ -13,6 +13,9 @@ export interface ParticipantProps {
    * 참가자 고유 ID
    */
   ptId: string;
+
+  canToggle?: boolean;
+  onToggleRole?: () => void;
 }
 
 /**
