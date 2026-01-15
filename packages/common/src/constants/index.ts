@@ -15,6 +15,9 @@ export const SOCKET_EVENTS = {
   UPDATE_AWARENESS: "awareness:update",
 
   CHECK_FILENAME: "file:checkname",
+  
+  RENAME_FILE: "file:rename",
+  DELETE_FILE: "file:delete",
 
   REQUEST_DOC: "doc:request",
   REQUEST_AWARENESS: "awareness:request",

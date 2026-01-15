@@ -14,6 +14,17 @@ export interface FilenameCheckPayload {
   filename: string;
 }
 
+/** 파일 이름 변경 (C -> S) */
+export interface FileRenamePayload {
+  fileId: string;
+  newName: string;
+}
+
+/** 파일 삭제 요청 (C -> S) */
+export interface FileDeletePayload {
+  fileId: string;
+}
+
 /** 파일 이름 확인 (S -> C) */
 export interface FilenameCheckResultPayload {
   error: boolean;
