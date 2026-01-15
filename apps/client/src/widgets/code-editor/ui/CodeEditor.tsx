@@ -1,14 +1,16 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
-import { EditorState } from '@codemirror/state';
+import { Compartment, EditorState } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { githubLight } from '@fsegurai/codemirror-theme-github-light';
+import { oneDark } from '@codemirror/theme-one-dark';
 import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
 import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
+import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
+import { useSettings } from '@/shared/lib/hooks/useSettings';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -38,7 +40,13 @@ export default function CodeEditor({
 }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+
+  const themeCompartment = useMemo(() => new Compartment(), []);
+  const fontSizeCompartment = useMemo(() => new Compartment(), []);
+
   const { yText, awareness } = useYText(fileId);
+  const { isDark } = useDarkMode();
+  const { fontSize } = useSettings();
 
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
@@ -50,7 +58,12 @@ export default function CodeEditor({
         yCollab(yText, awareness),
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
-        githubLight,
+        themeCompartment.of(isDark ? oneDark : []),
+        fontSizeCompartment.of(
+          EditorView.theme({
+            '&': { fontSize: `${fontSize}px` },
+          }),
+        ),
         EditorState.readOnly.of(readOnly),
         ...(readOnly ? [readOnlyToast()] : []),
         EditorView.theme({
@@ -58,8 +71,6 @@ export default function CodeEditor({
           '.cm-scroller': { overflow: 'auto' },
           ...(readOnly && {
             '.cm-cursor, .cm-dropCursor': { display: 'none !important' },
-            // ".cm-selectionBackground": { display: "none !important" },
-            // ".cm-ySelectionCaret, .cm-ySelectionCaretDot": { display: "none !important" },
           }),
         }),
       ],
@@ -71,7 +82,40 @@ export default function CodeEditor({
     return () => {
       view.destroy();
     };
-  }, [yText, awareness, language, readOnly]);
+  }, [
+    yText,
+    awareness,
+    language,
+    readOnly,
+    themeCompartment,
+    fontSizeCompartment,
+    fontSize,
+    isDark,
+  ]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    const themeExtension = isDark ? oneDark : [];
+
+    view.dispatch({
+      effects: themeCompartment.reconfigure(themeExtension),
+    });
+  }, [isDark, themeCompartment]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    view.dispatch({
+      effects: fontSizeCompartment.reconfigure(
+        EditorView.theme({
+          '&': { fontSize: `${fontSize}px` },
+        }),
+      ),
+    });
+  }, [fontSize, fontSizeCompartment]);
 
   return <div ref={editorRef} className="h-full" />;
 }

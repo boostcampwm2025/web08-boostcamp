@@ -2,6 +2,8 @@ import { useFileStore } from '@/stores/file';
 import { File } from './File';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
+import { useState } from 'react';
+import { FileHeader } from './components/FileHeader';
 
 export function FileList() {
   const getFileIdMap = useFileStore((state) => state.getFileIdMap);
@@ -9,17 +11,25 @@ export function FileList() {
   const count = fileMap?.size ?? 0;
   const entries: [string, string][] = Object.entries(fileMap?.toJSON() ?? {});
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const myPtId = useRoomStore((state) => state.myPtId);
   const me = usePt(myPtId);
   const hasPermission = me?.role === 'host' || me?.role === 'editor';
 
   return (
-    <div className="w-full min-w-3xs bg-white dark:bg-gray-800 p-4 font-sans">
-      <h2 className="text-sm font-bold uppercase text-gray-700 dark:text-gray-200 border-b border-t pt-2 pb-2 mb-2">
-        FILES ({count})
-      </h2>
+    <div className="w-full px-4">
+      <FileHeader
+        count={count}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+      />
 
-      <div className="space-y-1 mt-4">
+      <div
+        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${
+          isCollapsed ? 'max-h-0' : 'max-h-[600px]'
+        }`}
+      >
         {entries.map(([fileName, fileId]) => (
           <File
             key={fileId}
