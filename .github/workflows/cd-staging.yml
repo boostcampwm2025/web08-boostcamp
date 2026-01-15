@@ -36,6 +36,15 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
+      - name: Setup Turbo cache
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Install dependencies and build common
         if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
         run: |
@@ -108,9 +117,9 @@ jobs:
           file: ./apps/server/Dockerfile
           push: true
           tags: |
-            ${{ secrets.NCP_REGISTRY_URL }}/server:${{ github.sha }}
-            ${{ secrets.NCP_REGISTRY_URL }}/server:latest
-          cache-from: type=registry,ref=${{ secrets.NCP_REGISTRY_URL }}/server:latest
+            ${{ secrets.NCP_REGISTRY_URL }}/server:staging
+            ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.NCP_REGISTRY_URL }}/server:staging
           cache-to: type=inline
 
       - name: Deploy to NCP
@@ -123,7 +132,7 @@ jobs:
           port: ${{ secrets.NCP_PORT }}
           script: |
             docker login -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }} ${{ secrets.NCP_REGISTRY_URL }}
-            docker pull ${{ secrets.NCP_REGISTRY_URL }}/server:${{ github.sha }}
+            docker pull ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
             docker stop server-staging || true
             docker rm server-staging || true
             docker run -d \
@@ -131,5 +140,5 @@ jobs:
               --restart unless-stopped \
               -p 3001:3000 \
               --env-file /root/.env.prod \
-              ${{ secrets.NCP_REGISTRY_URL }}/server:${{ github.sha }}
+              ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
             docker image prune -af --filter "until=24h"

@@ -33,7 +33,15 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
 
       - name: Build common package
         run: pnpm --filter @codejam/common build
@@ -137,6 +145,14 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
+      - name: Setup Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Install dependencies and build common
         run: |
           pnpm install --frozen-lockfile
@@ -198,7 +214,6 @@ jobs:
             const deployUrl = '${{ steps.deploy.outputs.preview-url }}';
 
             const body = `## 🍯 새로운 잼이 완성됐어요!
-
             | 항목 | 내용 |
             |------|------|
             | Preview URL | [${deployUrl}](${deployUrl}) |

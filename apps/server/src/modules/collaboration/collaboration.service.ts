@@ -106,7 +106,7 @@ export class CollaborationService {
     await client.join(roomCode);
 
     // Y.Doc 준비
-    await this.fileService.prepareRoomDoc(client, server);
+    await this.fileService.prepareDoc(client, server);
 
     await this.notifyParticipantJoined(client, server, pt, newToken);
 

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { YRedisService } from '../y-redis/y-redis.service';
+import { DocumentService } from '../document/document.service';
 import {
   Awareness,
   encodeAwarenessUpdate,
@@ -7,7 +8,13 @@ import {
   removeAwarenessStates,
 } from 'y-protocols/awareness';
 import { writeUpdate, readSyncMessage } from 'y-protocols/sync';
-import { Doc, encodeStateAsUpdate, Map as YMap, Text as YText } from 'yjs';
+import {
+  Doc,
+  encodeStateAsUpdate,
+  applyUpdate,
+  Map as YMap,
+  Text as YText,
+} from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { createDecoder } from 'lib0/decoding';
 import {
@@ -17,6 +24,12 @@ import {
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
+import { v7 as uuidv7 } from 'uuid';
+import {
+  Language,
+  getDefaultFileName,
+  getDefaultFileTemplate,
+} from './file.constants';
 
 export type AwarenessUpdate = {
   added: number[];
@@ -31,8 +44,6 @@ export type RoomDoc = {
   files: Set<string>;
 };
 
-export type Language = 'javascript' | 'html' | 'css';
-
 export type OriginServer = {
   type: 'server';
   client: CollabSocket;
@@ -45,10 +56,25 @@ export type OriginType = 'server' | 'client' | undefined;
 export class FileService {
   private readonly logger = new Logger(FileService.name);
 
+  /**
+   * Doc size limit
+   *
+   * TODO: Redis 에 있는 편집 이력을 주기적으로 압축하는 로직 필요
+   * 현재 상태 - 모든 편집 작업이 개별 업데이트로 저장됨
+   * 단일 문자 크기는 20~30 bytes
+   * 모든 업데이트 이력을 저장하면 메모리 사용량이 빠르게 증가함
+   * 최적화를 하지 않으면 클라이언트에서 1MB 를 사용하기 전에 Redis 에서 10배 이상을 사용하게 됨
+   */
+
+  private readonly MAX_DOC_SIZE = 30 * 1024 * 1024; // 30MB
+
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();
 
-  constructor(private readonly yRedis: YRedisService) {}
+  constructor(
+    private readonly yRedis: YRedisService,
+    private readonly documentService: DocumentService,
+  ) {}
 
   // ==================================================================
   // Y.Doc Management Methods
@@ -57,7 +83,7 @@ export class FileService {
   /**
    * Create Y.Doc for a document
    * Should be called when room is initialized (before files are created)
-   * Hydrates from Redis if data exists
+   * Hydrates from Redis if data exists, otherwise restores from DB
    */
   async createDoc(docId: string): Promise<RoomDoc> {
     // Check if already exists
@@ -69,14 +95,12 @@ export class FileService {
     const doc = new Doc();
     const awareness = new Awareness(doc);
 
-    // 멀티파일 구조를 위한 Y.Map 초기화
-    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
-    doc.getMap('map'); // 파일 이름 -> 파일 ID 추적용
-    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
+    // Initialize Y.Doc structure
+    this.initializeDoc(doc);
 
-    // Bind to Redis for persistence and hydration
-    const pdoc = this.yRedis.bind(docId, doc);
-    await pdoc.synced; // Wait for hydration from Redis
+    // Hydrate Y.Doc (Redis + DB fallback)
+    // Bind to Redis for persistence
+    await this.hydrateDoc(docId, doc);
 
     // Set up listeners
     // Do after hydration to avoid pushing existing data
@@ -122,11 +146,11 @@ export class FileService {
   }
 
   /**
-   * Remove Y.Doc for a document (cleanup when room is closed)
-   * TODO: Call this when room is closed or last participant leaves
+   * Remove Y.Doc for a document
+   * Y.Doc is removed when room is closed or expired
+   * TODO: Call this when last participant leaves
    */
-  async removeDoc(client: CollabSocket, server: Server): Promise<boolean> {
-    const { docId } = client.data;
+  async removeDoc(docId: string): Promise<boolean> {
     const roomDoc = this.docs.get(docId);
 
     if (!roomDoc) return false;
@@ -145,6 +169,17 @@ export class FileService {
     this.logger.log(`🗑️ Removed Y.Doc for document: ${docId}`);
 
     return true;
+  }
+
+  /**
+   * Cleanup Y.Docs by docIds
+   */
+  async cleanupDocs(docIds: string[]): Promise<void> {
+    if (docIds.length === 0) return;
+
+    this.logger.log(`🧹 Cleaning up ${docIds.length} Y.Docs`);
+
+    await Promise.all(docIds.map((docId) => this.removeDoc(docId)));
   }
 
   // ==================================================================
@@ -294,27 +329,6 @@ export class FileService {
     return fileIdMap.has(fileName);
   }
 
-  /**
-   * Ensure file exists in Y.Doc (creates if not exists)
-   * For prototype: creates default file if none specified
-   * Idempotent - safe to call multiple times
-   */
-  ensureFile(
-    docId: string,
-    fileId: string,
-    fileName: string,
-    language?: Language,
-  ) {
-    const roomDoc = this.getDoc(docId);
-    const { doc } = roomDoc;
-
-    // Y.Map에서 파일 존재 여부 체크
-    const filesMap = doc.getMap('files');
-    if (filesMap.has(fileId)) return; // 이미 존재하는 파일
-
-    this.createFile(docId, fileId, fileName, language);
-  }
-
   // ==================================================================
   // Handle Methods
   // ==================================================================
@@ -324,7 +338,7 @@ export class FileService {
    * - Ensures Y.Doc exists (creates or hydrates from Redis)
    * - Creates default file if this is a new room (no existing doc in Redis)
    */
-  async prepareRoomDoc(client: CollabSocket, server: Server): Promise<void> {
+  async prepareDoc(client: CollabSocket, _server: Server): Promise<void> {
     const { docId } = client.data;
     const roomDoc = this.docs.get(docId);
     if (roomDoc) return;
@@ -337,7 +351,7 @@ export class FileService {
   /**
    * Handle document request - send initial Y.Doc state to client
    */
-  handleRequestDoc(client: CollabSocket, server: Server) {
+  handleRequestDoc(client: CollabSocket, _server: Server) {
     const { docId } = client.data;
     const roomDoc = this.getDoc(docId);
     const { doc } = roomDoc;
@@ -354,7 +368,7 @@ export class FileService {
   /**
    * Handle awareness request - send initial awareness states to client
    */
-  handleRequestAwareness(client: CollabSocket, server: Server) {
+  handleRequestAwareness(client: CollabSocket, _server: Server) {
     const { docId } = client.data;
     const { awareness } = this.getDoc(docId);
 
@@ -376,6 +390,16 @@ export class FileService {
     const { docId } = client.data;
     const { message } = payload;
     const { doc } = this.getDoc(docId);
+
+    // Size limit guard
+
+    const expectedSize = this.getExpectedDocSize(docId, message);
+
+    if (expectedSize > this.MAX_DOC_SIZE) {
+      const logMessage = `DOC_SIZE_EXCEEDED: ${expectedSize} > ${this.MAX_DOC_SIZE}`;
+
+      throw new Error(logMessage);
+    }
 
     this.logger.debug(`📝 [UPDATE] Doc: ${docId}, Length: ${message.length}`);
 
@@ -425,17 +449,93 @@ export class FileService {
   // Private Helper Methods
   // ==================================================================
 
-  private initialCode(language?: Language): string {
-    switch (language) {
-      case 'javascript':
-        return "// Write your JavaScript code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n";
-      case 'html':
-        return '<!-- Write your HTML code here -->\n\n<!DOCTYPE html>\n<html>\n  <head>\n    <title>CodeJam</title>\n  </head>\n  <body>\n    <h1>Hello, CodeJam!</h1>\n  </body>\n</html>\n';
-      case 'css':
-        return '/* Write your CSS code here */\n\n.container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n';
-      default:
-        return "// Write your JavaScript code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n";
+  /**
+   * Calculate expected document size after applying update
+   * @returns expected total byte length, or 0 if doc not found
+   */
+  private getExpectedDocSize(docId: string, message: Uint8Array): number {
+    const pdoc = this.yRedis.getDoc(docId);
+    if (!pdoc) return 0;
+
+    return pdoc.totalByteLength + message.byteLength;
+  }
+
+  /**
+   * 멀티파일 구조를 위한 Y.Map 초기화
+   */
+
+  private initializeDoc(doc: Doc) {
+    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
+    doc.getMap('map'); // 파일 이름 -> 파일 ID 추적용
+    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
+  }
+
+  /**
+   * Hydrate Y.Doc
+   *
+   * 1. Check if doc exists in Redis (lookahead)
+   * 2. Bind to Redis for persistence
+   * 3. If not in Redis, restore snapshot from DB
+   */
+  private async hydrateDoc(docId: string, doc: Doc): Promise<void> {
+    // Lookahead - Check if doc exists in Redis
+    const existsInRedis = await this.yRedis.hasDocInRedis(docId);
+
+    // Bind to Redis for persistence and hydration
+    // It can be empty
+    const pdoc = this.yRedis.bind(docId, doc);
+    await pdoc.synced; // Wait for hydration from Redis
+
+    // If not in Redis, restore snapshot from DB
+    if (!existsInRedis) {
+      const content = await this.documentService.getDocContentById(docId);
+      if (content) {
+        applyUpdate(doc, new Uint8Array(content));
+        this.logger.log(`📄 Restored Y.Doc from DB for document: ${docId}`);
+      }
     }
+  }
+
+  /** Generate File ID - UUID v7 */
+
+  private generateFileId() {
+    const id = uuidv7();
+    return id;
+  }
+
+  /**
+   * Generate initial Y.Doc snapshot with template code
+   */
+  generateInitialSnapshot(language?: Language): Buffer {
+    const doc = new Doc();
+    this.initializeDoc(doc);
+
+    // Create initial file with template code
+    const fileId = this.generateFileId();
+    const name = getDefaultFileName(language);
+    const template = getDefaultFileTemplate(language);
+
+    const filesMap = doc.getMap('files');
+    const fileIdMap = doc.getMap('map');
+
+    doc.transact(() => {
+      const fileMap = new YMap<unknown>();
+      const yText = new YText();
+
+      yText.insert(0, template);
+
+      fileMap.set('name', name);
+      fileMap.set('content', yText);
+      filesMap.set(fileId, fileMap);
+      fileIdMap.set(name, fileId);
+    });
+
+    const snapshot = encodeStateAsUpdate(doc);
+    return Buffer.from(snapshot);
+  }
+
+  private initialCode(language?: Language): string {
+    return getDefaultFileTemplate(language);
   }
 
   private docListener() {

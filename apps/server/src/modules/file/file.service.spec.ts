@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FileService } from './file.service';
 import { YRedisService } from '../y-redis/y-redis.service';
+import { DocumentService } from '../document/document.service';
 
 const mockYRedisService = {
   bind: jest.fn().mockReturnValue({
@@ -8,6 +9,10 @@ const mockYRedisService = {
   }),
   hasDocInRedis: jest.fn().mockResolvedValue(false),
   closeDoc: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockDocumentService = {
+  getDocContentById: jest.fn().mockResolvedValue(null),
 };
 
 describe('FileService', () => {
@@ -20,6 +25,10 @@ describe('FileService', () => {
         {
           provide: YRedisService,
           useValue: mockYRedisService,
+        },
+        {
+          provide: DocumentService,
+          useValue: mockDocumentService,
         },
       ],
     }).compile();
@@ -118,45 +127,6 @@ describe('FileService', () => {
       // Assert
       const roomDoc = service.getDoc(docId);
       expect(roomDoc.files.has(fileId)).toBe(true);
-    });
-  });
-
-  describe('ensureFile', () => {
-    it('파일이 존재하지 않으면 새로 생성한다', async () => {
-      // Arrange
-      const docId = 'doc-1';
-      await service.createDoc(docId);
-      const fileId = 'new-file-id';
-
-      // Act
-      service.ensureFile(docId, fileId, 'new.js', 'javascript');
-
-      // Assert
-      const roomDoc = service.getDoc(docId);
-      const filesMap = roomDoc.doc.getMap('files');
-      expect(filesMap.has(fileId)).toBe(true);
-    });
-
-    it('파일이 이미 존재하면 새로 생성하지 않는다', async () => {
-      // Arrange
-      const docId = 'doc-1';
-      await service.createDoc(docId);
-      const fileId = 'existing-file';
-      service.createFile(docId, fileId, 'main.js', 'javascript');
-
-      // 기존 내용 변경
-      const roomDoc = service.getDoc(docId);
-      const filesMap = roomDoc.doc.getMap('files');
-      const fileMap = filesMap.get(fileId) as any;
-      const originalContent = fileMap.get('content').toString();
-
-      // Act
-      service.ensureFile(docId, fileId, 'main.js', 'javascript');
-
-      // Assert
-      const newContent = fileMap.get('content').toString();
-      expect(newContent).toBe(originalContent); // 내용이 변경되지 않음
-      expect(filesMap.size).toBe(1); // 중복 생성 안됨
     });
   });
 

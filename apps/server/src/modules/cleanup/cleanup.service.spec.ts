@@ -2,12 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CleanupService } from './cleanup.service';
 import { RoomService } from '../room/room.service';
 import { CollaborationGateway } from '../collaboration/collaboration.gateway';
+import { FileService } from '../file/file.service';
+import { DocumentService } from '../document/document.service';
 import { Room } from '../room/room.entity';
 
 describe('CleanupService', () => {
   let service: CleanupService;
-  let roomService: RoomService;
-  let collaborationGateway: CollaborationGateway;
 
   const mockRoomService = {
     findExpiredRooms: jest.fn(),
@@ -16,6 +16,14 @@ describe('CleanupService', () => {
 
   const mockCollaborationGateway = {
     notifyAndDisconnectRoom: jest.fn(),
+  };
+
+  const mockFileService = {
+    cleanupDocs: jest.fn(),
+  };
+
+  const mockDocumentService = {
+    getDocIdsByRoomIds: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -30,13 +38,20 @@ describe('CleanupService', () => {
           provide: CollaborationGateway,
           useValue: mockCollaborationGateway,
         },
+        {
+          provide: FileService,
+          useValue: mockFileService,
+        },
+        {
+          provide: DocumentService,
+          useValue: mockDocumentService,
+        },
       ],
     }).compile();
 
     service = module.get<CleanupService>(CleanupService);
-    roomService = module.get<RoomService>(RoomService);
-    collaborationGateway =
-      module.get<CollaborationGateway>(CollaborationGateway);
+    module.get<RoomService>(RoomService);
+    module.get<CollaborationGateway>(CollaborationGateway);
 
     // 호출 기록 리셋
     jest.clearAllMocks();
@@ -68,8 +83,11 @@ describe('CleanupService', () => {
         { roomId: 1, roomCode: 'ROOM_A' },
         { roomId: 2, roomCode: 'ROOM_B' },
       ] as Room[];
+      const docIds = ['doc-1', 'doc-2'];
 
       mockRoomService.findExpiredRooms.mockResolvedValue(expiredRooms);
+      mockDocumentService.getDocIdsByRoomIds.mockResolvedValue(docIds);
+      mockFileService.cleanupDocs.mockResolvedValue(undefined);
       mockRoomService.deleteRooms.mockResolvedValue(2); // 2개 삭제됨 리턴
 
       // When
@@ -87,6 +105,11 @@ describe('CleanupService', () => {
       expect(
         mockCollaborationGateway.notifyAndDisconnectRoom,
       ).toHaveBeenCalledWith('ROOM_B');
+
+      expect(mockDocumentService.getDocIdsByRoomIds).toHaveBeenCalledWith([
+        1, 2,
+      ]);
+      expect(mockFileService.cleanupDocs).toHaveBeenCalledWith(docIds);
 
       expect(mockRoomService.deleteRooms).toHaveBeenCalledWith([1, 2]);
     });
