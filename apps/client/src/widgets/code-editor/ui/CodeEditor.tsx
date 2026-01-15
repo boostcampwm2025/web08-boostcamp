@@ -11,6 +11,7 @@ import { yCollab } from 'y-codemirror.next';
 import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
+import { useSettings } from '@/stores/settings';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -42,9 +43,11 @@ export default function CodeEditor({
   const viewRef = useRef<EditorView | null>(null);
 
   const themeCompartment = useRef(new Compartment()).current;
+  const fontSizeCompartment = useRef(new Compartment()).current;
 
   const { yText, awareness } = useYText(fileId);
   const { isDark } = useDarkMode();
+  const { fontSize } = useSettings();
 
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
@@ -59,6 +62,12 @@ export default function CodeEditor({
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
         themeCompartment.of(initialTheme),
+        fontSizeCompartment.of(
+          EditorView.theme({
+            '&': { fontSize: `${fontSize}px` },
+            '.cm-scroller': { fontFamily: 'inherit' },
+          }),
+        ),
         EditorState.readOnly.of(readOnly),
         ...(readOnly ? [readOnlyToast()] : []),
         EditorView.theme({
@@ -89,6 +98,20 @@ export default function CodeEditor({
       effects: themeCompartment.reconfigure(themeExtension),
     });
   }, [isDark, themeCompartment]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    view.dispatch({
+      effects: fontSizeCompartment.reconfigure(
+        EditorView.theme({
+          '&': { fontSize: `${fontSize}px` },
+          '.cm-scroller': { fontFamily: 'inherit' },
+        }),
+      ),
+    });
+  }, [fontSize, fontSizeCompartment]);
 
   return <div ref={editorRef} className="h-full" />;
 }

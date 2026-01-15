@@ -21,7 +21,6 @@ import {
   Upload,
   Download,
   Share2,
-  Settings,
   Sun,
   Moon,
   Plus,
@@ -32,6 +31,7 @@ import { extname } from '@/shared/lib/file';
 import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { useFileStore } from '@/stores/file';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
+import { SettingsDialog } from '@/widgets/dialog/SettingsDialog';
 
 type HeaderProps = {
   roomCode: string;
@@ -285,15 +285,7 @@ export default function Header({ roomCode }: HeaderProps) {
           </DialogContent>
         </Dialog>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-1.5 text-xs h-8 px-2 sm:px-3"
-          onClick={() => handleNotImplemented('Settings')}
-        >
-          <Settings className="h-4 w-4" />
-          <span className="hidden lg:inline">Settings</span>
-        </Button>
+        <SettingsDialog />
 
         {/* 라이트/다크 모드 토글 */}
         <Button
