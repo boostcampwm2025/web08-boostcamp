@@ -7,9 +7,21 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    outputs:
+      client-changed: ${{ steps.filter.outputs.client }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Check for client changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            client:
+              - 'apps/client/**'
+              - 'packages/common/**'
+              - 'pnpm-lock.yaml'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -17,8 +29,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "pnpm"
+          node-version: '22'
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
@@ -107,3 +119,88 @@ jobs:
       - name: Fail if any check failed
         if: steps.format.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.build.outcome == 'failure'
         run: exit 1
+
+  vercel-preview:
+    needs: ci
+    if: needs.ci.outputs.client-changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies and build common
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @codejam/common build
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel
+
+      - name: Build client for Vercel
+        run: |
+          cd apps/client
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel Preview
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./apps/client
+          vercel-args: '--prebuilt'
+
+      - name: Comment PR with Preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployUrl = '${{ steps.deploy.outputs.preview-url }}';
+
+            const body = `## 🍯 새로운 잼이 완성됐어요!
+
+            | 항목 | 내용 |
+            |------|------|
+            | Preview URL | [${deployUrl}](${deployUrl}) |
+            | Commit | \`${{ github.event.pull_request.head.sha }}\` |
+            | Branch | \`${{ github.head_ref }}\` |
+            | 작성자 | @${{ github.actor }} |
+
+            > 이 배포는 client 코드 변경이 감지되어 자동으로 생성되었습니다.
+            `;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('## 🍯 새로운 잼이 완성됐어요!')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

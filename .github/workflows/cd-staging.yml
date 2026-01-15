@@ -72,13 +72,13 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "🎸 *새로운 잼이 완성됐어요!*",
+              "text": "🍯 *새로운 잼이 완성됐어요!*",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "🎸 *새로운 잼이 완성됐어요!*\n\n*PR:* ${{ github.event.head_commit.message }}\n*URL:* ${{ steps.vercel-deploy.outputs.preview-url }}\n*작성자:* ${{ github.actor }}"
+                    "text": "🍯 *새로운 잼이 완성됐어요!*\n\n*PR:* ${{ github.event.head_commit.message }}\n*URL:* ${{ steps.vercel-deploy.outputs.preview-url }}\n*작성자:* ${{ github.actor }}"
                   }
                 }
               ]
