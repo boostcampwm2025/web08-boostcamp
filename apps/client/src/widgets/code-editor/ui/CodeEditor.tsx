@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { Compartment, EditorState } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
@@ -42,8 +42,8 @@ export default function CodeEditor({
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const themeCompartment = useRef(new Compartment()).current;
-  const fontSizeCompartment = useRef(new Compartment()).current;
+  const themeCompartment = useMemo(() => new Compartment(), []);
+  const fontSizeCompartment = useMemo(() => new Compartment(), []);
 
   const { yText, awareness } = useYText(fileId);
   const { isDark } = useDarkMode();
@@ -85,7 +85,16 @@ export default function CodeEditor({
     return () => {
       view.destroy();
     };
-  }, [yText, awareness, language, readOnly]);
+  }, [
+    yText,
+    awareness,
+    language,
+    readOnly,
+    themeCompartment,
+    fontSizeCompartment,
+    fontSize,
+    isDark,
+  ]);
 
   useEffect(() => {
     const view = viewRef.current;
