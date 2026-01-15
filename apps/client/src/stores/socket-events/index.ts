@@ -1,10 +1,10 @@
-import { setupRoomEventHandlers, emitJoinRoom } from "./room";
-import { setupPtsEventHandlers } from "./pts";
+import { setupRoomEventHandlers, emitJoinRoom } from './room';
+import { setupPtsEventHandlers } from './pts';
 import {
   setupFileEventHandlers,
   emitFileUpdate,
   emitAwarenessUpdate,
-} from "./file";
+} from './file';
 
 export { emitJoinRoom, emitFileUpdate, emitAwarenessUpdate };
 

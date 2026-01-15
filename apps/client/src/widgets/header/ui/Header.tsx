@@ -1,9 +1,9 @@
-import { PROJECT_NAME } from "@codejam/common";
-import { useRef, useState, type ChangeEvent } from "react";
-import LogoAnimation from "@/assets/logo_animation.svg";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { PROJECT_NAME } from '@codejam/common';
+import { useRef, useState, type ChangeEvent } from 'react';
+import LogoAnimation from '@/assets/logo_animation.svg';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from "@/shared/ui/dialog";
+} from '@/shared/ui/dialog';
 import {
   Check,
   Copy,
@@ -24,36 +24,37 @@ import {
   Sun,
   Moon,
   Plus,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useFileRename } from "@/shared/lib/hooks/useFileRename";
-import { extname } from "@/shared/lib/file";
-import { NewFileDialog } from "@/widgets/dialog/NewFileDialog";
-import { useFileStore } from "@/stores/file";
-import { DuplicateDialog } from "@/widgets/dialog/DuplicateDialog";
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { useFileRename } from '@/shared/lib/hooks/useFileRename';
+import { extname } from '@/shared/lib/file';
+import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
+import { useFileStore } from '@/stores/file';
+import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 
 type HeaderProps = {
   roomCode: string;
 };
 
 export default function Header({ roomCode }: HeaderProps) {
-  const { setIsDuplicated, isDuplicated, handleCheckRename } = useFileRename(roomCode);
+  const { setIsDuplicated, isDuplicated, handleCheckRename } =
+    useFileRename(roomCode);
   const [isDark, setIsDark] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { getFileId, createFile } = useFileStore();
   const [uploadFile, setUploadFile] = useState<File | undefined>(undefined);
-  const [filename, setFilename] = useState("");
+  const [filename, setFilename] = useState('');
 
   const uploadRef = useRef<HTMLInputElement>(null);
 
   const toggleDarkMode = () => {
     setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark");
+    document.documentElement.classList.toggle('dark');
   };
 
   const copyRoomCode = async () => {
     try {
-      await navigator.clipboard.writeText(roomCode || "");
+      await navigator.clipboard.writeText(roomCode || '');
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
@@ -68,7 +69,7 @@ export default function Header({ roomCode }: HeaderProps) {
 
   const handleUploadButton = () => {
     if (!uploadRef.current) {
-      toast.error("오류가 발생했습니다. 새로고침을 해주세요.");
+      toast.error('오류가 발생했습니다. 새로고침을 해주세요.');
       return;
     }
 
@@ -76,44 +77,39 @@ export default function Header({ roomCode }: HeaderProps) {
   };
 
   const handleFileChange = async (ev: ChangeEvent<HTMLInputElement>) => {
-    const currentMimes = [
-      "text/javascript",
-      "text/html",
-      "text/css",
-    ];
-    const currentExts = [
-      "ts",
-      "tsx",
-      "jsx"
-    ];
+    const currentMimes = ['text/javascript', 'text/html', 'text/css'];
+    const currentExts = ['ts', 'tsx', 'jsx'];
     const MAX_SIZE = 1024 * 1024;
 
     const files = ev.target.files;
 
     if (!roomCode) {
-      toast.error("유효하지 않는 방 코드 입니다.");
+      toast.error('유효하지 않는 방 코드 입니다.');
       return;
     }
 
     if (!files || files.length === 0) {
-      toast.error("파일을 하나 이상 선택해주세요.");
+      toast.error('파일을 하나 이상 선택해주세요.');
       return;
     }
 
     const uploadFile = files[0];
 
-    if (!currentMimes.includes(uploadFile.type) && !currentExts.includes(extname(uploadFile.name))) {
-      toast.error("정해진 파일 타입만 업로드 할 수 있습니다.");
+    if (
+      !currentMimes.includes(uploadFile.type) &&
+      !currentExts.includes(extname(uploadFile.name))
+    ) {
+      toast.error('정해진 파일 타입만 업로드 할 수 있습니다.');
       return;
     }
 
     if (uploadFile.size > MAX_SIZE) {
-      toast.error("파일의 크기가 1MB 를 초과했습니다.");
+      toast.error('파일의 크기가 1MB 를 초과했습니다.');
       return;
     }
 
     if (uploadRef.current) {
-      uploadRef.current.value = "";
+      uploadRef.current.value = '';
     }
 
     setUploadFile(uploadFile);
@@ -139,14 +135,14 @@ export default function Header({ roomCode }: HeaderProps) {
     } else {
       const result = await handleCheckRename(filename);
       if (result) {
-        createFile(filename, "");
+        createFile(filename, '');
       }
     }
-  }
+  };
 
   const handleDuplicateDialog = () => {
     setUploadFile(undefined);
-    setFilename("");
+    setFilename('');
   };
 
   return (
@@ -184,12 +180,13 @@ export default function Header({ roomCode }: HeaderProps) {
       </div>
 
       {/* 파일 중복 다이어로그 */}
-      <DuplicateDialog 
+      <DuplicateDialog
         open={isDuplicated}
         onOpenChange={setIsDuplicated}
         filename={filename}
         file={uploadFile}
-        onClick={handleDuplicateDialog} />
+        onClick={handleDuplicateDialog}
+      />
 
       {/* 우측 액션 버튼들 */}
       <div className="ml-auto flex items-center gap-1">
@@ -205,7 +202,13 @@ export default function Header({ roomCode }: HeaderProps) {
           className="gap-1.5 text-xs h-8"
           onClick={handleUploadButton}
         >
-          <input type="file" ref={uploadRef} className="hidden" accept="text/javascript,text/css,text/html,.ts,.tsx,.jsx" onChange={handleFileChange} />
+          <input
+            type="file"
+            ref={uploadRef}
+            className="hidden"
+            accept="text/javascript,text/css,text/html,.ts,.tsx,.jsx"
+            onChange={handleFileChange}
+          />
           <Upload className="h-4 w-4" />
           <span>Upload</span>
         </Button>
@@ -213,7 +216,7 @@ export default function Header({ roomCode }: HeaderProps) {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8"
-          onClick={() => handleNotImplemented("Download")}
+          onClick={() => handleNotImplemented('Download')}
         >
           <Download className="h-4 w-4" />
           <span>Download</span>
@@ -222,7 +225,7 @@ export default function Header({ roomCode }: HeaderProps) {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8"
-          onClick={() => handleNotImplemented("Copy")}
+          onClick={() => handleNotImplemented('Copy')}
         >
           <Copy className="h-4 w-4" />
           <span>Copy</span>
@@ -270,7 +273,7 @@ export default function Header({ roomCode }: HeaderProps) {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8"
-          onClick={() => handleNotImplemented("Settings")}
+          onClick={() => handleNotImplemented('Settings')}
         >
           <Settings className="h-4 w-4" />
           <span>Settings</span>

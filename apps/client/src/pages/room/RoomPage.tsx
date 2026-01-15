@@ -23,7 +23,7 @@ function RoomPage() {
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
 
-  useSocket(paramCode || "");
+  useSocket(paramCode || '');
 
   useEffect(() => {
     if (!paramCode) {
@@ -34,8 +34,8 @@ function RoomPage() {
   }, [paramCode, setRoomCode]);
 
   const myPtId = useRoomStore((state) => state.myPtId);
-  const myPt = usePt(myPtId || "");
-  const isViewer = myPt?.role === "viewer";
+  const myPt = usePt(myPtId || '');
+  const isViewer = myPt?.role === 'viewer';
 
   return (
     <div className="flex flex-col h-screen">
@@ -54,7 +54,7 @@ function RoomPage() {
         </div>
         <div className="flex-1 h-full">
           <CodeEditor
-            fileId={activeFileId || "prototype"}
+            fileId={activeFileId || 'prototype'}
             language="javascript"
             readOnly={isViewer}
           />

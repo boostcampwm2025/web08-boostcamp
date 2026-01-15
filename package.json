@@ -7,6 +7,10 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
     "clean": "rm -rf node_modules **/*/node_modules"
   },
   "keywords": [
@@ -23,8 +27,5 @@
   "packageManager": "pnpm@10.26.0",
   "devDependencies": {
     "turbo": "^2.6.3"
-  },
-  "dependencies": {
-    "zod": "^4.3.5"
   }
 }

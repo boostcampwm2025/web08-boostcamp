@@ -1,6 +1,6 @@
-import { Avatar } from "@/shared/ui";
-import { usePt } from "@/stores/pts";
-import type { ParticipantProps } from "../types";
+import { Avatar } from '@/shared/ui';
+import { usePt } from '@/stores/pts';
+import type { ParticipantProps } from '../types';
 
 /**
  * 참가자의 아바타를 표시하는 컴포넌트
@@ -13,7 +13,7 @@ export function ParticipantAvatar({ ptId }: ParticipantProps) {
   const initial = nickname.charAt(0);
 
   const badge =
-    role === "host" ? <span className="text-yellow-500">👑</span> : undefined;
+    role === 'host' ? <span className="text-yellow-500">👑</span> : undefined;
 
   return <Avatar initial={initial} color={color} badge={badge} />;
 }

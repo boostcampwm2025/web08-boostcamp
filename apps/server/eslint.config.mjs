@@ -32,7 +32,15 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/unbound-method': 'warn',
+      '@typescript-eslint/await-thenable': 'warn',
+      "prettier/prettier": ["error", {
+        endOfLine: "auto",
+        singleQuote: true,
+        trailingComma: "all"
+      }],
     },
   },
 );

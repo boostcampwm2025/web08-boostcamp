@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { Text as YText, Map as YMap } from "yjs";
-import { useFileStore } from "@/stores/file";
+import { useEffect, useMemo, useState } from 'react';
+import { Text as YText, Map as YMap } from 'yjs';
+import { useFileStore } from '@/stores/file';
 
 export const useYText = (fileId: string) => {
   const yDoc = useFileStore((state) => state.yDoc);
@@ -17,9 +17,9 @@ export const useYText = (fileId: string) => {
       setUpdateCount((n) => n + 1);
     };
 
-    yDoc.on("update", handleUpdate);
+    yDoc.on('update', handleUpdate);
     return () => {
-      yDoc.off("update", handleUpdate);
+      yDoc.off('update', handleUpdate);
     };
   }, [yDoc]);
 
@@ -27,11 +27,11 @@ export const useYText = (fileId: string) => {
   const yText = useMemo(() => {
     if (!yDoc) return null;
 
-    const filesMap = yDoc.getMap("files");
+    const filesMap = yDoc.getMap('files');
     const fileMap = filesMap.get(fileId) as YMap<unknown> | undefined;
     if (!fileMap) return null;
 
-    return fileMap.get("content") as YText | null;
+    return fileMap.get('content') as YText | null;
   }, [yDoc, fileId, updateCount]); // updateCount 추가로 업데이트 감지
 
   // Update active file when the component mounts
@@ -43,10 +43,10 @@ export const useYText = (fileId: string) => {
       awareness?.setLocalState(null);
     };
 
-    window.addEventListener("beforeunload", handleUnload);
+    window.addEventListener('beforeunload', handleUnload);
 
     return () => {
-      window.removeEventListener("beforeunload", handleUnload);
+      window.removeEventListener('beforeunload', handleUnload);
     };
   }, [fileId, setActiveFile, awareness]);
 

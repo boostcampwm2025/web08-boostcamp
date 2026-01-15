@@ -1,6 +1,6 @@
-import { Hero } from "./sections/Hero";
-import { ActionCards } from "./sections/ActionCards";
-import { FeatureCards } from "./sections/FeatureCards";
+import { Hero } from './sections/Hero';
+import { ActionCards } from './sections/ActionCards';
+import { FeatureCards } from './sections/FeatureCards';
 
 export default function MainPage() {
   return (

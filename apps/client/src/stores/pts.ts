@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import type { Pt } from "@codejam/common";
+import { create } from 'zustand';
+import type { Pt } from '@codejam/common';
 
 interface PtsState {
   pts: Record<string, Pt>;
@@ -8,7 +8,7 @@ interface PtsState {
   setPt: (ptId: string, pt: Pt) => void;
   removePt: (ptId: string) => void;
 
-  updatePtPresence: (ptId: string, presence: Pt["presence"]) => void;
+  updatePtPresence: (ptId: string, presence: Pt['presence']) => void;
 }
 
 export const usePtsStore = create<PtsState>((set) => ({

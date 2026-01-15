@@ -1,4 +1,4 @@
-import { socket } from "@/shared/api/socket";
+import { socket } from '@/shared/api/socket';
 import {
   SOCKET_EVENTS,
   type Pt,
@@ -7,8 +7,8 @@ import {
   type PtLeftPayload,
   type RoomPtsPayload,
   type PtUpdatePayload,
-} from "@codejam/common";
-import { usePtsStore } from "../pts";
+} from '@codejam/common';
+import { usePtsStore } from '../pts';
 
 export const setupPtsEventHandlers = () => {
   const onPtJoined = (data: PtJoinedPayload) => {
@@ -20,7 +20,7 @@ export const setupPtsEventHandlers = () => {
     console.log(`👋 [PT_DISCONNECT] PtId: ${data.ptId}`);
     const pt = usePtsStore.getState().pts[data.ptId];
     if (!pt) return;
-    usePtsStore.getState().setPt(pt.ptId, { ...pt, presence: "offline" });
+    usePtsStore.getState().setPt(pt.ptId, { ...pt, presence: 'offline' });
   };
 
   const onPtLeft = (data: PtLeftPayload) => {
@@ -31,16 +31,19 @@ export const setupPtsEventHandlers = () => {
   const onRoomPts = (data: RoomPtsPayload) => {
     console.log(`👥 [ROOM_PTS]`, data.pts);
     const pts: Pt[] = data.pts;
-    const newPts: Record<string, Pt> = pts.reduce((acc, pt) => {
-      acc[pt.ptId] = pt;
-      return acc;
-    }, {} as Record<string, Pt>);
+    const newPts: Record<string, Pt> = pts.reduce(
+      (acc, pt) => {
+        acc[pt.ptId] = pt;
+        return acc;
+      },
+      {} as Record<string, Pt>,
+    );
     usePtsStore.getState().setPts(newPts);
   };
 
   const onUpdatePt = (data: PtUpdatePayload) => {
     console.log(
-      `🔄 [UPDATE_PT] PtId: ${data.pt.ptId} Nickname: ${data.pt.nickname}`
+      `🔄 [UPDATE_PT] PtId: ${data.pt.ptId} Nickname: ${data.pt.nickname}`,
     );
     const pt = usePtsStore.getState().pts[data.pt.ptId];
     if (!pt) return;

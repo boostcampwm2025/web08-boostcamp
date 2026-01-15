@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { z } from "zod";
+import { useState } from 'react';
+import { nicknameSchema } from '@codejam/common';
 import {
   Dialog,
   DialogContent,
@@ -7,10 +7,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+} from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
 
 interface NicknameInputDialogProps {
   open: boolean;
@@ -18,19 +18,13 @@ interface NicknameInputDialogProps {
   onConfirm: (nickname: string) => void;
 }
 
-// Zod 스키마: 1-6자, 모든 유니코드 허용
-const nicknameSchema = z
-  .string()
-  .min(1, "닉네임을 입력해주세요.")
-  .max(6, "닉네임은 최대 6자까지 입력 가능합니다.");
-
 export function NicknameInputDialog({
   open,
   onOpenChange,
   onConfirm,
 }: NicknameInputDialogProps) {
-  const [nickname, setNickname] = useState("");
-  const [error, setError] = useState("");
+  const [nickname, setNickname] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -42,13 +36,13 @@ export function NicknameInputDialog({
 
     if (!result.success) {
       const firstError = result.error.issues[0];
-      setError(firstError?.message || "닉네임을 확인해주세요.");
+      setError(firstError?.message || '닉네임을 확인해주세요.');
       return;
     }
 
-    setError("");
+    setError('');
     onConfirm(result.data);
-    setNickname("");
+    setNickname('');
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +50,7 @@ export function NicknameInputDialog({
     // 최대 6자로 제한
     if (value.length <= 6) {
       setNickname(value);
-      setError(""); // 입력 중에는 에러 메시지 제거
+      setError(''); // 입력 중에는 에러 메시지 제거
     }
   };
 
