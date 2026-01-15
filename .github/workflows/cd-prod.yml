@@ -60,10 +60,6 @@ jobs:
         run: |
           cd apps/client
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          # Copy Vercel environment variables to .env.local for Vite
-          if [ -f .vercel/.env.production.local ]; then
-            cp .vercel/.env.production.local .env.local
-          fi
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel (Production)

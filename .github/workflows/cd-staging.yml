@@ -60,10 +60,6 @@ jobs:
         run: |
           cd apps/client
           vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-          # Copy Vercel environment variables to .env.local for Vite
-          if [ -f .vercel/.env.preview.local ]; then
-            cp .vercel/.env.preview.local .env.local
-          fi
           vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel (Staging)
