@@ -146,24 +146,30 @@ export default function Header({ roomCode }: HeaderProps) {
   };
 
   return (
-    <header className="h-14 bg-background border-b border-border flex items-center px-4 gap-4">
+    <header className="h-14 bg-background border-b border-border flex items-center px-4 gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
       {/* 로고 및 서비스명 */}
-      <a href="/">
-        <div className="flex items-center gap-3">
-          <img src={LogoAnimation} alt="CodeJam Logo" className="h-10 w-10" />
-          <h1 className="text-2xl font-semibold text-foreground">
+      <a href="/" className="shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <img
+            src={LogoAnimation}
+            alt="CodeJam Logo"
+            className="h-8 w-8 sm:h-10 sm:w-10"
+          />
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground hidden sm:block">
             {PROJECT_NAME}
           </h1>
         </div>
       </a>
 
-      {/* Room ID */}
-      <div className="flex items-center gap-2 ml-6">
-        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+      {/* Room ID - 화면 작을 땐 ID만 표시 */}
+      <div className="flex items-center gap-2 ml-2 sm:ml-6 shrink-0">
+        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider hidden md:block">
           ROOM ID
         </span>
-        <div className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-md bg-secondary/50">
-          <span className="font-mono text-sm font-semibold">{roomCode}</span>
+        <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 border border-border rounded-md bg-secondary/50">
+          <span className="font-mono text-xs sm:text-sm font-semibold max-w-[80px] sm:max-w-none truncate">
+            {roomCode}
+          </span>
           <Button
             variant="ghost"
             size="icon"
@@ -189,17 +195,22 @@ export default function Header({ roomCode }: HeaderProps) {
       />
 
       {/* 우측 액션 버튼들 */}
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-1 shrink-0">
         <NewFileDialog onSubmit={handleNewFile}>
-          <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+          >
             <Plus className="h-4 w-4" />
-            <span>New File</span>
+            <span className="hidden lg:inline">New File</span>
           </Button>
         </NewFileDialog>
+
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-xs h-8"
+          className="gap-1.5 text-xs h-8 px-2 sm:px-3"
           onClick={handleUploadButton}
         >
           <input
@@ -210,33 +221,39 @@ export default function Header({ roomCode }: HeaderProps) {
             onChange={handleFileChange}
           />
           <Upload className="h-4 w-4" />
-          <span>Upload</span>
+          <span className="hidden lg:inline">Upload</span>
         </Button>
+
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-xs h-8"
+          className="gap-1.5 text-xs h-8 px-2 sm:px-3"
           onClick={() => handleNotImplemented('Download')}
         >
           <Download className="h-4 w-4" />
-          <span>Download</span>
+          <span className="hidden lg:inline">Download</span>
         </Button>
+
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-xs h-8"
+          className="gap-1.5 text-xs h-8 px-2 sm:px-3 hidden sm:flex"
           onClick={() => handleNotImplemented('Copy')}
         >
           <Copy className="h-4 w-4" />
-          <span>Copy</span>
+          <span className="hidden lg:inline">Copy</span>
         </Button>
 
         {/* 공유 다이얼로그 */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+            >
               <Share2 className="h-4 w-4" />
-              <span>Share</span>
+              <span className="hidden lg:inline">Share</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
@@ -272,29 +289,29 @@ export default function Header({ roomCode }: HeaderProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-xs h-8"
+          className="gap-1.5 text-xs h-8 px-2 sm:px-3"
           onClick={() => handleNotImplemented('Settings')}
         >
           <Settings className="h-4 w-4" />
-          <span>Settings</span>
+          <span className="hidden lg:inline">Settings</span>
         </Button>
 
         {/* 라이트/다크 모드 토글 */}
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-xs h-8"
+          className="gap-1.5 text-xs h-8 px-2 sm:px-3"
           onClick={toggleDarkMode}
         >
           {isDark ? (
             <>
               <Sun className="h-4 w-4" />
-              <span>Light</span>
+              <span className="hidden lg:inline">Light</span>
             </>
           ) : (
             <>
               <Moon className="h-4 w-4" />
-              <span>Dark</span>
+              <span className="hidden lg:inline">Dark</span>
             </>
           )}
         </Button>
