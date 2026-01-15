@@ -32,7 +32,19 @@ export function useParticipantsFilter({
     // 검색 필터링
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      allPts = allPts.filter((p) => p.nickname.toLowerCase().includes(query));
+
+      allPts = allPts.filter((p) => {
+        const matchNickname = p.nickname.toLowerCase().includes(query);
+
+        const cleanQuery = query.startsWith('#') ? query.slice(1) : query;
+
+        const matchHash =
+          cleanQuery && p.ptHash
+            ? p.ptHash.toString().toLowerCase().includes(cleanQuery)
+            : false;
+
+        return matchNickname || matchHash;
+      });
     }
 
     let myPt: Pt | undefined;

@@ -14,11 +14,9 @@ export function ParticipantAvatar({ ptId }: ParticipantProps) {
   const { color, role, ptHash } = pt;
 
   const SelectedIcon = useMemo(() => {
-    const str = ptHash!.slice(1);
-
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < ptHash!.length; i++) {
+      hash = (hash * 31 + ptHash!.charCodeAt(i)) >>> 0;
     }
 
     return AVATAR_ICONS[hash % AVATAR_ICONS.length];

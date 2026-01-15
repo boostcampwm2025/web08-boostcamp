@@ -26,7 +26,7 @@ export function SearchBar({
         type="text"
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="검색..."
+        placeholder="이름 또는 태그(#) 검색..."
         className="w-full h-9 rounded-md border border-input bg-transparent dark:bg-input/30 px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] pr-9"
         autoFocus
       />
