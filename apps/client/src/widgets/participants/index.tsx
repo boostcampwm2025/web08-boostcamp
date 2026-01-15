@@ -72,7 +72,7 @@ export function Participants() {
   };
 
   return (
-    <div className="w-full min-w-3xs bg-white dark:bg-gray-800 p-4 font-sans">
+    <div className="w-full min-w-3xs p-4">
       <ParticipantsHeader
         totalCount={totalCount}
         isCollapsed={isCollapsed}

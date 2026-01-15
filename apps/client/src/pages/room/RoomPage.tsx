@@ -44,13 +44,13 @@ function RoomPage() {
         <div className="bg-red-500 text-white p-4 text-center">{roomError}</div>
       )}
       <main className="flex-1 overflow-hidden flex">
-        <div className="border-r h-full overflow-y-auto scrollbar-thin flex flex-col">
+        <div className="border-r border-border h-full overflow-y-auto scrollbar-thin flex flex-col bg-sidebar w-64 shrink-0">
           <Participants />
           <div className="grow">
             <FileList />
           </div>
         </div>
-        <div className="flex-1 h-full">
+        <div className="flex-1 h-full bg-background">
           <CodeEditor
             fileId={activeFileId || 'prototype'}
             language="javascript"

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
-import { EditorState } from '@codemirror/state';
+import { Compartment, EditorState } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
@@ -40,13 +40,16 @@ export default function CodeEditor({
 }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+
+  const themeCompartment = useRef(new Compartment()).current;
+
   const { yText, awareness } = useYText(fileId);
   const { isDark } = useDarkMode();
 
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
 
-    const themeExtension = isDark ? oneDark : githubLight;
+    const initialTheme = isDark ? oneDark : githubLight;
 
     const view = new EditorView({
       doc: yText.toString(),
@@ -55,7 +58,7 @@ export default function CodeEditor({
         yCollab(yText, awareness),
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
-        themeExtension,
+        themeCompartment.of(initialTheme),
         EditorState.readOnly.of(readOnly),
         ...(readOnly ? [readOnlyToast()] : []),
         EditorView.theme({
@@ -74,7 +77,18 @@ export default function CodeEditor({
     return () => {
       view.destroy();
     };
-  }, [yText, awareness, language, readOnly, isDark]);
+  }, [yText, awareness, language, readOnly]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    const themeExtension = isDark ? oneDark : githubLight;
+
+    view.dispatch({
+      effects: themeCompartment.reconfigure(themeExtension),
+    });
+  }, [isDark, themeCompartment]);
 
   return <div ref={editorRef} className="h-full" />;
 }
