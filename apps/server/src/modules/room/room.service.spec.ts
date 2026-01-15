@@ -7,6 +7,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { PtRole } from '../pt/pt.entity';
 import { PtService } from '../pt/pt.service';
 import { RoomTokenService } from '../auth/room-token.service';
+import { FileService } from '../file/file.service';
 
 // 테스트 상수
 const MOCK_ROOM_CODE = 'UNI001';
@@ -69,6 +70,12 @@ describe('RoomService', () => {
             verify: jest.fn(),
           },
         },
+        {
+          provide: FileService,
+          useValue: {
+            generateInitialSnapshot: jest.fn().mockReturnValue(Buffer.from([])),
+          },
+        },
       ],
     }).compile();
 
@@ -105,10 +112,16 @@ describe('RoomService', () => {
         room: savedRoom,
         role: PtRole.HOST,
       };
+      const savedDocument = {
+        docId: 'mock-doc-id',
+        room: savedRoom,
+        roomId: MOCK_ROOM_ID,
+      };
 
       (queryRunner.manager.save as jest.Mock)
         .mockResolvedValueOnce(savedRoom) // Room 저장 성공
-        .mockResolvedValueOnce(savedPt); // Pt 저장 성공
+        .mockResolvedValueOnce(savedPt) // Pt 저장 성공
+        .mockResolvedValueOnce(savedDocument); // Document 저장 성공
 
       // Act
       const result = await service.createQuickRoom();
@@ -141,6 +154,14 @@ describe('RoomService', () => {
         }),
       );
 
+      expect(queryRunner.manager.save).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          room: savedRoom,
+          roomId: MOCK_ROOM_ID,
+        }),
+      );
+
       // 3. 토큰 생성 검증
       expect(roomTokenService.sign).toHaveBeenCalledWith({
         roomCode: MOCK_ROOM_CODE,
@@ -165,8 +186,14 @@ describe('RoomService', () => {
         .mockResolvedValueOnce({ roomId: 1 } as Room) // 1차 결과: 존재함
         .mockResolvedValueOnce(null); // 2차 결과: 없음
 
-      const mockRoom = { roomCode: 'UNI002' } as Room;
-      (queryRunner.manager.save as jest.Mock).mockResolvedValue(mockRoom);
+      const mockRoom = { roomId: 1, roomCode: 'UNI002' } as Room;
+      const mockPt = { ptId: 'mock-pt-id', room: mockRoom, role: PtRole.HOST };
+      const mockDocument = { docId: 'mock-doc-id', room: mockRoom, roomId: 1 };
+
+      (queryRunner.manager.save as jest.Mock)
+        .mockResolvedValueOnce(mockRoom)
+        .mockResolvedValueOnce(mockPt)
+        .mockResolvedValueOnce(mockDocument);
 
       // Act
       await service.createQuickRoom();
