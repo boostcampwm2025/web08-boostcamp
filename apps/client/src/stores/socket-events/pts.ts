@@ -9,6 +9,8 @@ import {
   type PtUpdatePayload,
 } from '@codejam/common';
 import { usePtsStore } from '../pts';
+import { useRoomStore } from '../room';
+import { toast } from 'sonner';
 
 export const setupPtsEventHandlers = () => {
   const onPtJoined = (data: PtJoinedPayload) => {
@@ -47,6 +49,18 @@ export const setupPtsEventHandlers = () => {
     );
     const pt = usePtsStore.getState().pts[data.pt.ptId];
     if (!pt) return;
+
+    const myPtId = useRoomStore.getState().myPtId;
+    const isMe = data.pt.ptId === myPtId;
+
+    if (isMe && pt.role !== data.pt.role) {
+      if (data.pt.role === 'editor') {
+        toast.success('편집 권한이 부여되었습니다.');
+      } else if (data.pt.role === 'viewer') {
+        toast.info('뷰어로 변경되었습니다.');
+      }
+    }
+
     const newPt = { ...pt, ...data.pt };
     usePtsStore.getState().setPt(data.pt.ptId, newPt);
   };
