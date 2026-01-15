@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RoomService } from '../room/room.service';
 import { CollaborationGateway } from '../collaboration/collaboration.gateway';
+import { FileService } from '../file/file.service';
+import { DocumentService } from '../document/document.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
@@ -10,6 +12,8 @@ export class CleanupService {
   constructor(
     private readonly roomService: RoomService,
     private readonly collaborationGateway: CollaborationGateway,
+    private readonly fileService: FileService,
+    private readonly documentService: DocumentService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -32,8 +36,13 @@ export class CleanupService {
         }),
       );
 
-      // 3. DB에서 방 삭제
+      // 3. Y.Doc 정리
       const roomIdsToDelete = expiredRooms.map((room) => room.roomId);
+      const docIds =
+        await this.documentService.getDocIdsByRoomIds(roomIdsToDelete);
+      await this.fileService.cleanupDocs(docIds);
+
+      // 4. DB에서 방 삭제
       const deletedCount = await this.roomService.deleteRooms(roomIdsToDelete);
 
       this.logger.log(

@@ -126,11 +126,11 @@ export class FileService {
   }
 
   /**
-   * Remove Y.Doc for a document (cleanup when room is closed)
-   * TODO: Call this when room is closed or last participant leaves
+   * Remove Y.Doc for a document
+   * Y.Doc is removed when room is closed or expired
+   * TODO: Call this when last participant leaves
    */
-  async removeDoc(client: CollabSocket, server: Server): Promise<boolean> {
-    const { docId } = client.data;
+  async removeDoc(docId: string): Promise<boolean> {
     const roomDoc = this.docs.get(docId);
 
     if (!roomDoc) return false;
@@ -149,6 +149,17 @@ export class FileService {
     this.logger.log(`🗑️ Removed Y.Doc for document: ${docId}`);
 
     return true;
+  }
+
+  /**
+   * Cleanup Y.Docs by docIds
+   */
+  async cleanupDocs(docIds: string[]): Promise<void> {
+    if (docIds.length === 0) return;
+
+    this.logger.log(`🧹 Cleaning up ${docIds.length} Y.Docs`);
+
+    await Promise.all(docIds.map((docId) => this.removeDoc(docId)));
   }
 
   // ==================================================================

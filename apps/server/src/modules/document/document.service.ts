@@ -60,4 +60,15 @@ export class DocumentService {
   async removeDocById(docId: string): Promise<void> {
     await this.documentRepository.delete({ docId });
   }
+
+  async getDocIdsByRoomIds(roomIds: number[]): Promise<string[]> {
+    if (roomIds.length === 0) return [];
+
+    const documents = await this.documentRepository.find({
+      where: roomIds.map((roomId) => ({ roomId })),
+      select: ['docId'],
+    });
+
+    return documents.map((doc) => doc.docId);
+  }
 }
