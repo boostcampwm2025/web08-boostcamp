@@ -115,16 +115,16 @@ export class CollaborationService {
 
   /** 초기 로드: 문서 상태 요청 */
   handleRequestDoc(client: CollabSocket, server: Server): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleRequestDoc(client, server);
   }
 
   /** 초기 로드: Awareness 상태 요청 */
   handleRequestAwareness(client: CollabSocket, server: Server): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleRequestAwareness(client, server);
   }
@@ -135,8 +135,8 @@ export class CollaborationService {
     server: Server,
     payload: FileUpdatePayload,
   ): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleFileUpdate(client, server, payload);
   }
@@ -147,8 +147,8 @@ export class CollaborationService {
     server: Server,
     payload: AwarenessUpdatePayload,
   ): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleAwarenessUpdate(client, server, payload);
   }
@@ -177,6 +177,7 @@ export class CollaborationService {
 
   /** 파일 이름 유효성 확인 */
   async handleCheckFileName(
+    client: CollabSocket,
     payload: FilenameCheckPayload,
   ): Promise<FilenameCheckResultPayload> {
     const currentExts = [
@@ -196,8 +197,10 @@ export class CollaborationService {
       message: '유효하지 않는 확장자입니다.',
     } as FilenameCheckResultPayload;
 
-    const { filename, roomCode } = payload;
-    const room = await this.roomService.findRoomByCode(roomCode);
+    const { filename } = payload;
+    const { roomId, docId } = client.data;
+
+    const room = await this.roomService.findRoomById(roomId);
 
     if (!room) {
       return {
@@ -222,7 +225,7 @@ export class CollaborationService {
       return extResult;
     }
 
-    if (this.fileService.checkDuplicate(room.roomId, filename)) {
+    if (this.fileService.checkDuplicate(docId, filename)) {
       return {
         error: true,
         type: 'duplicate',

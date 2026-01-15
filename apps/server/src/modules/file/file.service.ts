@@ -17,7 +17,6 @@ import {
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
-import { v7 as uuidv7 } from 'uuid';
 
 export type AwarenessUpdate = {
   added: number[];
@@ -26,7 +25,7 @@ export type AwarenessUpdate = {
 };
 
 export type RoomDoc = {
-  roomId: number;
+  docId: string;
   doc: Doc;
   awareness: Awareness;
   files: Set<string>;
@@ -38,31 +37,24 @@ export type Language = 'javascript' | 'html' | 'css';
 export class FileService {
   private readonly logger = new Logger(FileService.name);
 
-  // One Y.Doc per room
-  private docs: Map<number, RoomDoc> = new Map();
+  // One Y.Doc per room and document
+  private docs: Map<string, RoomDoc> = new Map();
 
   constructor(private readonly yRedis: YRedisService) {}
-
-  /**
-   * Generate Redis key for a room's Y.Doc
-   */
-  private getDocKey(roomId: number): string {
-    return roomId.toString();
-  }
 
   // ==================================================================
   // Y.Doc Management Methods
   // ==================================================================
 
   /**
-   * Create Y.Doc for a room
+   * Create Y.Doc for a document
    * Should be called when room is initialized (before files are created)
    * Hydrates from Redis if data exists
    */
-  async createDoc(roomId: number): Promise<RoomDoc> {
+  async createDoc(docId: string): Promise<RoomDoc> {
     // Check if already exists
-    if (this.docs.has(roomId)) {
-      return this.docs.get(roomId)!;
+    if (this.docs.has(docId)) {
+      return this.docs.get(docId)!;
     }
 
     // Create Y.Doc
@@ -75,8 +67,7 @@ export class FileService {
     doc.getMap('meta'); // 추후 스냅샷 버전 관리용
 
     // Bind to Redis for persistence and hydration
-    const docKey = this.getDocKey(roomId);
-    const pdoc = this.yRedis.bind(docKey, doc);
+    const pdoc = this.yRedis.bind(docId, doc);
     await pdoc.synced; // Wait for hydration from Redis
 
     // Set up listeners
@@ -85,66 +76,65 @@ export class FileService {
     awareness.on('update', this.awarenessListener(awareness));
 
     const roomDoc: RoomDoc = {
-      roomId,
+      docId,
       doc,
       awareness,
       files: new Set<string>(),
     };
 
-    this.docs.set(roomId, roomDoc);
-    this.logger.log(`📄 Created Y.Doc for room: ${roomId}`);
+    this.docs.set(docId, roomDoc);
+    this.logger.log(`📄 Created Y.Doc for document: ${docId}`);
 
     return roomDoc;
   }
 
   /**
-   * Ensure Y.Doc exists for room (creates if not exists)
+   * Ensure Y.Doc exists for document (creates if not exists)
    * Idempotent - safe to call multiple times
    */
-  async ensureDoc(roomId: number): Promise<RoomDoc> {
-    const existing = this.docs.get(roomId);
+  async ensureDoc(docId: string): Promise<RoomDoc> {
+    const existing = this.docs.get(docId);
     if (existing) return existing;
 
-    return this.createDoc(roomId);
+    return this.createDoc(docId);
   }
 
   /**
-   * Get Y.Doc for a room (throws if not found)
+   * Get Y.Doc for a document (throws if not found)
    * Use this for hot paths after room join
    */
-  getDoc(roomId: number): RoomDoc {
-    const roomDoc = this.docs.get(roomId);
+  getDoc(docId: string): RoomDoc {
+    const roomDoc = this.docs.get(docId);
 
     if (!roomDoc) {
-      throw new Error(`Y.Doc not found for room: ${roomId}`);
+      throw new Error(`Y.Doc not found for document: ${docId}`);
     }
 
     return roomDoc;
   }
 
   /**
-   * Remove Y.Doc for a room (cleanup when room is closed)
+   * Remove Y.Doc for a document (cleanup when room is closed)
    * TODO: Call this when room is closed or last participant leaves
    */
   async removeDoc(client: CollabSocket, server: Server): Promise<boolean> {
-    const { roomId } = client.data;
-    const roomDoc = this.docs.get(roomId);
+    const { docId } = client.data;
+    const roomDoc = this.docs.get(docId);
 
     if (!roomDoc) return false;
 
     const { doc, awareness } = roomDoc;
 
     // Clean up YRedisService first
-    const docKey = this.getDocKey(roomId);
-    await this.yRedis.closeDoc(docKey);
+    await this.yRedis.closeDoc(docId);
 
     // Clean up listeners
     doc.off('update', this.docListener());
     awareness.off('update', this.awarenessListener(awareness));
 
     // Remove from map
-    this.docs.delete(roomId);
-    this.logger.log(`🗑️ Removed Y.Doc for room: ${roomId}`);
+    this.docs.delete(docId);
+    this.logger.log(`🗑️ Removed Y.Doc for document: ${docId}`);
 
     return true;
   }
@@ -154,16 +144,16 @@ export class FileService {
   // ==================================================================
 
   /**
-   * Create a file within a room's Y.Doc
+   * Create a file within a document's Y.Doc
    * The Y.Doc must already exist
    */
   createFile(
-    roomId: number,
+    docId: string,
     fileId: string,
     fileName: string,
     language?: Language,
   ) {
-    const roomDoc = this.getDoc(roomId);
+    const roomDoc = this.getDoc(docId);
     const { doc, files } = roomDoc;
 
     // files Y.Map 가져오기
@@ -187,13 +177,13 @@ export class FileService {
     // 파일 추적
     files.add(fileId);
     this.logger.log(
-      `📝 Created file ${fileName} (${fileId}) in room ${roomId}`,
+      `📝 Created file ${fileName} (${fileId}) in document ${docId}`,
     );
 
     // [DEBUG] Y.Map 구조 검증 로그
     const createdFileMap = filesMap.get(fileId) as YMap<unknown> | undefined;
     this.logger.debug(
-      `🗂️ [Y.Map 구조] roomId=${roomId}, fileId=${fileId}, ` +
+      `🗂️ [Y.Map 구조] docId=${docId}, fileId=${fileId}, ` +
         `filesMap.size=${filesMap.size}, ` +
         `fileMap.has('name')=${createdFileMap?.has('name')}, ` +
         `fileMap.has('content')=${createdFileMap?.has('content')}`,
@@ -203,8 +193,8 @@ export class FileService {
   /**
    * 파일 중복 확인
    */
-  checkDuplicate(roomId: number, fileName: string): boolean {
-    const roomDoc = this.getDoc(roomId);
+  checkDuplicate(docId: string, fileName: string): boolean {
+    const roomDoc = this.getDoc(docId);
     const { doc } = roomDoc;
 
     const fileIdMap = doc.getMap('map');
@@ -222,19 +212,19 @@ export class FileService {
    * Idempotent - safe to call multiple times
    */
   ensureFile(
-    roomId: number,
+    docId: string,
     fileId: string,
     fileName: string,
     language?: Language,
   ) {
-    const roomDoc = this.getDoc(roomId);
+    const roomDoc = this.getDoc(docId);
     const { doc } = roomDoc;
 
     // Y.Map에서 파일 존재 여부 체크
     const filesMap = doc.getMap('files');
     if (filesMap.has(fileId)) return; // 이미 존재하는 파일
 
-    this.createFile(roomId, fileId, fileName, language);
+    this.createFile(docId, fileId, fileName, language);
   }
 
   // ==================================================================
@@ -247,24 +237,21 @@ export class FileService {
    * - Creates default file if this is a new room (no existing doc in Redis)
    */
   async prepareRoomDoc(client: CollabSocket, server: Server): Promise<void> {
-    const { roomId } = client.data;
-    const roomDoc = this.docs.get(roomId);
+    const { docId } = client.data;
+    const roomDoc = this.docs.get(docId);
     if (roomDoc) return;
-
-    const docKey = this.getDocKey(roomId);
-    const existsInRedis = await this.yRedis.hasDocInRedis(docKey);
 
     // Ensure doc exists
     // Creates if not (Hydrates from Redis)
-    await this.ensureDoc(roomId);
+    await this.ensureDoc(docId);
   }
 
   /**
    * Handle document request - send initial Y.Doc state to client
    */
   handleRequestDoc(client: CollabSocket, server: Server) {
-    const { roomId } = client.data;
-    const roomDoc = this.getDoc(roomId);
+    const { docId } = client.data;
+    const roomDoc = this.getDoc(docId);
     const { doc } = roomDoc;
 
     // Encode and send entire Y.Doc state
@@ -273,21 +260,21 @@ export class FileService {
     writeUpdate(encoder, update);
     const message = toUint8Array(encoder);
 
-    client.emit(SOCKET_EVENTS.ROOM_DOC, { roomId, message });
+    client.emit(SOCKET_EVENTS.ROOM_DOC, { docId, message });
   }
 
   /**
    * Handle awareness request - send initial awareness states to client
    */
   handleRequestAwareness(client: CollabSocket, server: Server) {
-    const { roomId } = client.data;
-    const { awareness } = this.getDoc(roomId);
+    const { docId } = client.data;
+    const { awareness } = this.getDoc(docId);
 
-    // Send awareness states for this room
+    // Send awareness states for this document
     const ids = Array.from(awareness.getStates().keys());
     const message = encodeAwarenessUpdate(awareness, ids);
 
-    client.emit(SOCKET_EVENTS.ROOM_AWARENESS, { roomId, message });
+    client.emit(SOCKET_EVENTS.ROOM_AWARENESS, { docId, message });
   }
 
   /**
@@ -298,11 +285,11 @@ export class FileService {
     server: Server,
     payload: FileUpdatePayload,
   ) {
-    const { roomId } = client.data;
+    const { docId } = client.data;
     const { message } = payload;
-    const { doc } = this.getDoc(roomId);
+    const { doc } = this.getDoc(docId);
 
-    this.logger.debug(`📝 [UPDATE] Room: ${roomId}, Length: ${message.length}`);
+    this.logger.debug(`📝 [UPDATE] Doc: ${docId}, Length: ${message.length}`);
 
     // Process Y.js sync message
     const decoder = createDecoder(message);
@@ -324,9 +311,9 @@ export class FileService {
     server: Server,
     payload: AwarenessUpdatePayload,
   ) {
-    const { roomId } = client.data;
+    const { docId } = client.data;
     const { message } = payload;
-    const { awareness } = this.getDoc(roomId);
+    const { awareness } = this.getDoc(docId);
 
     applyAwarenessUpdate(awareness, message, client);
   }
@@ -339,9 +326,9 @@ export class FileService {
     server: Server,
     payload: { clientId: number },
   ) {
-    const { roomId } = client.data;
+    const { docId } = client.data;
     const { clientId } = payload;
-    const { awareness } = this.getDoc(roomId);
+    const { awareness } = this.getDoc(docId);
 
     removeAwarenessStates(awareness, [clientId], client);
   }

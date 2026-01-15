@@ -50,6 +50,10 @@ export class RoomService {
     return true;
   }
 
+  async findRoomById(roomId: number): Promise<Room | null> {
+    return this.roomRepository.findOne({ where: { roomId } });
+  }
+
   /**
    * roomCode로 Room 엔티티 조회 (방 유효성 검사용)
    */
