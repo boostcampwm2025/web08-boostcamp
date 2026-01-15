@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
-import { cardColorSchemes } from "../constants/card-color-schemes";
+import type { LucideIcon } from 'lucide-react';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { cardColorSchemes } from '../constants/card-color-schemes';
 
 interface FeatureCardProps {
   icon: LucideIcon;

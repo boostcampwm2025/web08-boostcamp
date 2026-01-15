@@ -1,2 +1,2 @@
-export { ParticipantAvatar } from "./ParticipantAvatar";
-export { ParticipantMenu } from "./ParticipantMenu";
+export { ParticipantAvatar } from './ParticipantAvatar';
+export { ParticipantMenu } from './ParticipantMenu';

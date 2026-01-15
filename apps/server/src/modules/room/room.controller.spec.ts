@@ -34,7 +34,7 @@ describe('RoomController', () => {
     it('Service를 호출하고 생성된 방 정보를 반환해야 한다', async () => {
       const mockResponse: CreateRoomResponseDto = {
         roomCode: 'ABCDEF',
-        myPtId: 'test-uuid-1234',
+        token: 'RoomToken',
       };
 
       mockRoomService.createQuickRoom.mockResolvedValue(mockResponse);

@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode } from 'react';
 
 export interface AvatarProps {
   /**
@@ -35,7 +35,7 @@ export function Avatar({
   color,
   badge,
   size = 40,
-  className = "",
+  className = '',
 }: AvatarProps) {
   return (
     <div

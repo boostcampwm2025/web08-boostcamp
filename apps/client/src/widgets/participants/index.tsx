@@ -1,15 +1,15 @@
-import { useMemo } from "react";
-import { Participant } from "./Participant";
-import { sorter } from "./sorter";
-import { usePt, usePtsStore } from "@/stores/pts";
-import { useRoomStore } from "@/stores/room";
+import { useMemo } from 'react';
+import { Participant } from './Participant';
+import { sorter } from './sorter';
+import { usePt, usePtsStore } from '@/stores/pts';
+import { useRoomStore } from '@/stores/room';
 
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const me = usePt(myPtId);
-  const hasPermission = me?.role === "host";
+  const hasPermission = me?.role === 'host';
 
   const sorted = useMemo(() => Object.values(pts).sort(sorter), [pts]);
   const count = sorted.length;
@@ -34,6 +34,6 @@ export function Participants() {
 }
 
 // Re-export components only (for Fast Refresh compatibility)
-export { Participant } from "./Participant";
-export { ParticipantInfo } from "./ParticipantInfo";
-export { ParticipantAvatar, ParticipantMenu } from "./ui";
+export { Participant } from './Participant';
+export { ParticipantInfo } from './ParticipantInfo';
+export { ParticipantAvatar, ParticipantMenu } from './ui';

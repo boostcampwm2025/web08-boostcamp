@@ -1,9 +1,9 @@
-import type { RoomToken } from "@codejam/common";
+import type { RoomToken } from '@codejam/common';
 
 // Room REST API
 // TODO: Error message mapping
 
-const ROOM_API_PREFIX = "/api/rooms";
+const ROOM_API_PREFIX = '/api/rooms';
 
 interface CreateQuickRoomResponse {
   roomCode: string;
@@ -15,7 +15,7 @@ export async function checkRoomExists(roomCode: string): Promise<boolean> {
     const response = await fetch(`${ROOM_API_PREFIX}/${roomCode}/exists`);
 
     if (!response.ok) {
-      const message = "Room not found";
+      const message = 'Room not found';
       throw new Error(message);
     }
 
@@ -30,11 +30,11 @@ export async function checkRoomExists(roomCode: string): Promise<boolean> {
 export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
   try {
     const response = await fetch(`${ROOM_API_PREFIX}/quick`, {
-      method: "POST",
+      method: 'POST',
     });
 
     if (!response.ok) {
-      const message = "Failed to create quick room";
+      const message = 'Failed to create quick room';
       throw new Error(message);
     }
 
@@ -47,17 +47,17 @@ export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
 
 export async function checkHost(
   roomCode: string,
-  ptId: string
+  ptId: string,
 ): Promise<boolean> {
   try {
     const response = await fetch(`${ROOM_API_PREFIX}/${roomCode}/checkHost`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ptId }),
     });
 
     if (!response.ok) {
-      const message = "Failed to check host permission";
+      const message = 'Failed to check host permission';
       throw new Error(message);
     }
 
