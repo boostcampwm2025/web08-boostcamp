@@ -110,6 +110,7 @@ export class FileService {
 
   /**
    * Get Y.Doc for a room (throws if not found)
+   * Use this for hot paths after room join
    */
   getDoc(roomId: number): RoomDoc {
     const roomDoc = this.docs.get(roomId);
@@ -241,20 +242,21 @@ export class FileService {
   // ==================================================================
 
   /**
-   * Handle create file request
-   * Ensures Y.Doc exists for room and creates default file
+   * Prepare room document for a joining client
+   * - Ensures Y.Doc exists (creates or hydrates from Redis)
+   * - Creates default file if this is a new room (no existing doc in Redis)
    */
-  handleCreateFile(client: CollabSocket, server: Server) {
+  async prepareRoomDoc(client: CollabSocket, server: Server): Promise<void> {
     const { roomId } = client.data;
-    const fileId = uuidv7();
-    const fileName = 'main.js'; // 기본 파일명
-    const language = 'javascript';
+    const roomDoc = this.docs.get(roomId);
+    if (roomDoc) return;
 
-    // Ensure Y.Doc exists for room
-    this.ensureDoc(roomId);
+    const docKey = this.getDocKey(roomId);
+    const existsInRedis = await this.yRedis.hasDocInRedis(docKey);
 
-    // Ensure file exists in Y.Doc
-    this.ensureFile(roomId, fileId, fileName, language);
+    // Ensure doc exists
+    // Creates if not (Hydrates from Redis)
+    await this.ensureDoc(roomId);
   }
 
   /**

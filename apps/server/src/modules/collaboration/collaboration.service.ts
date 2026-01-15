@@ -96,8 +96,8 @@ export class CollaborationService {
     this.setupSocketData(client, room, pt);
     await client.join(roomCode);
 
-    // 클라이언트가 REQUEST_DOC을 보내기 전에 문서 준비 완료
-    this.prepareRoomDoc(client, server);
+    // Y.Doc 준비
+    await this.fileService.prepareRoomDoc(client, server);
 
     await this.notifyParticipantJoined(client, server, pt, newToken);
 
@@ -263,11 +263,6 @@ export class CollaborationService {
   private notifyUpdatePt(client: CollabSocket, server: Server, pt: Pt): void {
     const { roomCode } = client.data;
     server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt });
-  }
-
-  /** 방 문서(Y.Doc) 및 기본 파일 준비 */
-  private prepareRoomDoc(client: CollabSocket, server: Server): void {
-    this.fileService.handleCreateFile(client, server);
   }
 
   /**
