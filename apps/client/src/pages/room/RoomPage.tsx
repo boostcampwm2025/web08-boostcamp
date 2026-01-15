@@ -1,15 +1,15 @@
-import { useEffect } from "react";
-import { CodeEditor } from "@/widgets/code-editor";
-import { Header } from "@/widgets/header";
-import { Participants } from "@/widgets/participants";
-import { useSocket } from "@/shared/lib/hooks/useSocket";
-import { useRoomJoin } from "@/shared/lib/hooks/useRoomJoin";
-import { useRoomStore } from "@/stores/room";
-import { usePt } from "@/stores/pts";
-import { NicknameInputDialog } from "@/widgets/nickname-input";
-import { Toaster } from "@/shared/ui/sonner";
-import { FileList } from "@/widgets/files";
-import { useFileStore } from "@/stores/file";
+import { useEffect } from 'react';
+import { CodeEditor } from '@/widgets/code-editor';
+import { Header } from '@/widgets/header';
+import { Participants } from '@/widgets/participants';
+import { useSocket } from '@/shared/lib/hooks/useSocket';
+import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
+import { useRoomStore } from '@/stores/room';
+import { usePt } from '@/stores/pts';
+import { NicknameInputDialog } from '@/widgets/nickname-input';
+import { Toaster } from '@/shared/ui/sonner';
+import { FileList } from '@/widgets/files';
+import { useFileStore } from '@/stores/file';
 
 function RoomPage() {
   const {
@@ -27,9 +27,9 @@ function RoomPage() {
 
   useEffect(() => {
     if (!paramCode) {
-      throw new Error("Invalid roomCode");
+      throw new Error('Invalid roomCode');
     }
-    
+
     setRoomCode(paramCode);
   }, [paramCode, setRoomCode]);
 
