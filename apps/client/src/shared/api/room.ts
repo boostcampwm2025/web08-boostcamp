@@ -1,9 +1,7 @@
 import type { RoomToken } from '@codejam/common';
 
-// Room REST API
-// TODO: Error message mapping
-
-const ROOM_API_PREFIX = '/api/rooms';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const ROOM_API_PREFIX = `${API_BASE_URL}/api/rooms`;
 
 interface CreateQuickRoomResponse {
   roomCode: string;
