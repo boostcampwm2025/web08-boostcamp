@@ -1,3 +1,4 @@
+import type { ExtType } from '@/shared/lib/file';
 import { Button, Input, Label } from '@/shared/ui';
 import {
   Dialog,
@@ -24,13 +25,12 @@ type NewFileDialogProps = {
   onSubmit: (filename: string, ext: string) => Promise<void>;
   children: React.ReactNode;
 };
-type ExtType = 'js' | 'ts' | 'jsx' | 'tsx' | 'html' | 'css';
 
 export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
   const [open, setOpen] = useState(false);
   const [filename, setFilename] = useState('');
   const [helperMessage, setHelperMessage] = useState('');
-  const [extname, setExtname] = useState<ExtType | undefined>(undefined);
+  const [extname, setExtname] = useState<ExtType>(undefined);
 
   const errorPass = (): boolean => {
     if (filename.trim().length === 0) {

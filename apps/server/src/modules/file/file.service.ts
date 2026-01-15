@@ -44,6 +44,14 @@ export type RoomDoc = {
   files: Set<string>;
 };
 
+export type OriginServer = {
+  type: 'server';
+  client: CollabSocket;
+  server: Server;
+};
+
+export type OriginType = 'server' | 'client' | undefined;
+
 @Injectable()
 export class FileService {
   private readonly logger = new Logger(FileService.name);
@@ -222,6 +230,86 @@ export class FileService {
         `filesMap.size=${filesMap.size}, ` +
         `fileMap.has('name')=${createdFileMap?.has('name')}, ` +
         `fileMap.has('content')=${createdFileMap?.has('content')}`,
+    );
+  }
+
+  /**
+   * 파일 이름 변경
+   */
+  renameFile(
+    docId: string,
+    fileId: string,
+    newName: string,
+    client: CollabSocket,
+    server: Server,
+  ) {
+    const roomDoc = this.getDoc(docId);
+    const { doc } = roomDoc;
+
+    const filesMap = doc.getMap('files');
+    const fileIdMap = doc.getMap('map');
+
+    if (!filesMap.has(fileId)) {
+      return;
+    }
+
+    const fileMap = filesMap.get(fileId) as YMap<unknown>;
+    const before = fileMap.get('name') as string | undefined;
+
+    if (!before || fileIdMap.has(newName)) {
+      return;
+    }
+
+    doc.transact(
+      () => {
+        fileMap.set('name', newName);
+        fileIdMap.delete(before);
+        fileIdMap.set(newName, fileId);
+      },
+      {
+        type: 'server',
+        client,
+        server,
+      },
+    );
+  }
+
+  /**
+   * 파일 삭제
+   */
+  deleteFile(
+    docId: string,
+    fileId: string,
+    client: CollabSocket,
+    server: Server,
+  ) {
+    const roomDoc = this.getDoc(docId);
+    const { doc } = roomDoc;
+
+    const filesMap = doc.getMap('files');
+    const fileIdMap = doc.getMap('map');
+
+    if (!filesMap.has(fileId)) {
+      return;
+    }
+
+    const fileMap = filesMap.get(fileId) as YMap<unknown>;
+    const fileName = fileMap.get('name') as string | undefined;
+
+    if (!fileName) {
+      return;
+    }
+
+    doc.transact(
+      () => {
+        filesMap.delete(fileId);
+        fileIdMap.delete(fileName);
+      },
+      {
+        type: 'server',
+        client,
+        server,
+      },
     );
   }
 
@@ -452,17 +540,27 @@ export class FileService {
 
   private docListener() {
     return (update: Uint8Array, origin: unknown) => {
-      if (!origin || !(origin instanceof Socket)) return;
-
-      const client = origin as CollabSocket;
-      const { roomCode } = client.data;
-
+      const originType = this.getOriginType(origin);
+      if (!originType) return;
       const encoder = createEncoder();
       writeUpdate(encoder, update);
       const message = toUint8Array(encoder);
 
-      client.to(roomCode).emit(SOCKET_EVENTS.UPDATE_FILE, { message });
-      client.to(roomCode).emit('update');
+      if (originType === 'client') {
+        const client = origin as CollabSocket;
+        const { roomCode } = client.data;
+
+        client.to(roomCode).emit(SOCKET_EVENTS.UPDATE_FILE, { message });
+        client.to(roomCode).emit('update');
+      } else {
+        const originServer = origin as OriginServer;
+        const client = originServer.client;
+        const server = originServer.server;
+        const { roomCode } = client.data;
+
+        server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_FILE, { message });
+        server.to(roomCode).emit('update');
+      }
     };
   }
 
@@ -478,5 +576,19 @@ export class FileService {
 
       client.to(roomCode).emit(SOCKET_EVENTS.UPDATE_AWARENESS, { message });
     };
+  }
+
+  private getOriginType(origin: unknown): OriginType {
+    if (!origin) {
+      return undefined;
+    }
+
+    if (origin instanceof Socket) {
+      return 'client';
+    }
+
+    if (typeof origin === 'object') {
+      return 'server';
+    }
   }
 }

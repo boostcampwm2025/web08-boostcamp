@@ -1,14 +1,15 @@
-export function extname(name: string): string {
+export type ExtType = 'js' | 'ts' | 'jsx' | 'tsx' | 'html' | 'css' | undefined;
+export function extname(name: string): ExtType {
   const lastDot = name.trim().lastIndexOf('.');
 
   if (lastDot === -1) {
-    return '';
+    return undefined;
   }
 
   return name
     .trim()
     .substring(lastDot + 1)
-    .toLowerCase();
+    .toLowerCase() as ExtType;
 }
 
 export function purename(name: string): string {

@@ -6,6 +6,8 @@ import {
   type PtUpdateRolePayload,
   type FilenameCheckPayload,
   type FilenameCheckResultPayload,
+  type FileRenamePayload,
+  type FileDeletePayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -126,6 +128,26 @@ export class CollaborationGateway
     @MessageBody() payload: FilenameCheckPayload,
   ): Promise<FilenameCheckResultPayload> {
     return await this.collaborationService.handleCheckFileName(client, payload);
+  }
+
+  /** C -> S 파일 이름 변경 */
+  @UseGuards(PermissionGuard)
+  @SubscribeMessage(SOCKET_EVENTS.RENAME_FILE)
+  handleRenameFile(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: FileRenamePayload,
+  ) {
+    this.collaborationService.handleFileRename(this.server, client, payload);
+  }
+
+  /** C- > S 파일 삭제 */
+  @UseGuards(PermissionGuard)
+  @SubscribeMessage(SOCKET_EVENTS.DELETE_FILE)
+  handleDeleteFile(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: FileDeletePayload,
+  ) {
+    this.collaborationService.handleFileDelete(this.server, client, payload);
   }
 
   /**

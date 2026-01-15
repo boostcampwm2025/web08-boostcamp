@@ -8,6 +8,8 @@ import {
   type PtUpdateRolePayload,
   type FilenameCheckResultPayload,
   type FilenameCheckPayload,
+  type FileRenamePayload,
+  type FileDeletePayload,
 } from '@codejam/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
@@ -236,6 +238,28 @@ export class CollaborationService {
     return {
       error: false,
     };
+  }
+
+  /** 파일 이름 변경 */
+  handleFileRename(
+    server: Server,
+    client: CollabSocket,
+    payload: FileRenamePayload,
+  ) {
+    const { fileId, newName } = payload;
+    const { docId } = client.data;
+    this.fileService.renameFile(docId, fileId, newName, client, server);
+  }
+
+  /** 파일 삭제 */
+  handleFileDelete(
+    server: Server,
+    client: CollabSocket,
+    payload: FileDeletePayload,
+  ) {
+    const { fileId } = payload;
+    const { docId } = client.data;
+    this.fileService.deleteFile(docId, fileId, client, server);
   }
 
   /** 소켓 데이터 설정 */
