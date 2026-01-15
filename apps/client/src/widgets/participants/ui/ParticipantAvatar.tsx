@@ -10,18 +10,20 @@ import { useMemo } from 'react';
  */
 export function ParticipantAvatar({ ptId }: ParticipantProps) {
   const pt = usePt(ptId);
-  if (!pt) return null;
-  const { color, role, ptHash } = pt;
 
   const SelectedIcon = useMemo(() => {
+    if (!pt?.ptHash) return AVATAR_ICONS[0];
     let hash = 0;
-    for (let i = 0; i < ptHash!.length; i++) {
-      hash = (hash * 31 + ptHash!.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < pt.ptHash.length; i++) {
+      hash = (hash * 31 + pt.ptHash.charCodeAt(i)) >>> 0;
     }
 
     return AVATAR_ICONS[hash % AVATAR_ICONS.length];
-  }, [ptHash]);
+  }, [pt?.ptHash]);
 
+  if (!pt) return null;
+
+  const { color, role } = pt;
   const badge =
     role === 'host' ? <span className="text-yellow-500">👑</span> : undefined;
 
