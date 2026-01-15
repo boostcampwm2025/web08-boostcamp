@@ -1,6 +1,6 @@
 import { Avatar, AVATAR_ICONS } from '@/shared/ui';
 import { usePt } from '@/stores/pts';
-import type { ParticipantProps } from '../types';
+import type { ParticipantProps } from '../lib/types';
 import { useMemo } from 'react';
 
 /**

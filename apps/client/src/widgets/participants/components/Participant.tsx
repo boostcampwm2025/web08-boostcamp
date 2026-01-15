@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { usePt } from '@/stores/pts';
-import { ParticipantAvatar } from './ui';
+import { ParticipantAvatar } from '../ui';
 import { ParticipantInfo } from './ParticipantInfo';
-import type { ParticipantProps, PermissionPtProps } from './types';
+import type { ParticipantProps, PermissionPtProps } from '../lib/types';
 import {
   Popover,
   PopoverContent,

@@ -1,7 +1,7 @@
 import { usePt } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
-import { ROLE_TEXT_COLORS, getRoleDisplayText } from './types';
-import type { ParticipantProps } from './types';
+import { ROLE_TEXT_COLORS, getRoleDisplayText } from '../lib/types';
+import type { ParticipantProps } from '../lib/types';
 
 export function ParticipantInfo({ ptId }: ParticipantProps) {
   const pt = usePt(ptId);

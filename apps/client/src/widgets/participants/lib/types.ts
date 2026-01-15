@@ -1,6 +1,11 @@
 import type { Pt } from '@codejam/common';
 
 /**
+ * 정렬 모드 타입
+ */
+export type SortMode = 'name' | 'time';
+
+/**
  * 참가자 컴포넌트의 공통 Props 타입
  */
 export interface ParticipantProps {
