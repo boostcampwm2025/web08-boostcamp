@@ -142,3 +142,23 @@ jobs:
               --env-file /root/.env.prod \
               ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
             docker image prune -af --filter "until=24h"
+
+      - name: Notify Slack (Server Deploy)
+        if: steps.changes.outputs.server == 'true'
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🛠️ *Staging 서버가 새로 배포됐어요!*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🛠️ *Staging 서버가 새로 배포됐어요!*\n\n*커밋:* ${{ github.event.head_commit.message }}\n*작성자:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
