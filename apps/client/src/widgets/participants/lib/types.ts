@@ -26,12 +26,14 @@ export interface PermissionPtProps {
 }
 
 /**
- * 역할별 텍스트 색상 매핑
+ * 역할별 뱃지 스타일
  */
-export const ROLE_TEXT_COLORS: Record<Pt['role'], string> = {
-  host: 'orangered',
-  editor: 'royalblue',
-  viewer: 'gray',
+export const ROLE_BADGE_STYLES = {
+  host: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
+  editor:
+    'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
+  viewer:
+    'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700',
 };
 
 /**
