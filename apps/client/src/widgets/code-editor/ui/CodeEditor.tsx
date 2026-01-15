@@ -1,14 +1,15 @@
-import { useEffect, useRef } from "react";
-import { EditorView, basicSetup } from "codemirror";
-import { EditorState } from "@codemirror/state";
-import { javascript } from "@codemirror/lang-javascript";
-import { html } from "@codemirror/lang-html";
-import { css } from "@codemirror/lang-css";
-import { githubLight } from "@fsegurai/codemirror-theme-github-light";
-import { useYText } from "@/shared/lib/hooks/useYText";
-import { yCollab } from "y-codemirror.next";
+import { useEffect, useRef } from 'react';
+import { EditorView, basicSetup } from 'codemirror';
+import { EditorState } from '@codemirror/state';
+import { javascript } from '@codemirror/lang-javascript';
+import { html } from '@codemirror/lang-html';
+import { css } from '@codemirror/lang-css';
+import { githubLight } from '@fsegurai/codemirror-theme-github-light';
+import { useYText } from '@/shared/lib/hooks/useYText';
+import { yCollab } from 'y-codemirror.next';
+import { safeInput } from '../plugin/SafeInput';
 
-type Language = "javascript" | "html" | "css";
+type Language = 'javascript' | 'html' | 'css';
 
 interface CodeEditorProps {
   fileId?: string;
@@ -18,11 +19,11 @@ interface CodeEditorProps {
 
 const getLanguageExtension = (language: Language) => {
   switch (language) {
-    case "javascript":
+    case 'javascript':
       return javascript({ jsx: true, typescript: true });
-    case "html":
+    case 'html':
       return html();
-    case "css":
+    case 'css':
       return css();
     default:
       return javascript({ jsx: true, typescript: true });
@@ -30,8 +31,8 @@ const getLanguageExtension = (language: Language) => {
 };
 
 export default function CodeEditor({
-  fileId = "prototype",
-  language = "javascript",
+  fileId = 'prototype',
+  language = 'javascript',
   readOnly = false,
 }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -45,16 +46,16 @@ export default function CodeEditor({
       doc: yText.toString(),
       extensions: [
         basicSetup,
-        javascript(),
         yCollab(yText, awareness),
         getLanguageExtension(language),
+        safeInput({ allowAscii: true }),
         githubLight,
         EditorState.readOnly.of(readOnly),
         EditorView.theme({
-          "&": { height: "100%" },
-          ".cm-scroller": { overflow: "auto" },
+          '&': { height: '100%' },
+          '.cm-scroller': { overflow: 'auto' },
           ...(readOnly && {
-            ".cm-cursor, .cm-dropCursor": { display: "none !important" },
+            '.cm-cursor, .cm-dropCursor': { display: 'none !important' },
             // ".cm-selectionBackground": { display: "none !important" },
             // ".cm-ySelectionCaret, .cm-ySelectionCaretDot": { display: "none !important" },
           }),
