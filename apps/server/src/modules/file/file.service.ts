@@ -117,7 +117,7 @@ export class FileService {
    * Remove Y.Doc for a document (cleanup when room is closed)
    * TODO: Call this when room is closed or last participant leaves
    */
-  async removeDoc(client: CollabSocket, server: Server): Promise<boolean> {
+  async removeDoc(client: CollabSocket, _server: Server): Promise<boolean> {
     const { docId } = client.data;
     const roomDoc = this.docs.get(docId);
 
@@ -236,7 +236,7 @@ export class FileService {
    * - Ensures Y.Doc exists (creates or hydrates from Redis)
    * - Creates default file if this is a new room (no existing doc in Redis)
    */
-  async prepareRoomDoc(client: CollabSocket, server: Server): Promise<void> {
+  async prepareRoomDoc(client: CollabSocket, _server: Server): Promise<void> {
     const { docId } = client.data;
     const roomDoc = this.docs.get(docId);
     if (roomDoc) return;
@@ -249,7 +249,7 @@ export class FileService {
   /**
    * Handle document request - send initial Y.Doc state to client
    */
-  handleRequestDoc(client: CollabSocket, server: Server) {
+  handleRequestDoc(client: CollabSocket, _server: Server) {
     const { docId } = client.data;
     const roomDoc = this.getDoc(docId);
     const { doc } = roomDoc;
@@ -266,7 +266,7 @@ export class FileService {
   /**
    * Handle awareness request - send initial awareness states to client
    */
-  handleRequestAwareness(client: CollabSocket, server: Server) {
+  handleRequestAwareness(client: CollabSocket, _server: Server) {
     const { docId } = client.data;
     const { awareness } = this.getDoc(docId);
 

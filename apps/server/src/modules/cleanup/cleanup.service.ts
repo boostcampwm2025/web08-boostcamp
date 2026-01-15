@@ -26,11 +26,9 @@ export class CleanupService {
       }
 
       // 2. 소켓 알림 및 연결 종료 (방 별로 순회)
-      await Promise.all(
-        expiredRooms.map((room) => {
-          this.collaborationGateway.notifyAndDisconnectRoom(room.roomCode);
-        }),
-      );
+      expiredRooms.forEach((room) => {
+        this.collaborationGateway.notifyAndDisconnectRoom(room.roomCode);
+      });
 
       // 3. DB에서 방 삭제
       const roomIdsToDelete = expiredRooms.map((room) => room.roomId);

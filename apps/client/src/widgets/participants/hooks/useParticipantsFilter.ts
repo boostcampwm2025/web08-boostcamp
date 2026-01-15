@@ -25,6 +25,10 @@ export function useParticipantsFilter({
   searchQuery,
   sortState,
 }: UseParticipantsFilterProps): UseParticipantsFilterResult {
+  const myPt = useMemo(() => {
+    return myPtId ? pts[myPtId] : undefined;
+  }, [pts, myPtId]);
+
   return useMemo(() => {
     let allPts = Object.values(pts);
     const total = allPts.length;
@@ -47,16 +51,7 @@ export function useParticipantsFilter({
       });
     }
 
-    let myPt: Pt | undefined;
-    const otherPts: Pt[] = [];
-
-    allPts.forEach((p) => {
-      if (p.ptId === myPtId) {
-        myPt = p;
-      } else {
-        otherPts.push(p);
-      }
-    });
+    const otherPts: Pt[] = allPts.filter((p) => p.ptId !== myPtId);
 
     // 나머지 정렬 로직
     otherPts.sort((a, b) => {
@@ -71,5 +66,5 @@ export function useParticipantsFilter({
     });
 
     return { me: myPt, others: otherPts, totalCount: total };
-  }, [pts, searchQuery, sortState, myPtId]);
+  }, [myPt, pts, searchQuery, sortState, myPtId]);
 }
