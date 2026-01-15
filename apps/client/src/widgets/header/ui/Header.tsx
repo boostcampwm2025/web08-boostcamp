@@ -34,23 +34,23 @@ import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 
 type HeaderProps = {
   roomCode: string;
+  isDark: boolean;
+  onToggleTheme: () => void;
 };
 
-export default function Header({ roomCode }: HeaderProps) {
+export default function Header({
+  roomCode,
+  isDark,
+  onToggleTheme,
+}: HeaderProps) {
   const { setIsDuplicated, isDuplicated, handleCheckRename } =
     useFileRename(roomCode);
-  const [isDark, setIsDark] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { getFileId, createFile } = useFileStore();
   const [uploadFile, setUploadFile] = useState<File | undefined>(undefined);
   const [filename, setFilename] = useState('');
 
   const uploadRef = useRef<HTMLInputElement>(null);
-
-  const toggleDarkMode = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-  };
 
   const copyRoomCode = async () => {
     try {
@@ -304,7 +304,7 @@ export default function Header({ roomCode }: HeaderProps) {
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8 px-2 sm:px-3"
-          onClick={toggleDarkMode}
+          onClick={onToggleTheme}
         >
           {isDark ? (
             <>
