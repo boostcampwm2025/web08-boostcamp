@@ -14,6 +14,7 @@ export class PersistenceDoc implements IPersistenceDoc {
 
   private _clock = 0;
   private _fetchingClock = 0;
+  private _totalByteLength = 0;
   private readonly updateHandler: UpdateHandler;
 
   public readonly synced: Promise<PersistenceDoc>;
@@ -31,6 +32,8 @@ export class PersistenceDoc implements IPersistenceDoc {
     this.updateHandler = (update: Uint8Array) => {
       // mtx: only store update in redis if this document update does not originate from redis
       this.mtx(() => {
+        this._totalByteLength += update.byteLength;
+
         this.redis
           .rpushBuffer(this.key, Buffer.from(update))
           .then((len: number) => {
@@ -73,6 +76,10 @@ export class PersistenceDoc implements IPersistenceDoc {
     this._fetchingClock = value;
   }
 
+  get totalByteLength(): number {
+    return this._totalByteLength;
+  }
+
   async destroy(): Promise<void> {
     this.doc.off('update', this.updateHandler);
     this.docs.delete(this.name);
@@ -94,6 +101,7 @@ export class PersistenceDoc implements IPersistenceDoc {
     this.mtx(() => {
       this.doc.transact(() => {
         updates.forEach((update) => {
+          this._totalByteLength += update.byteLength;
           Y.applyUpdate(this.doc, update);
         });
 
