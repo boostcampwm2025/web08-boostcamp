@@ -33,12 +33,24 @@ const getStyles = () => {
 
   return {
     popup: `
-      padding: 8px; 
+      padding: 0.8em; 
       background: ${isDark ? '#27272a' : 'white'}; 
       border: 1px solid ${isDark ? '#3f3f46' : '#ccc'};
       border-radius: 6px; 
       box-shadow: 0 4px 12px ${isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)'};
-      display: flex; flex-direction: column; gap: 4px; z-index: 9999; min-width: 220px;
+      
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5em; 
+      z-index: 9999; 
+      min-width: 220px;
+      box-sizing: border-box;
+      
+      /* 높이를 콘텐츠에 맞게 자동으로 늘림 */
+      height: auto;
+      min-height: fit-content;
+      
+      overflow: hidden; 
     `,
     inputRow: `
       display: flex; gap: 6px; width: 100%;
