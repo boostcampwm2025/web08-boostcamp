@@ -1,12 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FileService } from './file.service';
+import { YRedisService } from '../y-redis/y-redis.service';
+
+const mockYRedisService = {
+  bind: jest.fn().mockReturnValue({
+    synced: Promise.resolve(),
+  }),
+  hasDocInRedis: jest.fn().mockResolvedValue(false),
+  closeDoc: jest.fn().mockResolvedValue(undefined),
+};
 
 describe('FileService', () => {
   let service: FileService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FileService],
+      providers: [
+        FileService,
+        {
+          provide: YRedisService,
+          useValue: mockYRedisService,
+        },
+      ],
     }).compile();
 
     service = module.get<FileService>(FileService);
@@ -15,6 +30,7 @@ describe('FileService', () => {
   afterEach(() => {
     // 각 테스트 후 모든 문서 정리
     service['docs'].clear();
+    jest.clearAllMocks();
   });
 
   it('Service가 정의되어야 한다', () => {
@@ -22,12 +38,12 @@ describe('FileService', () => {
   });
 
   describe('createDoc', () => {
-    it('Y.Doc을 생성하고 files, meta Y.Map을 초기화한다', () => {
+    it('Y.Doc을 생성하고 files, meta Y.Map을 초기화한다', async () => {
       // Arrange
-      const roomId = 1;
+      const docId = 'doc-1';
 
       // Act
-      const roomDoc = service.createDoc(roomId);
+      const roomDoc = await service.createDoc(docId);
 
       // Assert
       expect(roomDoc).toBeDefined();
@@ -38,13 +54,13 @@ describe('FileService', () => {
       expect(roomDoc.doc.getMap('meta')).toBeDefined();
     });
 
-    it('이미 존재하는 roomId에 대해 동일한 RoomDoc을 반환한다', () => {
+    it('이미 존재하는 docId에 대해 동일한 RoomDoc을 반환한다', async () => {
       // Arrange
-      const roomId = 1;
+      const docId = 'doc-1';
 
       // Act
-      const roomDoc1 = service.createDoc(roomId);
-      const roomDoc2 = service.createDoc(roomId);
+      const roomDoc1 = await service.createDoc(docId);
+      const roomDoc2 = await service.createDoc(docId);
 
       // Assert
       expect(roomDoc1).toBe(roomDoc2);
@@ -52,18 +68,18 @@ describe('FileService', () => {
   });
 
   describe('createFile', () => {
-    it('Y.Map 계층 구조로 파일을 생성한다', () => {
+    it('Y.Map 계층 구조로 파일을 생성한다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
       const fileId = 'test-uuid-123';
       const fileName = 'test.js';
 
       // Act
-      service.createFile(roomId, fileId, fileName, 'javascript');
+      service.createFile(docId, fileId, fileName, 'javascript');
 
       // Assert
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
       const filesMap = roomDoc.doc.getMap('files');
       const fileMap = filesMap.get(fileId) as any;
 
@@ -72,17 +88,17 @@ describe('FileService', () => {
       expect(fileMap.get('content')).toBeDefined();
     });
 
-    it('JavaScript 파일에 기본 코드가 삽입된다', () => {
+    it('JavaScript 파일에 기본 코드가 삽입된다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
       const fileId = 'test-uuid-456';
 
       // Act
-      service.createFile(roomId, fileId, 'main.js', 'javascript');
+      service.createFile(docId, fileId, 'main.js', 'javascript');
 
       // Assert
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
       const filesMap = roomDoc.doc.getMap('files');
       const fileMap = filesMap.get(fileId) as any;
       const content = fileMap.get('content');
@@ -90,52 +106,52 @@ describe('FileService', () => {
       expect(content.toString()).toContain('console.log');
     });
 
-    it('files Set에 fileId가 추가된다', () => {
+    it('files Set에 fileId가 추가된다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
       const fileId = 'test-uuid-789';
 
       // Act
-      service.createFile(roomId, fileId, 'style.css', 'css');
+      service.createFile(docId, fileId, 'style.css', 'css');
 
       // Assert
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
       expect(roomDoc.files.has(fileId)).toBe(true);
     });
   });
 
   describe('ensureFile', () => {
-    it('파일이 존재하지 않으면 새로 생성한다', () => {
+    it('파일이 존재하지 않으면 새로 생성한다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
       const fileId = 'new-file-id';
 
       // Act
-      service.ensureFile(roomId, fileId, 'new.js', 'javascript');
+      service.ensureFile(docId, fileId, 'new.js', 'javascript');
 
       // Assert
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
       const filesMap = roomDoc.doc.getMap('files');
       expect(filesMap.has(fileId)).toBe(true);
     });
 
-    it('파일이 이미 존재하면 새로 생성하지 않는다', () => {
+    it('파일이 이미 존재하면 새로 생성하지 않는다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
       const fileId = 'existing-file';
-      service.createFile(roomId, fileId, 'main.js', 'javascript');
+      service.createFile(docId, fileId, 'main.js', 'javascript');
 
       // 기존 내용 변경
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
       const filesMap = roomDoc.doc.getMap('files');
       const fileMap = filesMap.get(fileId) as any;
       const originalContent = fileMap.get('content').toString();
 
       // Act
-      service.ensureFile(roomId, fileId, 'main.js', 'javascript');
+      service.ensureFile(docId, fileId, 'main.js', 'javascript');
 
       // Assert
       const newContent = fileMap.get('content').toString();
@@ -145,58 +161,58 @@ describe('FileService', () => {
   });
 
   describe('getDoc', () => {
-    it('존재하는 roomId에 대해 RoomDoc을 반환한다', () => {
+    it('존재하는 docId에 대해 RoomDoc을 반환한다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
 
       // Act
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
 
       // Assert
       expect(roomDoc).toBeDefined();
     });
 
-    it('존재하지 않는 roomId에 대해 에러를 던진다', () => {
+    it('존재하지 않는 docId에 대해 에러를 던진다', () => {
       // Arrange
-      const roomId = 999;
+      const docId = 'doc-999';
 
       // Act & Assert
-      expect(() => service.getDoc(roomId)).toThrow(
-        'Y.Doc not found for room: 999',
+      expect(() => service.getDoc(docId)).toThrow(
+        'Y.Doc not found for document: doc-999',
       );
     });
   });
 
   describe('Y.Map 구조 검증', () => {
-    it('files Y.Map에 여러 파일을 저장할 수 있다', () => {
+    it('files Y.Map에 여러 파일을 저장할 수 있다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
 
       // Act
-      service.createFile(roomId, 'file-1', 'main.js', 'javascript');
-      service.createFile(roomId, 'file-2', 'style.css', 'css');
-      service.createFile(roomId, 'file-3', 'index.html', 'html');
+      service.createFile(docId, 'file-1', 'main.js', 'javascript');
+      service.createFile(docId, 'file-2', 'style.css', 'css');
+      service.createFile(docId, 'file-3', 'index.html', 'html');
 
       // Assert
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
       const filesMap = roomDoc.doc.getMap('files');
       expect(filesMap.size).toBe(3);
     });
 
-    it('각 파일은 name과 content를 가진다', () => {
+    it('각 파일은 name과 content를 가진다', async () => {
       // Arrange
-      const roomId = 1;
-      service.createDoc(roomId);
+      const docId = 'doc-1';
+      await service.createDoc(docId);
       const fileId = 'test-file';
       const fileName = 'app.js';
 
       // Act
-      service.createFile(roomId, fileId, fileName, 'javascript');
+      service.createFile(docId, fileId, fileName, 'javascript');
 
       // Assert
-      const roomDoc = service.getDoc(roomId);
+      const roomDoc = service.getDoc(docId);
       const filesMap = roomDoc.doc.getMap('files');
       const fileMap = filesMap.get(fileId) as any;
 

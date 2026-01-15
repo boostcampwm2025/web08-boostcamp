@@ -122,9 +122,10 @@ export class CollaborationGateway
   @UseGuards(PermissionGuard)
   @SubscribeMessage(SOCKET_EVENTS.CHECK_FILENAME)
   async handleCheckFileName(
+    @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: FilenameCheckPayload,
   ): Promise<FilenameCheckResultPayload> {
-    return await this.collaborationService.handleCheckFileName(payload);
+    return await this.collaborationService.handleCheckFileName(client, payload);
   }
 
   /**

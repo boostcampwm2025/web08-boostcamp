@@ -266,7 +266,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const { yDoc } = get();
     if (!yDoc) {
       return null;
-    };
+    }
 
     return yDoc.getMap('map') as YMap<string>;
   },

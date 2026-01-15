@@ -83,6 +83,12 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     return this.docs.has(name);
   }
 
+  async hasDocInRedis(name: string): Promise<boolean> {
+    const key = getDocKey(name);
+    const result = await this.redis.exists(key);
+    return result === 1;
+  }
+
   async closeDoc(name: string): Promise<void> {
     const doc = this.docs.get(name);
     if (doc) {

@@ -18,6 +18,7 @@ import {
 export interface SocketData {
   roomId: number;
   roomCode: string;
+  docId: string;
   ptId: string;
   role: PtRole;
   nickname?: string;

@@ -16,8 +16,10 @@ import { PtService } from '../pt/pt.service';
 import { FileService } from '../file/file.service';
 import { RoomService } from '../room/room.service';
 import { RoomTokenService } from '../auth/room-token.service';
+import { DocumentService } from '../document/document.service';
 import { PtRole } from '../pt/pt.entity';
 import { Room } from '../room/room.entity';
+import { Document } from '../document/document.entity';
 
 @Injectable()
 export class CollaborationService {
@@ -28,6 +30,7 @@ export class CollaborationService {
     private readonly fileService: FileService,
     private readonly roomService: RoomService,
     private readonly roomTokenService: RoomTokenService,
+    private readonly documentService: DocumentService,
   ) {}
 
   /** 클라이언트 연결 시 초기화 */
@@ -92,12 +95,16 @@ export class CollaborationService {
       ptId: pt.ptId,
     });
 
+    // 문서 조회
+    const doc = await this.documentService.getDocByRoomId(roomId);
+    if (!doc) throw new Error('DOCUMENT_NOT_FOUND');
+
     // socket.data 설정
-    this.setupSocketData(client, room, pt);
+    this.setupSocketData(client, room, pt, doc);
     await client.join(roomCode);
 
-    // 클라이언트가 REQUEST_DOC을 보내기 전에 문서 준비 완료
-    this.prepareRoomDoc(client, server);
+    // Y.Doc 준비
+    await this.fileService.prepareRoomDoc(client, server);
 
     await this.notifyParticipantJoined(client, server, pt, newToken);
 
@@ -108,16 +115,16 @@ export class CollaborationService {
 
   /** 초기 로드: 문서 상태 요청 */
   handleRequestDoc(client: CollabSocket, server: Server): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleRequestDoc(client, server);
   }
 
   /** 초기 로드: Awareness 상태 요청 */
   handleRequestAwareness(client: CollabSocket, server: Server): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleRequestAwareness(client, server);
   }
@@ -128,8 +135,8 @@ export class CollaborationService {
     server: Server,
     payload: FileUpdatePayload,
   ): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleFileUpdate(client, server, payload);
   }
@@ -140,8 +147,8 @@ export class CollaborationService {
     server: Server,
     payload: AwarenessUpdatePayload,
   ): void {
-    const { roomId } = client.data;
-    if (!roomId) return;
+    const { docId } = client.data;
+    if (!docId) return;
 
     this.fileService.handleAwarenessUpdate(client, server, payload);
   }
@@ -170,6 +177,7 @@ export class CollaborationService {
 
   /** 파일 이름 유효성 확인 */
   async handleCheckFileName(
+    client: CollabSocket,
     payload: FilenameCheckPayload,
   ): Promise<FilenameCheckResultPayload> {
     const currentExts = [
@@ -189,8 +197,10 @@ export class CollaborationService {
       message: '유효하지 않는 확장자입니다.',
     } as FilenameCheckResultPayload;
 
-    const { filename, roomCode } = payload;
-    const room = await this.roomService.findRoomByCode(roomCode);
+    const { filename } = payload;
+    const { roomId, docId } = client.data;
+
+    const room = await this.roomService.findRoomById(roomId);
 
     if (!room) {
       return {
@@ -215,7 +225,7 @@ export class CollaborationService {
       return extResult;
     }
 
-    if (this.fileService.checkDuplicate(room.roomId, filename)) {
+    if (this.fileService.checkDuplicate(docId, filename)) {
       return {
         error: true,
         type: 'duplicate',
@@ -229,9 +239,15 @@ export class CollaborationService {
   }
 
   /** 소켓 데이터 설정 */
-  private setupSocketData(client: CollabSocket, room: Room, pt: Pt): void {
+  private setupSocketData(
+    client: CollabSocket,
+    room: Room,
+    pt: Pt,
+    doc: Document,
+  ): void {
     client.data.roomId = room.roomId;
     client.data.roomCode = room.roomCode;
+    client.data.docId = doc.docId;
     client.data.ptId = pt.ptId;
     client.data.role = pt.role as PtRole;
     client.data.nickname = pt.nickname;
@@ -263,11 +279,6 @@ export class CollaborationService {
   private notifyUpdatePt(client: CollabSocket, server: Server, pt: Pt): void {
     const { roomCode } = client.data;
     server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt });
-  }
-
-  /** 방 문서(Y.Doc) 및 기본 파일 준비 */
-  private prepareRoomDoc(client: CollabSocket, server: Server): void {
-    this.fileService.handleCreateFile(client, server);
   }
 
   /**
