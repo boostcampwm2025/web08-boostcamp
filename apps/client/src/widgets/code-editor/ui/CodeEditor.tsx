@@ -11,7 +11,7 @@ import { yCollab } from 'y-codemirror.next';
 import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
-import { useSettings } from '@/stores/settings';
+import { useSettings } from '@/shared/lib/hooks/useSettings';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -65,7 +65,6 @@ export default function CodeEditor({
         fontSizeCompartment.of(
           EditorView.theme({
             '&': { fontSize: `${fontSize}px` },
-            '.cm-scroller': { fontFamily: 'inherit' },
           }),
         ),
         EditorState.readOnly.of(readOnly),
@@ -107,7 +106,6 @@ export default function CodeEditor({
       effects: fontSizeCompartment.reconfigure(
         EditorView.theme({
           '&': { fontSize: `${fontSize}px` },
-          '.cm-scroller': { fontFamily: 'inherit' },
         }),
       ),
     });

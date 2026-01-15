@@ -15,7 +15,7 @@ export const useSettingsStore = create<SettingsState>()(
       resetSettings: () => set({ fontSize: 14 }),
     }),
     {
-      name: 'editor-settings', // 로컬 스토리지에 저장
+      name: 'editor-settings',
       storage: createJSONStorage(() => localStorage),
     },
   ),

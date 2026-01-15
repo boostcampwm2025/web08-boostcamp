@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,20 +10,42 @@ import {
 import { Label } from '@/shared/ui/label';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { Slider } from '@/shared/ui/slider';
 import { Settings, RotateCcw } from 'lucide-react';
-import { useSettings } from '@/stores/settings';
+import { useSettings } from '@/shared/lib/hooks/useSettings';
+import { toast } from 'sonner';
 
 export function SettingsDialog() {
   const { fontSize, setFontSize, resetSettings } = useSettings();
+  const [inputValue, setInputValue] = useState(fontSize.toString());
 
-  // 폰트 사이즈 변경 핸들러 (최소 10, 최대 30 제한)
-  const handleFontSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (!isNaN(value)) {
-      if (value > 30) setFontSize(30);
-      else if (value < 10) setFontSize(10);
-      else setFontSize(value);
+  // fontSize가 외부에서 변경되면 inputValue도 동기화
+  useEffect(() => {
+    setInputValue(fontSize.toString());
+  }, [fontSize]);
+
+  // Input 변경 핸들러
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+
+    const numValue = parseInt(value);
+    if (!isNaN(numValue)) {
+      if (numValue > 30) {
+        toast.error('폰트 크기는 최대 30px입니다');
+      } else if (numValue < 10) {
+        toast.error('폰트 크기는 최소 10px입니다');
+      } else {
+        setFontSize(numValue);
+      }
     }
+  };
+
+  // Slider 변경 핸들러
+  const handleSliderChange = (value: number[]) => {
+    const newValue = value[0];
+    setFontSize(newValue);
+    setInputValue(newValue.toString());
   };
 
   return (
@@ -45,37 +68,35 @@ export function SettingsDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-6 py-4">
           {/* 폰트 크기 설정 */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="fontSize" className="text-right">
-              Font Size
-            </Label>
-            <div className="col-span-3 flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setFontSize(Math.max(10, fontSize - 1))}
-              >
-                -
-              </Button>
-              <Input
-                id="fontSize"
-                type="number"
-                value={fontSize}
-                onChange={handleFontSizeChange}
-                className="h-8 w-16 text-center"
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="fontSize">Font Size</Label>
+              <span className="text-xs text-muted-foreground">10px - 30px</span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Slider
+                id="fontSize-slider"
+                min={10}
+                max={30}
+                step={1}
+                value={[fontSize]}
+                onValueChange={handleSliderChange}
+                className="flex-1"
               />
-              <span className="text-sm text-muted-foreground">px</span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setFontSize(Math.min(30, fontSize + 1))}
-              >
-                +
-              </Button>
+
+              <div className="flex items-center gap-2 min-w-[4.5rem]">
+                <Input
+                  id="fontSize"
+                  type="number"
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  className="h-8 w-14 text-center px-1"
+                />
+                <span className="text-sm text-muted-foreground">px</span>
+              </div>
             </div>
           </div>
 
