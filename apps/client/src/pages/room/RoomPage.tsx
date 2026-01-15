@@ -7,6 +7,9 @@ import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
 import { NicknameInputDialog } from '@/widgets/nickname-input';
+import { Toaster } from '@/shared/ui/sonner';
+import { FileList } from '@/widgets/files';
+import { useFileStore } from '@/stores/file';
 
 function RoomPage() {
   const {
@@ -18,11 +21,16 @@ function RoomPage() {
   } = useRoomJoin();
 
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
+  const activeFileId = useFileStore((state) => state.activeFileId);
 
   useSocket(paramCode || '');
 
   useEffect(() => {
-    setRoomCode(paramCode || '');
+    if (!paramCode) {
+      throw new Error('Invalid roomCode');
+    }
+
+    setRoomCode(paramCode);
   }, [paramCode, setRoomCode]);
 
   const myPtId = useRoomStore((state) => state.myPtId);
@@ -31,17 +39,22 @@ function RoomPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header />
+      <Header roomCode={paramCode!} />
       {roomError && (
         <div className="bg-red-500 text-white p-4 text-center">{roomError}</div>
       )}
       <main className="flex-1 overflow-hidden flex">
-        <div className="border-r h-full overflow-y-auto scrollbar-thin">
-          <Participants />
+        <div className="border-r h-full overflow-y-auto scrollbar-thin flex flex-col">
+          <div className="grow">
+            <Participants />
+          </div>
+          <div className="grow">
+            <FileList />
+          </div>
         </div>
         <div className="flex-1 h-full">
           <CodeEditor
-            fileId={paramCode || 'prototype'}
+            fileId={activeFileId || 'prototype'}
             language="javascript"
             readOnly={isViewer}
           />
@@ -52,6 +65,7 @@ function RoomPage() {
         onOpenChange={setIsNicknameDialogOpen}
         onConfirm={handleNicknameConfirm}
       />
+      <Toaster />
     </div>
   );
 }

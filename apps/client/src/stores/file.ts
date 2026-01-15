@@ -36,7 +36,10 @@ interface FileState {
   createFile: (name: string, content?: string) => string;
   deleteFile: (fileId: string) => void;
   renameFile: (fileId: string, newName: string) => void;
+  overwriteFile: (fileId: string, content?: string) => void;
+  getFileId: (name: string) => string | undefined;
   getFilesMap: () => YMap<YMap<unknown>> | null;
+  getFileIdMap: () => YMap<string> | null;
 }
 
 export const useFileStore = create<FileState>((set, get) => ({
@@ -126,8 +129,8 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   applyRemoteDocUpdate: (message: Uint8Array) => {
-    const state = get();
-    if (!state.yDoc) return;
+    const { yDoc } = get();
+    if (!yDoc) return;
 
     const update =
       message instanceof Uint8Array ? message : new Uint8Array(message);
@@ -135,7 +138,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const decoder = createDecoder(update);
     const encoder = createEncoder();
 
-    readSyncMessage(decoder, encoder, state.yDoc, 'remote');
+    readSyncMessage(decoder, encoder, yDoc, 'remote');
 
     // Send reply if needed (sync protocol)
     const reply = toUint8Array(encoder);
@@ -157,7 +160,6 @@ export const useFileStore = create<FileState>((set, get) => ({
 
   destroy: () => {
     const { yDoc, awareness } = get();
-
     yDoc?.destroy();
     awareness?.destroy();
 
@@ -176,6 +178,7 @@ export const useFileStore = create<FileState>((set, get) => ({
 
     const fileId = uuidv7();
     const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const fileIdMap = yDoc.getMap('map') as YMap<string>;
 
     yDoc.transact(() => {
       const fileMap = new YMap<unknown>();
@@ -189,6 +192,7 @@ export const useFileStore = create<FileState>((set, get) => ({
       }
 
       filesMap.set(fileId, fileMap);
+      fileIdMap.set(name, fileId);
     });
 
     return fileId;
@@ -216,11 +220,54 @@ export const useFileStore = create<FileState>((set, get) => ({
     }
   },
 
+  // CRUD: fileId 얻어오기
+  getFileId: (name: string): string | undefined => {
+    const { yDoc } = get();
+    if (!yDoc) return;
+
+    const fileIdMap = yDoc.getMap('map') as YMap<string>;
+    if (!fileIdMap) {
+      return undefined;
+    }
+
+    return fileIdMap.get(name);
+  },
+
+  // CRUD: 파일 덮어쓰기
+  overwriteFile(fileId: string, content?: string) {
+    const { yDoc } = get();
+    if (!yDoc) return;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const fileMap = filesMap.get(fileId);
+
+    if (fileMap) {
+      yDoc.transact(() => {
+        const yText = new YText();
+        fileMap.set('content', yText);
+
+        if (content) {
+          yText.insert(0, content);
+        }
+      });
+    }
+  },
+
   // CRUD: filesMap 반환 (Observer 등록용)
   getFilesMap: () => {
     const { yDoc } = get();
     if (!yDoc) return null;
 
     return yDoc.getMap('files') as YMap<YMap<unknown>>;
+  },
+
+  // CRUD: 파일 목록
+  getFileIdMap: (): YMap<string> | null => {
+    const { yDoc } = get();
+    if (!yDoc) {
+      return null;
+    };
+
+    return yDoc.getMap('map') as YMap<string>;
   },
 }));
