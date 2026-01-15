@@ -48,6 +48,18 @@ export type RoomDoc = {
 export class FileService {
   private readonly logger = new Logger(FileService.name);
 
+  /**
+   * Doc size limit
+   *
+   * TODO: Redis 에 있는 편집 이력을 주기적으로 압축하는 로직 필요
+   * 현재 상태 - 모든 편집 작업이 개별 업데이트로 저장됨
+   * 단일 문자 크기는 20~30 bytes
+   * 모든 업데이트 이력을 저장하면 메모리 사용량이 빠르게 증가함
+   * 최적화를 하지 않으면 클라이언트에서 1MB 를 사용하기 전에 Redis 에서 10배 이상을 사용하게 됨
+   */
+
+  private readonly MAX_DOC_SIZE = 30 * 1024 * 1024; // 30MB
+
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();
 
@@ -229,27 +241,6 @@ export class FileService {
     return fileIdMap.has(fileName);
   }
 
-  /**
-   * Ensure file exists in Y.Doc (creates if not exists)
-   * For prototype: creates default file if none specified
-   * Idempotent - safe to call multiple times
-   */
-  ensureFile(
-    docId: string,
-    fileId: string,
-    fileName: string,
-    language?: Language,
-  ) {
-    const roomDoc = this.getDoc(docId);
-    const { doc } = roomDoc;
-
-    // Y.Map에서 파일 존재 여부 체크
-    const filesMap = doc.getMap('files');
-    if (filesMap.has(fileId)) return; // 이미 존재하는 파일
-
-    this.createFile(docId, fileId, fileName, language);
-  }
-
   // ==================================================================
   // Handle Methods
   // ==================================================================
@@ -312,6 +303,16 @@ export class FileService {
     const { message } = payload;
     const { doc } = this.getDoc(docId);
 
+    // Size limit guard
+
+    const expectedSize = this.getExpectedDocSize(docId, message);
+
+    if (expectedSize > this.MAX_DOC_SIZE) {
+      const logMessage = `DOC_SIZE_EXCEEDED: ${expectedSize} > ${this.MAX_DOC_SIZE}`;
+
+      throw new Error(logMessage);
+    }
+
     this.logger.debug(`📝 [UPDATE] Doc: ${docId}, Length: ${message.length}`);
 
     // Process Y.js sync message
@@ -359,6 +360,17 @@ export class FileService {
   // ==================================================================
   // Private Helper Methods
   // ==================================================================
+
+  /**
+   * Calculate expected document size after applying update
+   * @returns expected total byte length, or 0 if doc not found
+   */
+  private getExpectedDocSize(docId: string, message: Uint8Array): number {
+    const pdoc = this.yRedis.getDoc(docId);
+    if (!pdoc) return 0;
+
+    return pdoc.totalByteLength + message.byteLength;
+  }
 
   /**
    * 멀티파일 구조를 위한 Y.Map 초기화
