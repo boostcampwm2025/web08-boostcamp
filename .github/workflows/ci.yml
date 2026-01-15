@@ -151,6 +151,36 @@ jobs:
           vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
           vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Remove Previous Preview Deployment
+        id: remove-previous
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('## 🍯 새로운 잼이 완성됐어요!')
+            );
+
+            if (botComment) {
+              const urlMatch = botComment.body.match(/Preview URL \| \[([^\]]+)\]/);
+              if (urlMatch) {
+                core.setOutput('previous-url', urlMatch[1]);
+              }
+            }
+
+      - name: Delete Previous Deployment
+        if: steps.remove-previous.outputs.previous-url
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "Removing previous deployment: ${{ steps.remove-previous.outputs.previous-url }}"
+          vercel remove "${{ steps.remove-previous.outputs.previous-url }}" --token=$VERCEL_TOKEN --yes || true
+
       - name: Deploy to Vercel Preview
         id: deploy
         uses: amondnet/vercel-action@v25
