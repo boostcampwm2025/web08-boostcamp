@@ -35,6 +35,11 @@ export function useRoomJoin() {
   // Socket 에러 핸들링
   useEffect(() => {
     const handleError = (error: { type?: string; message?: string }) => {
+      // PERMISSION_DENIED는 에디터 레벨에서 처리하므로 여기서는 무시
+      if (error.type === 'PERMISSION_DENIED') {
+        return;
+      }
+
       if (
         error.type === 'NICKNAME_REQUIRED' ||
         error.message === 'NICKNAME_REQUIRED'
