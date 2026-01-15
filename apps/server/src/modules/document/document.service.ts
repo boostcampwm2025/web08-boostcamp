@@ -44,6 +44,15 @@ export class DocumentService {
     return document;
   }
 
+  async getDocContentById(docId: string): Promise<Buffer | null> {
+    const document = await this.documentRepository.findOne({
+      where: { docId },
+      select: ['docId', 'content'],
+    });
+
+    return document?.content ?? null;
+  }
+
   async removeDocByRoomId(roomId: number): Promise<void> {
     await this.documentRepository.delete({ roomId });
   }

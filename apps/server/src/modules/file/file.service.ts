@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { YRedisService } from '../y-redis/y-redis.service';
+import { DocumentService } from '../document/document.service';
 import {
   Awareness,
   encodeAwarenessUpdate,
@@ -7,7 +8,13 @@ import {
   removeAwarenessStates,
 } from 'y-protocols/awareness';
 import { writeUpdate, readSyncMessage } from 'y-protocols/sync';
-import { Doc, encodeStateAsUpdate, Map as YMap, Text as YText } from 'yjs';
+import {
+  Doc,
+  encodeStateAsUpdate,
+  applyUpdate,
+  Map as YMap,
+  Text as YText,
+} from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { createDecoder } from 'lib0/decoding';
 import {
@@ -40,7 +47,10 @@ export class FileService {
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();
 
-  constructor(private readonly yRedis: YRedisService) {}
+  constructor(
+    private readonly yRedis: YRedisService,
+    private readonly documentService: DocumentService,
+  ) {}
 
   // ==================================================================
   // Y.Doc Management Methods
@@ -49,7 +59,7 @@ export class FileService {
   /**
    * Create Y.Doc for a document
    * Should be called when room is initialized (before files are created)
-   * Hydrates from Redis if data exists
+   * Hydrates from Redis if data exists, otherwise restores from DB
    */
   async createDoc(docId: string): Promise<RoomDoc> {
     // Check if already exists
@@ -61,14 +71,12 @@ export class FileService {
     const doc = new Doc();
     const awareness = new Awareness(doc);
 
-    // 멀티파일 구조를 위한 Y.Map 초기화
-    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
-    doc.getMap('map'); // 파일 이름 -> 파일 ID 추적용
-    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
+    // Initialize Y.Doc structure
+    this.initializeDoc(doc);
 
-    // Bind to Redis for persistence and hydration
-    const pdoc = this.yRedis.bind(docId, doc);
-    await pdoc.synced; // Wait for hydration from Redis
+    // Hydrate Y.Doc (Redis + DB fallback)
+    // Bind to Redis for persistence
+    await this.hydrateDoc(docId, doc);
 
     // Set up listeners
     // Do after hydration to avoid pushing existing data
@@ -236,7 +244,7 @@ export class FileService {
    * - Ensures Y.Doc exists (creates or hydrates from Redis)
    * - Creates default file if this is a new room (no existing doc in Redis)
    */
-  async prepareRoomDoc(client: CollabSocket, server: Server): Promise<void> {
+  async prepareDoc(client: CollabSocket, server: Server): Promise<void> {
     const { docId } = client.data;
     const roomDoc = this.docs.get(docId);
     if (roomDoc) return;
@@ -336,6 +344,42 @@ export class FileService {
   // ==================================================================
   // Private Helper Methods
   // ==================================================================
+
+  /**
+   * 멀티파일 구조를 위한 Y.Map 초기화
+   */
+
+  private initializeDoc(doc: Doc) {
+    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
+    doc.getMap('map'); // 파일 이름 -> 파일 ID 추적용
+    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
+  }
+
+  /**
+   * Hydrate Y.Doc
+   *
+   * 1. Check if doc exists in Redis (lookahead)
+   * 2. Bind to Redis for persistence
+   * 3. If not in Redis, restore snapshot from DB
+   */
+  private async hydrateDoc(docId: string, doc: Doc): Promise<void> {
+    // Lookahead - Check if doc exists in Redis
+    const existsInRedis = await this.yRedis.hasDocInRedis(docId);
+
+    // Bind to Redis for persistence and hydration
+    // It can be empty
+    const pdoc = this.yRedis.bind(docId, doc);
+    await pdoc.synced; // Wait for hydration from Redis
+
+    // If not in Redis, restore snapshot from DB
+    if (!existsInRedis) {
+      const content = await this.documentService.getDocContentById(docId);
+      if (content) {
+        applyUpdate(doc, new Uint8Array(content));
+        this.logger.log(`📄 Restored Y.Doc from DB for document: ${docId}`);
+      }
+    }
+  }
 
   private initialCode(language?: Language): string {
     switch (language) {
