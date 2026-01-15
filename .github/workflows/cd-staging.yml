@@ -147,7 +147,7 @@ jobs:
               --name server-staging \
               --restart unless-stopped \
               -p 3001:3000 \
-              --env-file /root/.env.prod \
+              --env-file /root/.env.staging \
               ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
             docker image prune -af --filter "until=24h"
 
