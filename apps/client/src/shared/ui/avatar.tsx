@@ -1,10 +1,11 @@
-import { type ReactNode } from 'react';
+import { type ElementType, type ReactNode } from 'react';
 
 export interface AvatarProps {
   /**
-   * 아바타 내부에 표시될 텍스트 (주로 닉네임 첫 글자)
+   * 렌더링할 아이콘 컴포넌트 (Lucide Icon 등)
+   * 부모가 이미 어떤 아이콘을 쓸지 결정해서 넘겨줌
    */
-  initial: string;
+  icon: ElementType;
 
   /**
    * 아바타 배경색 (HEX 색상 코드)
@@ -31,23 +32,24 @@ export interface AvatarProps {
  * 재사용 가능한 아바타 컴포넌트
  */
 export function Avatar({
-  initial,
+  icon: Icon,
   color,
   badge,
   size = 40,
   className = '',
 }: AvatarProps) {
+  const iconSize = Math.floor(size * 0.6);
+
   return (
     <div
       className={`relative rounded-full ${className}`}
       style={{ width: size, height: size }}
     >
       <div
-        className="w-full h-full rounded-full
-          flex items-center justify-center text-white text-lg font-semibold"
+        className="w-full h-full rounded-full flex items-center justify-center text-white shadow-sm transition-transform hover:scale-105"
         style={{ backgroundColor: color }}
       >
-        {initial}
+        <Icon size={iconSize} strokeWidth={2.5} />
       </div>
       {badge && (
         <span className="absolute -top-2 -right-1 text-s">{badge}</span>
