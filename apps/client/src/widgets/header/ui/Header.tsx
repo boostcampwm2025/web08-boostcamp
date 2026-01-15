@@ -4,6 +4,7 @@ import LogoAnimation from '@/assets/logo_animation.svg';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import {
   Dialog,
   DialogContent,
@@ -34,15 +35,10 @@ import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 
 type HeaderProps = {
   roomCode: string;
-  isDark: boolean;
-  onToggleTheme: () => void;
 };
 
-export default function Header({
-  roomCode,
-  isDark,
-  onToggleTheme,
-}: HeaderProps) {
+export default function Header({ roomCode }: HeaderProps) {
+  const { isDark, toggleTheme } = useDarkMode();
   const { setIsDuplicated, isDuplicated, handleCheckRename } =
     useFileRename(roomCode);
   const [isCopied, setIsCopied] = useState(false);
@@ -304,7 +300,7 @@ export default function Header({
           variant="ghost"
           size="sm"
           className="gap-1.5 text-xs h-8 px-2 sm:px-3"
-          onClick={onToggleTheme}
+          onClick={toggleTheme}
         >
           {isDark ? (
             <>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
 import { Header } from '@/widgets/header';
 import { Participants } from '@/widgets/participants';
@@ -23,23 +23,6 @@ function RoomPage() {
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
 
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
-
-  const toggleTheme = () => {
-    const nextMode = !isDark;
-    setIsDark(nextMode);
-    if (nextMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
   useSocket(paramCode || '');
 
   useEffect(() => {
@@ -56,11 +39,7 @@ function RoomPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header
-        roomCode={paramCode!}
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-      />
+      <Header roomCode={paramCode!} />
       {roomError && (
         <div className="bg-red-500 text-white p-4 text-center">{roomError}</div>
       )}
@@ -76,7 +55,6 @@ function RoomPage() {
             fileId={activeFileId || 'prototype'}
             language="javascript"
             readOnly={isViewer}
-            isDark={isDark}
           />
         </div>
       </main>

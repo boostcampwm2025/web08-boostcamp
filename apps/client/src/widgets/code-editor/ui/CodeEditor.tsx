@@ -10,6 +10,7 @@ import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
 import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
+import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -17,7 +18,6 @@ interface CodeEditorProps {
   fileId?: string;
   language?: Language;
   readOnly?: boolean;
-  isDark?: boolean;
 }
 
 const getLanguageExtension = (language: Language) => {
@@ -37,11 +37,11 @@ export default function CodeEditor({
   fileId = 'prototype',
   language = 'javascript',
   readOnly = false,
-  isDark = false,
 }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const { yText, awareness } = useYText(fileId);
+  const { isDark } = useDarkMode();
 
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
