@@ -81,19 +81,17 @@ export function Participants() {
 
       {/* --- Content --- */}
       <div
-        className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'}`}
+        className={`flex flex-col flex-1 overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-[600px]'}`}
       >
         {/* 상단 툴바 (정렬 & 검색 버튼) */}
-        {!isCollapsed && (
-          <div className="mt-2 mb-1">
-            <ParticipantsToolbar
-              isSearchOpen={isSearchVisible}
-              sortState={sortState}
-              onToggleSearch={toggleSearch}
-              onChangeSort={handleSortChange}
-            />
-          </div>
-        )}
+        <div className="mt-2 mb-1">
+          <ParticipantsToolbar
+            isSearchOpen={isSearchVisible}
+            sortState={sortState}
+            onToggleSearch={toggleSearch}
+            onChangeSort={handleSortChange}
+          />
+        </div>
 
         {isSearchVisible && (
           <SearchBar
@@ -103,7 +101,7 @@ export function Participants() {
           />
         )}
 
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0 max-h-[30vh]">
           {me && <Participant ptId={me.ptId} hasPermission={false} />}
 
           {me && others.length > 0 && (
