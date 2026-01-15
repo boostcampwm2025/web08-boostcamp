@@ -1,4 +1,4 @@
-import type { RoomToken } from "@codejam/common";
+import type { RoomToken } from '@codejam/common';
 
 export const getRoomTokenKey = (roomCode: string): string => {
   return `room:${roomCode}`;

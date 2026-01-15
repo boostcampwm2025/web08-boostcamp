@@ -1,17 +1,17 @@
-import { create } from "zustand";
-import { Doc, Map as YMap, Text as YText } from "yjs";
+import { create } from 'zustand';
+import { Doc, Map as YMap, Text as YText } from 'yjs';
 import {
   Awareness,
   applyAwarenessUpdate,
   encodeAwarenessUpdate,
-} from "y-protocols/awareness";
-import { SOCKET_EVENTS } from "@codejam/common";
-import { v7 as uuidv7 } from "uuid";
-import { createDecoder } from "lib0/decoding";
-import { createEncoder, toUint8Array } from "lib0/encoding";
-import { readSyncMessage, writeUpdate } from "y-protocols/sync";
-import { useSocketStore } from "./socket";
-import { emitAwarenessUpdate, emitFileUpdate } from "./socket-events";
+} from 'y-protocols/awareness';
+import { SOCKET_EVENTS } from '@codejam/common';
+import { v7 as uuidv7 } from 'uuid';
+import { createDecoder } from 'lib0/decoding';
+import { createEncoder, toUint8Array } from 'lib0/encoding';
+import { readSyncMessage, writeUpdate } from 'y-protocols/sync';
+import { useSocketStore } from './socket';
+import { emitAwarenessUpdate, emitFileUpdate } from './socket-events';
 
 type AwarenessChanges = {
   added: number[];
@@ -59,7 +59,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     // Setup YDoc update listener
 
     const onYDocUpdate = (update: Uint8Array, origin: unknown) => {
-      if (origin === "remote") return;
+      if (origin === 'remote') return;
 
       const encoder = createEncoder();
       writeUpdate(encoder, update);
@@ -71,12 +71,12 @@ export const useFileStore = create<FileState>((set, get) => ({
       emitFileUpdate(roomCode, data);
     };
 
-    yDoc.on("update", onYDocUpdate);
+    yDoc.on('update', onYDocUpdate);
 
     // Setup awareness update listener
 
     const onAwarenessUpdate = (changes: AwarenessChanges, origin: unknown) => {
-      if (origin === "remote") return;
+      if (origin === 'remote') return;
 
       const changed = changes.added.concat(changes.updated, changes.removed);
       if (changed.length === 0) return;
@@ -89,7 +89,7 @@ export const useFileStore = create<FileState>((set, get) => ({
       emitAwarenessUpdate(roomCode, message);
     };
 
-    awareness.on("update", onAwarenessUpdate);
+    awareness.on('update', onAwarenessUpdate);
 
     // Save YDoc and awareness
 
@@ -118,7 +118,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const state = get();
     if (state.awareness) {
       const currentState = state.awareness.getLocalState();
-      state.awareness.setLocalStateField("user", {
+      state.awareness.setLocalStateField('user', {
         ...currentState?.user,
         currentFileId: fileId,
       });
@@ -135,7 +135,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const decoder = createDecoder(update);
     const encoder = createEncoder();
 
-    readSyncMessage(decoder, encoder, state.yDoc, "remote");
+    readSyncMessage(decoder, encoder, state.yDoc, 'remote');
 
     // Send reply if needed (sync protocol)
     const reply = toUint8Array(encoder);
@@ -152,7 +152,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const update =
       message instanceof Uint8Array ? message : new Uint8Array(message);
 
-    applyAwarenessUpdate(state.awareness, update, "remote");
+    applyAwarenessUpdate(state.awareness, update, 'remote');
   },
 
   destroy: () => {
@@ -172,17 +172,17 @@ export const useFileStore = create<FileState>((set, get) => ({
   // CRUD: 파일 생성
   createFile: (name: string, content?: string) => {
     const { yDoc } = get();
-    if (!yDoc) return "";
+    if (!yDoc) return '';
 
     const fileId = uuidv7();
-    const filesMap = yDoc.getMap("files") as YMap<YMap<unknown>>;
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
 
     yDoc.transact(() => {
       const fileMap = new YMap<unknown>();
       const yText = new YText();
 
-      fileMap.set("name", name);
-      fileMap.set("content", yText);
+      fileMap.set('name', name);
+      fileMap.set('content', yText);
 
       if (content) {
         yText.insert(0, content);
@@ -199,7 +199,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const { yDoc } = get();
     if (!yDoc) return;
 
-    const filesMap = yDoc.getMap("files");
+    const filesMap = yDoc.getMap('files');
     filesMap.delete(fileId);
   },
 
@@ -208,11 +208,11 @@ export const useFileStore = create<FileState>((set, get) => ({
     const { yDoc } = get();
     if (!yDoc) return;
 
-    const filesMap = yDoc.getMap("files") as YMap<YMap<unknown>>;
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
     const fileMap = filesMap.get(fileId);
 
     if (fileMap) {
-      fileMap.set("name", newName);
+      fileMap.set('name', newName);
     }
   },
 
@@ -221,6 +221,6 @@ export const useFileStore = create<FileState>((set, get) => ({
     const { yDoc } = get();
     if (!yDoc) return null;
 
-    return yDoc.getMap("files") as YMap<YMap<unknown>>;
+    return yDoc.getMap('files') as YMap<YMap<unknown>>;
   },
 }));

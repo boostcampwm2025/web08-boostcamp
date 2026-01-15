@@ -54,7 +54,7 @@ describe('Room Cleanup Scheduler (E2E)', () => {
     it('만료된 방을 감지하고, 알림을 보낸 뒤 DB에서 삭제해야 한다', async () => {
       const { roomCode } = await roomService.createQuickRoom();
 
-      let room = await roomRepository.findOne({ where: { roomCode } });
+      const room = await roomRepository.findOne({ where: { roomCode } });
       expect(room).toBeDefined();
 
       const pastDate = new Date();

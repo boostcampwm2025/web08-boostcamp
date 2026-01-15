@@ -1,13 +1,13 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { socket } from "@/shared/api/socket";
-import { emitJoinRoom } from "@/stores/socket-events";
-import { useRoomStore } from "@/stores/room";
-import { getRoomToken } from "@/shared/lib/storage";
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+import { socket } from '@/shared/api/socket';
+import { emitJoinRoom } from '@/stores/socket-events';
+import { useRoomStore } from '@/stores/room';
+import { getRoomToken } from '@/shared/lib/storage';
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
-  const [roomError, setRoomError] = useState<string>("");
+  const [roomError, setRoomError] = useState<string>('');
 
   const roomCode = useRoomStore((state) => state.roomCode);
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
@@ -19,7 +19,7 @@ export function useRoomJoin() {
   }, [paramCode]);
 
   const [isNicknameDialogOpen, setIsNicknameDialogOpen] = useState(
-    shouldShowNicknameDialog
+    shouldShowNicknameDialog,
   );
 
   useEffect(() => {
@@ -35,24 +35,24 @@ export function useRoomJoin() {
   useEffect(() => {
     const handleError = (error: { type?: string; message?: string }) => {
       if (
-        error.type === "NICKNAME_REQUIRED" ||
-        error.message === "NICKNAME_REQUIRED"
+        error.type === 'NICKNAME_REQUIRED' ||
+        error.message === 'NICKNAME_REQUIRED'
       ) {
         setIsNicknameDialogOpen(true);
       } else if (
-        error.type === "ROOM_NOT_FOUND" ||
-        error.message === "ROOM_NOT_FOUND"
+        error.type === 'ROOM_NOT_FOUND' ||
+        error.message === 'ROOM_NOT_FOUND'
       ) {
-        setRoomError("방을 찾을 수 없습니다.");
+        setRoomError('방을 찾을 수 없습니다.');
       } else {
-        setRoomError(error.message || "오류가 발생했습니다.");
+        setRoomError(error.message || '오류가 발생했습니다.');
       }
     };
 
-    socket.on("error", handleError);
+    socket.on('error', handleError);
 
     return () => {
-      socket.off("error", handleError);
+      socket.off('error', handleError);
     };
   }, []);
 
@@ -72,12 +72,12 @@ export function useRoomJoin() {
     (nickname: string) => {
       if (!paramCode) return;
 
-      setRoomError("");
+      setRoomError('');
       console.log(paramCode);
       emitJoinRoom(paramCode, nickname);
       setIsNicknameDialogOpen(false);
     },
-    [paramCode]
+    [paramCode],
   );
 
   return {

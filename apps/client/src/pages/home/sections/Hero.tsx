@@ -1,4 +1,4 @@
-import logoAnimation from "@/assets/logo_animation.svg";
+import logoAnimation from '@/assets/logo_animation.svg';
 
 export function Hero() {
   return (
@@ -7,8 +7,8 @@ export function Hero() {
         <img src={logoAnimation} alt="CodeJam Logo" className="h-16 w-16" />
         <div className="flex items-center gap-2 font-mono">
           <h1 className="text-5xl font-bold">
-            <span style={{ color: "#2F81F7" }}>Code</span>
-            <span style={{ color: "#33BD7F" }}>Jam</span>
+            <span style={{ color: '#2F81F7' }}>Code</span>
+            <span style={{ color: '#33BD7F' }}>Jam</span>
           </h1>
         </div>
       </div>

@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Users, Hash } from "lucide-react";
-import { ActionCard } from "../cards/ActionCard";
-import { RoomCodeInput, ROOM_CODE_LENGTH } from "../components/RoomCodeInput";
-import { Button } from "@/shared/ui/button";
-import { createQuickRoom, checkRoomExists } from "@/shared/api/room";
-import { getRoomUrl } from "@/shared/lib/routes";
-import { setRoomToken } from "@/shared/lib/storage";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Hash } from 'lucide-react';
+import { ActionCard } from '../cards/ActionCard';
+import { RoomCodeInput, ROOM_CODE_LENGTH } from '../components/RoomCodeInput';
+import { Button } from '@/shared/ui/button';
+import { createQuickRoom, checkRoomExists } from '@/shared/api/room';
+import { getRoomUrl } from '@/shared/lib/routes';
+import { setRoomToken } from '@/shared/lib/storage';
 
 interface ErrorMessageProps {
   message: string;
@@ -28,10 +28,10 @@ export function ActionCards() {
   const navigate = useNavigate();
 
   const [roomCode, setRoomCode] = useState<string[]>(
-    Array(ROOM_CODE_LENGTH).fill("")
+    Array(ROOM_CODE_LENGTH).fill(''),
   );
-  const [quickStartError, setQuickStartError] = useState<string>("");
-  const [joinRoomError, setJoinRoomError] = useState<string>("");
+  const [quickStartError, setQuickStartError] = useState<string>('');
+  const [joinRoomError, setJoinRoomError] = useState<string>('');
   const [isQuickStartLoading, setIsQuickStartLoading] =
     useState<boolean>(false);
   const [isJoinRoomLoading, setIsJoinRoomLoading] = useState<boolean>(false);
@@ -40,7 +40,7 @@ export function ActionCards() {
     if (isQuickStartLoading) return;
 
     setIsQuickStartLoading(true);
-    setQuickStartError("");
+    setQuickStartError('');
 
     try {
       const { roomCode, token } = await createQuickRoom();
@@ -60,12 +60,12 @@ export function ActionCards() {
   };
 
   const handleJoinRoom = async () => {
-    const code = roomCode.join("");
+    const code = roomCode.join('');
     if (code.length !== ROOM_CODE_LENGTH) return;
     if (isJoinRoomLoading) return;
 
     setIsJoinRoomLoading(true);
-    setJoinRoomError("");
+    setJoinRoomError('');
 
     try {
       const exists = await checkRoomExists(code);
@@ -96,11 +96,11 @@ export function ActionCards() {
               disabled={isQuickStartLoading}
               className={`w-full ${
                 quickStartError
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-blue-600 hover:bg-blue-700'
               } text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400`}
             >
-              {isQuickStartLoading ? "Loading..." : "Quick Start"}
+              {isQuickStartLoading ? 'Loading...' : 'Quick Start'}
             </Button>
             <ErrorMessage message={quickStartError} />
           </div>
@@ -122,10 +122,12 @@ export function ActionCards() {
             <ErrorMessage message={joinRoomError} />
             <Button
               onClick={handleJoinRoom}
-              disabled={roomCode.some((digit) => digit === "") || isJoinRoomLoading}
+              disabled={
+                roomCode.some((digit) => digit === '') || isJoinRoomLoading
+              }
               className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
             >
-              {isJoinRoomLoading ? "입장 중..." : "입장하기"}
+              {isJoinRoomLoading ? '입장 중...' : '입장하기'}
             </Button>
           </div>
         </ActionCard>

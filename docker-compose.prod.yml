@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        - VITE_API_URL=${VITE_API_URL:-/}
+        - VITE_API_URL=/
     container_name: codejam-service
     network_mode: host
     env_file: .env.prod

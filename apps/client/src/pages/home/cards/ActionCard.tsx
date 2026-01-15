@@ -1,12 +1,12 @@
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/card";
-import { cardColorSchemes } from "../constants/card-color-schemes";
+} from '@/shared/ui/card';
+import { cardColorSchemes } from '../constants/card-color-schemes';
 
 interface ActionCardProps {
   icon: LucideIcon;

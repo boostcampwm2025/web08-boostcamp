@@ -3,7 +3,7 @@ services:
     image: redis:7-alpine
     container_name: codejam-redis
     ports:
-      - "${REDIS_PORT}:6379"
+      - '${REDIS_PORT}:6379'
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -21,7 +21,7 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
-      - "${DB_PORT}:5432"
+      - '${DB_PORT}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
