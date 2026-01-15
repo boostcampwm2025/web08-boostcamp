@@ -27,7 +27,7 @@ export function capacityLimitInputBlocker() {
 
       if (futureCapacity > MAX_LIMIT) {
         toast.warning(
-          `복붙할 내용이 너무 큽니다. 1MB 용량을 초과합니다. (예상: ${(futureCapacity / 1_000_000).toFixed(2)}MB)`
+          `복붙할 내용이 너무 큽니다. 1MB 용량을 초과합니다. (예상: ${(futureCapacity / 1_000_000).toFixed(2)}MB)`,
         );
         event.preventDefault();
         return true; // 차단
@@ -55,7 +55,11 @@ export function capacityLimitInputBlocker() {
       ];
       const isModifier = event.ctrlKey || event.metaKey || event.altKey;
 
-      if (allowedKeys.includes(event.key) || isModifier || event.key.startsWith('F')) {
+      if (
+        allowedKeys.includes(event.key) ||
+        isModifier ||
+        event.key.startsWith('F')
+      ) {
         return false;
       }
 
@@ -64,7 +68,7 @@ export function capacityLimitInputBlocker() {
         const { capacityBytes } = useFileStore.getState();
         const selection = view.state.selection.main;
         const selectedLength = selection.to - selection.from;
-        
+
         // Enter는 선택 영역을 삭제하고 줄바꿈 추가
         const fileDelta = selectedLength > 0 ? -selectedLength + 1 : 1;
         const futureCapacity = capacityBytes + fileDelta;
