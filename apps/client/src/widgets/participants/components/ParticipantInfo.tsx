@@ -4,6 +4,11 @@ import type { ParticipantProps } from '../lib/types';
 import { ParticipantName } from './ParticipantName';
 import { RoleSwitcher } from './RoleSwitcher';
 
+/**
+ * 참가자의 상세 정보를 표시하는 컴포넌트
+ * - 닉네임, 해시태그, 본인 여부 표시
+ * - 역할(Role) 뱃지 및 역할 변경 UI 제공
+ */
 export function ParticipantInfo({
   ptId,
   canToggle,

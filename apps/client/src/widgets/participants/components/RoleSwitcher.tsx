@@ -8,6 +8,11 @@ interface RoleSwitcherProps {
   onToggle?: () => void;
 }
 
+/**
+ * 역할(Role)을 표시하고 변경할 수 있는 스위처 컴포넌트
+ * - 기본: 정적 뱃지 표시
+ * - 호버 시 (권한 있는 경우): Viewer ↔ Editor 전환 UI 표시
+ */
 export function RoleSwitcher({
   role,
   isInteractive,

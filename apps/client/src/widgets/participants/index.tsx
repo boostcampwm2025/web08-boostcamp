@@ -1,13 +1,21 @@
 import { useState } from 'react';
-import { Participant } from './components/Participant';
-import { ParticipantsHeader } from './components/ParticipantsHeader';
-import { SearchBar } from './components/SearchBar';
-import { useParticipantsFilter } from './hooks/useParticipantsFilter';
+import {
+  Participant,
+  ParticipantsHeader,
+  ParticipantsToolbar,
+  SearchBar,
+} from './components';
+import { useParticipantsFilter } from './hooks';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import type { SortKey, SortState } from './lib/types';
-import { ParticipantsToolbar } from './components/ParticipantsToolbar';
 
+/**
+ * 참가자 목록 위젯 메인 컴포넌트
+ * - 실시간 참가자 목록 표시
+ * - 검색, 정렬, 필터링 기능 제공
+ * - 호스트의 경우 참가자 역할 관리 가능
+ */
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
   const myPtId = useRoomStore((state) => state.myPtId);

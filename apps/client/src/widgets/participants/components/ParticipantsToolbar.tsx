@@ -8,12 +8,22 @@ interface ParticipantsToolbarProps {
   onChangeSort: (key: SortKey) => void;
 }
 
+/**
+ * 참가자 목록의 도구 모음 컴포넌트
+ * - 정렬 버튼 (이름/입장시간)
+ * - 검색 기능 토글 버튼
+ */
 export function ParticipantsToolbar({
   isSearchOpen,
   sortState,
   onToggleSearch,
   onChangeSort,
 }: ParticipantsToolbarProps) {
+  /**
+   * 정렬 버튼의 라벨과 화살표 표시 여부를 결정
+   * - time: 활성화 시 "최신순"/"오래된순" 표시
+   * - name: 활성화 시 화살표로 정렬 방향 표시
+   */
   const getSortConfig = (
     key: SortKey,
     currentOrder: 'asc' | 'desc',

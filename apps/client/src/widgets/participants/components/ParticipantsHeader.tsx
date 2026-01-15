@@ -6,6 +6,11 @@ interface ParticipantsHeaderProps {
   onToggleCollapse: () => void;
 }
 
+/**
+ * 참가자 목록의 헤더 컴포넌트
+ * - 접기/펼치기 토글 기능
+ * - 전체 참가자 수 표시
+ */
 export function ParticipantsHeader({
   totalCount,
   isCollapsed,

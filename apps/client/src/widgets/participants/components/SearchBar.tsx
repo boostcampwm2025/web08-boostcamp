@@ -7,6 +7,11 @@ interface SearchBarProps {
   onClear: () => void;
 }
 
+/**
+ * 참가자 검색 입력 필드 컴포넌트
+ * - 닉네임 또는 해시태그(#)로 검색 가능
+ * - X 버튼으로 검색어 초기화
+ */
 export function SearchBar({
   searchQuery,
   onSearchChange,

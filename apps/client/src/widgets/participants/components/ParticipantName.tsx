@@ -4,6 +4,10 @@ interface ParticipantNameProps {
   isMe: boolean;
 }
 
+/**
+ * 참가자의 닉네임과 해시태그를 표시하는 컴포넌트
+ * - 본인인 경우 "YOU" 뱃지 표시
+ */
 export function ParticipantName({
   nickname,
   ptHash,
