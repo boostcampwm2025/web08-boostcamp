@@ -24,6 +24,12 @@ import {
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
+import { v7 as uuidv7 } from 'uuid';
+import {
+  Language,
+  getDefaultFileName,
+  getDefaultFileTemplate,
+} from './file.constants';
 
 export type AwarenessUpdate = {
   added: number[];
@@ -37,8 +43,6 @@ export type RoomDoc = {
   awareness: Awareness;
   files: Set<string>;
 };
-
-export type Language = 'javascript' | 'html' | 'css';
 
 @Injectable()
 export class FileService {
@@ -381,17 +385,46 @@ export class FileService {
     }
   }
 
+  /** Generate File ID - UUID v7 */
+
+  private generateFileId() {
+    const id = uuidv7();
+    return id;
+  }
+
+  /**
+   * Generate initial Y.Doc snapshot with template code
+   */
+  generateInitialSnapshot(language?: Language): Buffer {
+    const doc = new Doc();
+    this.initializeDoc(doc);
+
+    // Create initial file with template code
+    const fileId = this.generateFileId();
+    const name = getDefaultFileName(language);
+    const template = getDefaultFileTemplate(language);
+
+    const filesMap = doc.getMap('files');
+    const fileIdMap = doc.getMap('map');
+
+    doc.transact(() => {
+      const fileMap = new YMap<unknown>();
+      const yText = new YText();
+
+      yText.insert(0, template);
+
+      fileMap.set('name', name);
+      fileMap.set('content', yText);
+      filesMap.set(fileId, fileMap);
+      fileIdMap.set(name, fileId);
+    });
+
+    const snapshot = encodeStateAsUpdate(doc);
+    return Buffer.from(snapshot);
+  }
+
   private initialCode(language?: Language): string {
-    switch (language) {
-      case 'javascript':
-        return "// Write your JavaScript code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n";
-      case 'html':
-        return '<!-- Write your HTML code here -->\n\n<!DOCTYPE html>\n<html>\n  <head>\n    <title>CodeJam</title>\n  </head>\n  <body>\n    <h1>Hello, CodeJam!</h1>\n  </body>\n</html>\n';
-      case 'css':
-        return '/* Write your CSS code here */\n\n.container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n';
-      default:
-        return "// Write your JavaScript code here\n\nfunction hello() {\n  console.log('Hello, CodeJam!');\n}\n";
-    }
+    return getDefaultFileTemplate(language);
   }
 
   private docListener() {

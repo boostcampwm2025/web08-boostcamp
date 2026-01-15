@@ -9,6 +9,7 @@ import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
 import { Document } from '../document/document.entity';
+import { FileService } from '../file/file.service';
 import { PtService } from '../pt/pt.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
@@ -25,6 +26,7 @@ export class RoomService {
     private roomRepository: Repository<Room>,
     private ptService: PtService,
     private roomTokenService: RoomTokenService,
+    private fileService: FileService,
     private dataSource: DataSource,
   ) {}
 
@@ -107,6 +109,7 @@ export class RoomService {
       const document = queryRunner.manager.create(Document, {
         room: savedRoom,
         roomId: savedRoom.roomId,
+        content: this.fileService.generateInitialSnapshot(),
       });
 
       await queryRunner.manager.save(document);
