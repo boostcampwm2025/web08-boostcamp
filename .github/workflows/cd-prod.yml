@@ -60,6 +60,10 @@ jobs:
         run: |
           cd apps/client
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          # Load environment variables from Vercel
+          if [ -f .vercel/.env.production.local ]; then
+            export $(cat .vercel/.env.production.local | grep -v '^#' | xargs)
+          fi
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel (Production)

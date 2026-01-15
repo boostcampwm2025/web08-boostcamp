@@ -165,6 +165,10 @@ jobs:
         run: |
           cd apps/client
           vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          # Load environment variables from Vercel
+          if [ -f .vercel/.env.preview.local ]; then
+            export $(cat .vercel/.env.preview.local | grep -v '^#' | xargs)
+          fi
           vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Remove Previous Preview Deployment
