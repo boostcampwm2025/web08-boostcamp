@@ -20,7 +20,8 @@ interface SafeInputState {
 const safeInputAnnotation = Annotation.define<boolean>();
 
 // --- 2. 헬퍼 ---
-const isAscii = (str: string) => /^[\x00-\x7F]*$/.test(str);
+const isAscii = (str: string) =>
+  [...str].every((ch) => ch.charCodeAt(0) <= 0x7f);
 
 const styles = {
   popup: `
@@ -193,7 +194,7 @@ function createInputPopup(pos: number, initialValue: string): Tooltip {
 
 // --- 5. Extension 로직 ---
 export function safeInput(
-  options: SafeInputOptions = { allowAscii: true }
+  options: SafeInputOptions = { allowAscii: true },
 ): Extension {
   const openPopup = (view: EditorView) => {
     // [!IMPORTANT] 에디터의 IME 세션 강제 종료
