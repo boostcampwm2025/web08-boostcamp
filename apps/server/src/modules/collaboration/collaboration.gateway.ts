@@ -4,6 +4,8 @@ import {
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
   type PtUpdateRolePayload,
+  type FilenameCheckPayload,
+  type FilenameCheckResultPayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -114,6 +116,15 @@ export class CollaborationGateway
       this.server,
       payload,
     );
+  }
+
+  /** C -> S 파일 이름 유효성 확인 */
+  @UseGuards(PermissionGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CHECK_FILENAME)
+  async handleCheckFileName(
+    @MessageBody() payload: FilenameCheckPayload,
+  ): Promise<FilenameCheckResultPayload> {
+    return await this.collaborationService.handleCheckFileName(payload);
   }
 
   /**

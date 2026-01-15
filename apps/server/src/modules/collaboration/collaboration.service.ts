@@ -5,7 +5,9 @@ import {
   type AwarenessUpdatePayload,
   type Pt,
   type RoomToken,
-  PtUpdateRolePayload,
+  type PtUpdateRolePayload,
+  type FilenameCheckResultPayload,
+  type FilenameCheckPayload,
 } from '@codejam/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
@@ -164,6 +166,66 @@ export class CollaborationService {
     if (!pt) return;
 
     this.notifyUpdatePt(client, server, pt);
+  }
+
+  /** 파일 이름 유효성 확인 */
+  async handleCheckFileName(
+    payload: FilenameCheckPayload,
+  ): Promise<FilenameCheckResultPayload> {
+    const currentExts = [
+      'mjs',
+      'cjs',
+      'js',
+      'ts',
+      'tsx',
+      'jsx',
+      'htm',
+      'html',
+      'css',
+    ];
+    const extResult = {
+      error: true,
+      type: 'ext',
+      message: '유효하지 않는 확장자입니다.',
+    } as FilenameCheckResultPayload;
+
+    const { filename, roomCode } = payload;
+    const room = await this.roomService.findRoomByCode(roomCode);
+
+    if (!room) {
+      return {
+        error: true,
+        type: 'no_room',
+        message: '유효하지 않는 방입니다.',
+      };
+    }
+
+    const lastDot = filename.trim().lastIndexOf('.');
+
+    if (lastDot === -1) {
+      return extResult;
+    }
+
+    const ext = filename
+      .trim()
+      .substring(lastDot + 1)
+      .toLowerCase();
+
+    if (!currentExts.includes(ext)) {
+      return extResult;
+    }
+
+    if (this.fileService.checkDuplicate(room.roomId, filename)) {
+      return {
+        error: true,
+        type: 'duplicate',
+        message: '중복되는 파일명입니다.',
+      };
+    }
+
+    return {
+      error: false,
+    };
   }
 
   /** 소켓 데이터 설정 */
