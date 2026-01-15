@@ -8,8 +8,6 @@ import { Room } from '../room/room.entity';
 
 describe('CleanupService', () => {
   let service: CleanupService;
-  let roomService: RoomService;
-  let collaborationGateway: CollaborationGateway;
 
   const mockRoomService = {
     findExpiredRooms: jest.fn(),
@@ -52,9 +50,8 @@ describe('CleanupService', () => {
     }).compile();
 
     service = module.get<CleanupService>(CleanupService);
-    roomService = module.get<RoomService>(RoomService);
-    collaborationGateway =
-      module.get<CollaborationGateway>(CollaborationGateway);
+    module.get<RoomService>(RoomService);
+    module.get<CollaborationGateway>(CollaborationGateway);
 
     // 호출 기록 리셋
     jest.clearAllMocks();

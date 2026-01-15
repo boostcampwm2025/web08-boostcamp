@@ -24,7 +24,7 @@ describe('AppController (e2e)', () => {
 
       if (redisClient) redisClient.disconnect();
       if (redisSubscriber) redisSubscriber.disconnect();
-    } catch (e) {
+    } catch {
       // Redis Provider를 못 찾거나 이미 닫혔으면 무시
     }
 
