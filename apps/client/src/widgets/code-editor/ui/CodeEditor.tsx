@@ -7,6 +7,7 @@ import { css } from '@codemirror/lang-css';
 import { githubLight } from '@fsegurai/codemirror-theme-github-light';
 import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
+import { safeInput } from '../plugin/SafeInput';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -45,9 +46,9 @@ export default function CodeEditor({
       doc: yText.toString(),
       extensions: [
         basicSetup,
-        javascript(),
         yCollab(yText, awareness),
         getLanguageExtension(language),
+        safeInput({ allowAscii: true }),
         githubLight,
         EditorState.readOnly.of(readOnly),
         EditorView.theme({
