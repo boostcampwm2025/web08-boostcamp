@@ -33,18 +33,28 @@ jobs:
         if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "pnpm"
+          node-version: '22'
+          cache: 'pnpm'
 
-      - name: Install dependencies
+      - name: Install dependencies and build common
         if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @codejam/common build
 
-      - name: Build client and dependencies
+      - name: Install Vercel CLI
         if: steps.changes.outputs.client == 'true'
-        run: pnpm --filter client... build
+        run: pnpm add -g vercel
+
+      - name: Build client for Vercel
+        if: steps.changes.outputs.client == 'true'
+        run: |
+          cd apps/client
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel (Staging)
+        id: vercel-deploy
         if: steps.changes.outputs.client == 'true'
         uses: amondnet/vercel-action@v25
         with:
@@ -52,6 +62,27 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./apps/client
+          vercel-args: '--prebuilt'
+
+      - name: Notify Slack (Client Deploy)
+        if: steps.changes.outputs.client == 'true'
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🍯 *새로운 잼이 완성됐어요!*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🍯 *새로운 잼이 완성됐어요!*\n\n*PR:* ${{ github.event.head_commit.message }}\n*URL:* ${{ steps.vercel-deploy.outputs.preview-url }}\n*작성자:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
 
       - name: Build server and dependencies
         if: steps.changes.outputs.server == 'true'

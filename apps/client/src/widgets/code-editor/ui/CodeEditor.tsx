@@ -8,6 +8,7 @@ import { githubLight } from '@fsegurai/codemirror-theme-github-light';
 import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
 import { safeInput } from '../plugin/SafeInput';
+import { readOnlyToast } from '../plugin/ReadOnlyToast';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -51,6 +52,7 @@ export default function CodeEditor({
         safeInput({ allowAscii: true }),
         githubLight,
         EditorState.readOnly.of(readOnly),
+        ...(readOnly ? [readOnlyToast()] : []),
         EditorView.theme({
           '&': { height: '100%' },
           '.cm-scroller': { overflow: 'auto' },
