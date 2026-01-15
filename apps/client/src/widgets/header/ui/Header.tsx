@@ -57,14 +57,17 @@ export default function Header({ roomCode }: HeaderProps) {
       await navigator.clipboard.writeText(roomCode || '');
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
+      toast.success('방 코드가 복사되었습니다.');
     } catch (err) {
       const error = err as Error;
-      alert(`복사에 실패했습니다: ${error.message}`);
+      toast.error(`복사에 실패했습니다: ${error.message}`);
     }
   };
 
   const handleNotImplemented = (feature: string) => {
-    alert(`${feature} 기능은 아직 구현되지 않았습니다.`);
+    toast.warning(`${feature} 기능은 아직 구현되지 않았습니다.`, {
+      description: '추후 업데이트될 예정입니다.',
+    });
   };
 
   const handleUploadButton = () => {
