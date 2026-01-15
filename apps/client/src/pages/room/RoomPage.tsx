@@ -46,9 +46,7 @@ function RoomPage() {
       <main className="flex-1 overflow-hidden flex">
         <div className="border-r border-border h-full overflow-y-auto scrollbar-thin flex flex-col bg-sidebar w-64 shrink-0">
           <Participants />
-          <div className="grow">
-            <FileList />
-          </div>
+          <FileList />
         </div>
         <div className="flex-1 h-full bg-background">
           <CodeEditor

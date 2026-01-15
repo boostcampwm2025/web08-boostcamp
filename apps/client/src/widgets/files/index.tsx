@@ -13,7 +13,7 @@ export function FileList() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="w-full min-w-3xs p-4">
+    <div className="w-full px-4">
       <FileHeader
         count={count}
         isCollapsed={isCollapsed}
