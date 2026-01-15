@@ -1,10 +1,12 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Participant } from './Participant';
-import { sorter } from './sorter';
+import { sortByTime, sortByNickname } from './sorter';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import type { Pt } from '@codejam/common';
-import { ChevronDown, Search, X } from 'lucide-react';
+import { ChevronDown, Search, X, Clock, ArrowDownAZ } from 'lucide-react';
+
+type SortMode = 'name' | 'time';
 
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
@@ -20,6 +22,7 @@ export function Participants() {
 
   // Data 상태 관리
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('time');
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -47,16 +50,16 @@ export function Participants() {
 
     // 나머지 정렬 로직
     otherPts.sort((a, b) => {
-      // 우선 순위 1: 호스트는 맨 위로
+      // 호스트는 맨 위로
       if (a.role === 'host') return -1;
       if (b.role === 'host') return 1;
 
-      // 우선 순위 2
-      return sorter(a, b);
+      if (sortMode === 'time') return sortByTime(a, b);
+      return sortByNickname(a, b);
     });
 
     return { me: myPt, others: otherPts, totalCount: total };
-  }, [pts, searchQuery, myPtId]);
+  }, [pts, searchQuery, sortMode, myPtId]);
 
   // 검색창 토글
   const toggleSearch = (e: React.MouseEvent) => {
@@ -80,6 +83,12 @@ export function Participants() {
     inputRef.current?.focus();
   };
 
+  // 정렬 모드 변경
+  const toggleSortMode = (e: React.MouseEvent, mode: SortMode) => {
+    e.stopPropagation();
+    setSortMode(mode);
+  };
+
   return (
     <div className="w-full min-w-3xs bg-white dark:bg-gray-800 p-4 font-sans">
       {/* --- Header --- */}
@@ -101,17 +110,41 @@ export function Participants() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-0.5">
+          {/* Sort by Name */}
+          <button
+            onClick={(e) => toggleSortMode(e, 'name')}
+            className={`inline-flex items-center justify-center rounded-md transition-all outline-none size-8 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] ${
+              sortMode === 'name'
+                ? 'bg-accent text-accent-foreground dark:bg-accent/50'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+            title="Sort by Name (A-Z)"
+          >
+            <ArrowDownAZ size={16} strokeWidth={2} />
+          </button>
+
+          {/* Sort by Time */}
+          <button
+            onClick={(e) => toggleSortMode(e, 'time')}
+            className={`inline-flex items-center justify-center rounded-md transition-all outline-none size-8 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] ${
+              sortMode === 'time'
+                ? 'bg-accent text-accent-foreground dark:bg-accent/50'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+            title="Sort by Time Joined"
+          >
+            <Clock size={16} strokeWidth={2} />
+          </button>
+
+          {/* Search Button */}
           <button
             onClick={toggleSearch}
-            className={
-              'inline-flex items-center justify-center rounded-md transition-all outline-none' +
-              'size-8 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50' +
-              'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]' +
+            className={`inline-flex items-center justify-center rounded-md transition-all outline-none size-8 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] ${
               isSearchVisible
                 ? 'bg-accent text-accent-foreground dark:bg-accent/50'
                 : 'text-gray-500 dark:text-gray-400'
-            }
+            }`}
             title="Search"
           >
             <Search size={16} strokeWidth={2} />
