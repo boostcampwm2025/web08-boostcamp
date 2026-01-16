@@ -64,25 +64,25 @@
 }
 
 .dark {
-  --background: #14120b;
-  --foreground: #edecec;
-  --card: #1b1913;
-  --card-foreground: #edecec;
-  --popover: #1b1913;
-  --popover-foreground: #edecec;
+  --background: #18181b;
+  --foreground: #fafafa;
+  --card: #27272a;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
   --primary: #eb5600;
-  --primary-foreground: #14120b;
-  --secondary: #201e18;
-  --secondary-foreground: #edecec;
-  --muted: #201e18;
-  --muted-foreground: #969592;
-  --accent: #201e18;
-  --accent-foreground: #edecec;
-  --destructive: #eb5600;
-  --destructive-foreground: #14120b;
-  --border: #2a2822;
-  --input: #2a2822;
-  --ring: #c2c0bf;
+  --primary-foreground: #fafafa;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fafafa;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #d4d4d8;
   --foreground-2: #d7d6d6;
   --prose-bullets: #edecec66;
   --chart-1: #eb5600;
@@ -108,7 +108,11 @@
     @apply bg-background text-foreground;
     text-rendering: optimizeLegibility;
     font-optical-sizing: auto;
-    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'case' 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'calt' 1,
+      'case' 1;
   }
   p,
   li,
@@ -119,7 +123,11 @@
   h4,
   h5,
   h6 {
-    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'case' 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'calt' 1,
+      'case' 1;
   }
 }
 
@@ -229,8 +237,9 @@
     --aspect-video: 16/9;
     --default-transition-duration: 0.15s;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    --font-system: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-      Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-system:
+      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Helvetica, Arial, sans-serif;
     --font-size-small: 13.125px;
     --font-size-base: 15px;
     --font-size-base-plus: 18px;
@@ -453,5 +462,35 @@
 
   .space-v-1-25 {
     margin-bottom: var(--spacing-v-1-25);
+  }
+}
+
+@layer base {
+  /* 스크롤바 전체 너비 */
+  ::-webkit-scrollbar {
+    width: 10px; /* 세로 스크롤바 너비 */
+    height: 10px; /* 가로 스크롤바 높이 */
+  }
+
+  /* 스크롤바 트랙 (배경) - 투명하게 해서 콘텐츠 배경색이 보이도록 */
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* 스크롤바 핸들 */
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 5px; /* 둥글게 처리 */
+    border: 2px solid transparent; /* 여백을 주기 위한 트릭 */
+    background-clip: content-box; /* border 안쪽만 색칠 */
+  }
+
+  /* 스크롤바 핸들 호버 */
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }

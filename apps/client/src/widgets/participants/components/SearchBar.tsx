@@ -25,14 +25,14 @@ export function SearchBar({
   };
 
   return (
-    <div className="px-2 py-2 bg-white dark:bg-gray-800 border-b dark:border-gray-700 relative">
+    <div className="px-2 py-2 border-b relative">
       <input
         ref={inputRef}
         type="text"
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="이름 또는 태그(#) 검색..."
-        className="w-full h-9 rounded-md border border-input bg-transparent dark:bg-input/30 px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] pr-9"
+        className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] pr-9"
         autoFocus
       />
       {/* Clear (X) Button */}

@@ -72,7 +72,7 @@ export function Participants() {
   };
 
   return (
-    <div className="w-full min-w-3xs bg-white dark:bg-gray-800 p-4 font-sans">
+    <div className="w-full px-4">
       <ParticipantsHeader
         totalCount={totalCount}
         isCollapsed={isCollapsed}
@@ -81,7 +81,7 @@ export function Participants() {
 
       {/* --- Content --- */}
       <div
-        className={`flex flex-col flex-1 overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-[600px]'}`}
+        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-[600px]'}`}
       >
         {/* 상단 툴바 (정렬 & 검색 버튼) */}
         <div className="mt-2 mb-1">

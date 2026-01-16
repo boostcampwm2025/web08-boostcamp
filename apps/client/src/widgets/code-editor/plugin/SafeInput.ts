@@ -23,24 +23,57 @@ const safeInputAnnotation = Annotation.define<boolean>();
 const isAscii = (str: string) =>
   [...str].every((ch) => ch.charCodeAt(0) <= 0x7f);
 
-const styles = {
-  popup: `
-    padding: 8px; background: white; border: 1px solid #ccc;
-    border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    display: flex; flex-direction: column; gap: 4px; z-index: 9999; min-width: 220px;
-  `,
-  inputRow: `
-    display: flex; gap: 6px; width: 100%;
-  `,
-  input: `
-    flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 14px;
-  `,
-  button: `
-    padding: 0 10px; cursor: pointer; background: #f3f4f6; border: none; border-radius: 4px; font-weight: bold; color: #555;
-  `,
-  hint: `
-    font-size: 11px; color: #999; text-align: right; margin-top: 2px; padding-right: 2px; user-select: none;
-  `,
+// 다크 모드 감지 함수
+const isDarkTheme = () => {
+  return document.documentElement.classList.contains('dark');
+};
+
+const getStyles = () => {
+  const isDark = isDarkTheme();
+
+  return {
+    popup: `
+      padding: 0.8em; 
+      background: ${isDark ? '#27272a' : 'white'}; 
+      border: 1px solid ${isDark ? '#3f3f46' : '#ccc'};
+      border-radius: 6px; 
+      box-shadow: 0 4px 12px ${isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)'};
+      
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5em; 
+      z-index: 9999; 
+      min-width: 220px;
+      box-sizing: border-box;
+      
+      /* 높이를 콘텐츠에 맞게 자동으로 늘림 */
+      height: auto;
+      min-height: fit-content;
+      
+      overflow: hidden; 
+    `,
+    inputRow: `
+      display: flex; gap: 6px; width: 100%;
+    `,
+    input: `
+      flex: 1; padding: 4px; 
+      border: 1px solid ${isDark ? '#3f3f46' : '#ddd'}; 
+      border-radius: 4px; outline: none; font-size: 14px;
+      background: ${isDark ? '#18181b' : 'white'};
+      color: ${isDark ? '#fafafa' : '#1a1a1a'};
+    `,
+    button: `
+      padding: 0 10px; cursor: pointer; 
+      background: ${isDark ? '#3f3f46' : '#f3f4f6'}; 
+      border: none; border-radius: 4px; font-weight: bold; 
+      color: ${isDark ? '#fafafa' : '#555'};
+    `,
+    hint: `
+      font-size: 11px; 
+      color: ${isDark ? '#a1a1aa' : '#999'}; 
+      text-align: right; margin-top: 2px; padding-right: 2px; user-select: none;
+    `,
+  };
 };
 
 // --- 3. 상태 관리 ---
@@ -68,6 +101,8 @@ function createInputPopup(pos: number, initialValue: string): Tooltip {
     above: true,
     strictSide: true,
     create: (view) => {
+      const styles = getStyles(); // 현재 테마에 맞는 스타일 가져오기
+
       const dom = document.createElement('div');
       dom.className = 'safe-input-popup';
       dom.style.cssText = styles.popup;
