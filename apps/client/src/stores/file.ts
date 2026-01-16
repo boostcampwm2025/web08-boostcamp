@@ -25,12 +25,18 @@ interface FileState {
   activeFileId: string | null;
   isInitialized: boolean;
 
+  // Capacity State (용량 측정)
+  capacityBytes: number;
+  capacityPercentage: number;
+  isOverLimit: boolean;
+
   // Actions
   initialize: (roomCode: string) => number;
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
+  measureCapacity: () => number;
 
   // CRUD Actions
   createFile: (name: string, content?: string) => string;
@@ -48,6 +54,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   activeFileId: null,
   isInitialized: false,
 
+  // Capacity State 초기값
+  capacityBytes: 0,
+  capacityPercentage: 0,
+  isOverLimit: false,
+
   initialize: (roomCode: string) => {
     const state = get();
     if (state.isInitialized) {
@@ -62,6 +73,9 @@ export const useFileStore = create<FileState>((set, get) => ({
     // Setup YDoc update listener
 
     const onYDocUpdate = (update: Uint8Array, origin: unknown) => {
+      // 용량 측정 (로컬/리모트 모두)
+      get().measureCapacity();
+
       if (origin === 'remote') return;
 
       const encoder = createEncoder();
@@ -269,5 +283,31 @@ export const useFileStore = create<FileState>((set, get) => ({
     }
 
     return yDoc.getMap('map') as YMap<string>;
+  },
+
+  // 용량 측정: 전체 파일의 텍스트 길이 합산
+  measureCapacity: () => {
+    const { yDoc } = get();
+    if (!yDoc) return 0;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    let total = 0;
+
+    filesMap.forEach((fileMap) => {
+      const content = fileMap.get('content') as YText;
+      if (content) {
+        total += content.toString().length;
+      }
+    });
+
+    const percentage = Math.min((total / 1_000_000) * 100, 100);
+
+    set({
+      capacityBytes: total,
+      capacityPercentage: percentage,
+      isOverLimit: total >= 1_000_000,
+    });
+
+    return total;
   },
 }));

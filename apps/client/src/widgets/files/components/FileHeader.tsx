@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react';
+import { CapacityGauge } from '@/widgets/capacity-gauge';
 
 interface FileHeaderProps {
   count: number;
@@ -28,6 +29,8 @@ export function FileHeader({
           {count}
         </span>
       </div>
+
+      <CapacityGauge />
     </div>
   );
 }

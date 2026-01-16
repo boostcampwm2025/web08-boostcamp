@@ -9,6 +9,7 @@ import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
 import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
+import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
 
@@ -58,6 +59,7 @@ export default function CodeEditor({
         yCollab(yText, awareness),
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
+        EditorState.readOnly.of(readOnly), // viewer일 때만 완전 읽기 전용
         themeCompartment.of(isDark ? oneDark : []),
         fontSizeCompartment.of(
           EditorView.theme({
@@ -66,6 +68,7 @@ export default function CodeEditor({
         ),
         EditorState.readOnly.of(readOnly),
         ...(readOnly ? [readOnlyToast()] : []),
+        capacityLimitInputBlocker(), // 용량 제한 체크 (항상 활성화)
         EditorView.theme({
           '&': { height: '100%' },
           '.cm-scroller': { overflow: 'auto' },
