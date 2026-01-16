@@ -77,7 +77,6 @@ export default function Header({ roomCode }: HeaderProps) {
 
   const handleFileChange = async (ev: ChangeEvent<HTMLInputElement>) => {
     const currentMimes = ['text/javascript', 'text/html', 'text/css'];
-    const currentExts = ['ts', 'tsx', 'jsx'];
     const MAX_SIZE = 1024 * 1024;
 
     const files = ev.target.files;
@@ -93,11 +92,11 @@ export default function Header({ roomCode }: HeaderProps) {
     }
 
     const uploadFile = files[0];
+    if (uploadRef.current) {
+      uploadRef.current.value = '';
+    }
 
-    if (
-      !currentMimes.includes(uploadFile.type) &&
-      !currentExts.includes(extname(uploadFile.name))
-    ) {
+    if (!currentMimes.includes(uploadFile.type) && !extname(uploadFile.name)) {
       toast.error('정해진 파일 타입만 업로드 할 수 있습니다.');
       return;
     }
@@ -105,10 +104,6 @@ export default function Header({ roomCode }: HeaderProps) {
     if (uploadFile.size > MAX_SIZE) {
       toast.error('파일의 크기가 1MB 를 초과했습니다.');
       return;
-    }
-
-    if (uploadRef.current) {
-      uploadRef.current.value = '';
     }
 
     setUploadFile(uploadFile);
