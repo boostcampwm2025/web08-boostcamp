@@ -1,0 +1,46 @@
+name: Vercel Cleanup
+
+on:
+  pull_request:
+    branches: [dev]
+    types: [closed]
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Find Preview URL from PR Comment
+        id: find-url
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('## 🍯 새로운 잼이 완성됐어요!')
+            );
+
+            if (botComment) {
+              const urlMatch = botComment.body.match(/Preview URL \| \[([^\]]+)\]/);
+              if (urlMatch) {
+                return urlMatch[1];
+              }
+            }
+            return '';
+          result-encoding: string
+
+      - name: Delete Preview Deployment
+        if: steps.find-url.outputs.result != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "Removing deployment: ${{ steps.find-url.outputs.result }}"
+          vercel remove "${{ steps.find-url.outputs.result }}" --token=$VERCEL_TOKEN --yes
+          echo "Cleanup completed for branch: ${{ github.head_ref }}"

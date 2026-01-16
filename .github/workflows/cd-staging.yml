@@ -1,0 +1,172 @@
+name: CD Staging
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check changed files
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            client:
+              - 'apps/client/**'
+              - 'packages/common/**'
+              - 'pnpm-lock.yaml'
+            server:
+              - 'apps/server/**'
+              - 'packages/common/**'
+              - 'pnpm-lock.yaml'
+
+      - name: Setup pnpm
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Setup Turbo cache
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Install dependencies and build common
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @codejam/common build
+
+      - name: Install Vercel CLI
+        if: steps.changes.outputs.client == 'true'
+        run: pnpm add -g vercel
+
+      - name: Build client for Vercel
+        if: steps.changes.outputs.client == 'true'
+        run: |
+          cd apps/client
+          mkdir -p .vercel
+          cat > .vercel/project.json <<'EOF'
+          {
+            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+            "projectName": "codejam"
+          }
+          EOF
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel (Staging)
+        id: vercel-deploy
+        if: steps.changes.outputs.client == 'true'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./apps/client
+          vercel-args: '--prebuilt'
+
+      - name: Notify Slack (Client Deploy)
+        if: steps.changes.outputs.client == 'true'
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🍯 *새로운 잼이 완성됐어요!*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🍯 *새로운 잼이 완성됐어요!*\n\n*PR:* ${{ github.event.head_commit.message }}\n*URL:* ${{ steps.vercel-deploy.outputs.preview-url }}\n*작성자:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+
+      - name: Build server and dependencies
+        if: steps.changes.outputs.server == 'true'
+        run: pnpm --filter server... build
+
+      - name: Set up Docker Buildx
+        if: steps.changes.outputs.server == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to NCP Container Registry
+        if: steps.changes.outputs.server == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.NCP_REGISTRY_URL }}
+          username: ${{ secrets.NCP_ACCESS_KEY }}
+          password: ${{ secrets.NCP_SECRET_KEY }}
+
+      - name: Build and push Docker image
+        if: steps.changes.outputs.server == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/server/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.NCP_REGISTRY_URL }}/server:staging
+            ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.NCP_REGISTRY_URL }}/server:staging
+          cache-to: type=inline
+
+      - name: Deploy to NCP
+        if: steps.changes.outputs.server == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USERNAME }}
+          key: ${{ secrets.NCP_SSH_KEY }}
+          port: ${{ secrets.NCP_PORT }}
+          script: |
+            docker login -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }} ${{ secrets.NCP_REGISTRY_URL }}
+            docker pull ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
+            docker stop server-staging || true
+            docker rm server-staging || true
+            docker run -d \
+              --name server-staging \
+              --restart unless-stopped \
+              -p 3001:3000 \
+              --env-file /root/.env.staging \
+              ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
+            docker image prune -af
+
+      - name: Notify Slack (Server Deploy)
+        if: steps.changes.outputs.server == 'true'
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🛠️ *Staging 서버가 새로 배포됐어요!*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🛠️ *Staging 서버가 새로 배포됐어요!*\n\n*커밋:* ${{ github.event.head_commit.message }}\n*작성자:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }

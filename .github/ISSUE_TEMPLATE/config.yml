@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 질문 및 토론
+    url: https://github.com/boostcampwm2025/web08-JAMstack/discussions
+    about: 기술적인 질문이나 토론은 Discussions에서 진행해주세요
+  - name: 📚 위키 문서
+    url: https://github.com/boostcampwm2025/web08-JAMstack/wiki
+    about: 프로젝트 설정 및 가이드는 Wiki를 참고하세요
