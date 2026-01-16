@@ -2,20 +2,47 @@ import { useFileStore } from '@/stores/file';
 import { File } from './File';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FileHeader } from './components/FileHeader';
 
 export function FileList() {
   const getFileIdMap = useFileStore((state) => state.getFileIdMap);
-  const fileMap = getFileIdMap();
-  const count = fileMap?.size ?? 0;
-  const entries: [string, string][] = Object.entries(fileMap?.toJSON() ?? {});
+  const yDoc = useFileStore((state) => state.yDoc);
 
+  const [count, setCount] = useState(0);
+  const [entries, setEntries] = useState<[string, string][]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const me = usePt(myPtId);
   const hasPermission = me?.role === 'host' || me?.role === 'editor';
+
+  useEffect(() => {
+    const fileMap = getFileIdMap();
+    if (!fileMap) {
+      return;
+    }
+
+    // 초기값 설정
+    const updateFileList = () => {
+      const newEntries: [string, string][] = Object.entries(fileMap.toJSON());
+      setCount(newEntries.length);
+      setEntries(newEntries);
+    };
+
+    updateFileList();
+
+    // YMap 변경 감지
+    const observer = () => {
+      updateFileList();
+    };
+
+    fileMap.observe(observer);
+
+    return () => {
+      fileMap.unobserve(observer);
+    };
+  }, [yDoc, getFileIdMap]);
 
   return (
     <div className="w-full px-4">
