@@ -20,8 +20,6 @@ export function FileList() {
   useEffect(() => {
     const fileMap = getFileIdMap();
     if (!fileMap) {
-      setCount(0);
-      setEntries([]);
       return;
     }
 
