@@ -1,5 +1,17 @@
-export type ExtType = 'js' | 'ts' | 'jsx' | 'tsx' | 'html' | 'css' | undefined;
-export function extname(name: string): ExtType {
+export type ExtType =
+  | 'js'
+  | 'ts'
+  | 'jsx'
+  | 'tsx'
+  | 'html'
+  | 'css'
+  | 'cjs'
+  | 'mjs'
+  | 'shtml'
+  | 'ehtml'
+  | undefined;
+export function extname(name: string | undefined): ExtType {
+  if (!name) return undefined;
   const lastDot = name.trim().lastIndexOf('.');
 
   if (lastDot === -1) {
