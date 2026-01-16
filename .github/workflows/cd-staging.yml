@@ -59,6 +59,14 @@ jobs:
         if: steps.changes.outputs.client == 'true'
         run: |
           cd apps/client
+          mkdir -p .vercel
+          cat > .vercel/project.json <<'EOF'
+          {
+            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+            "projectName": "codejam"
+          }
+          EOF
           vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
           vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
@@ -139,6 +147,26 @@ jobs:
               --name server-staging \
               --restart unless-stopped \
               -p 3001:3000 \
-              --env-file /root/.env.prod \
+              --env-file /root/.env.staging \
               ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
-            docker image prune -af --filter "until=24h"
+            docker image prune -af
+
+      - name: Notify Slack (Server Deploy)
+        if: steps.changes.outputs.server == 'true'
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🛠️ *Staging 서버가 새로 배포됐어요!*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🛠️ *Staging 서버가 새로 배포됐어요!*\n\n*커밋:* ${{ github.event.head_commit.message }}\n*작성자:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }

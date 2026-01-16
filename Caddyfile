@@ -10,43 +10,9 @@
 }
 
 production.codejam.kro.kr {
-	@options method OPTIONS
-	handle @options {
-		header {
-			Access-Control-Allow-Origin "*"
-			Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-			Access-Control-Allow-Headers "Authorization, Content-Type"
-			Access-Control-Max-Age "86400"
-		}
-		respond 204
-	}
-
-	header {
-		Access-Control-Allow-Origin "*"
-		Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-		Access-Control-Allow-Headers "Authorization, Content-Type"
-	}
-
 	reverse_proxy localhost:3000
 }
 
 staging.codejam.kro.kr {
-	@options method OPTIONS
-	handle @options {
-		header {
-			Access-Control-Allow-Origin "*"
-			Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-			Access-Control-Allow-Headers "Authorization, Content-Type"
-			Access-Control-Max-Age "86400"
-		}
-		respond 204
-	}
-
-	header {
-		Access-Control-Allow-Origin "*"
-		Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-		Access-Control-Allow-Headers "Authorization, Content-Type"
-	}
-
 	reverse_proxy localhost:3001
 }

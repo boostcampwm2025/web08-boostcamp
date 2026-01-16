@@ -59,6 +59,14 @@ jobs:
         if: steps.changes.outputs.client == 'true'
         run: |
           cd apps/client
+          mkdir -p .vercel
+          cat > .vercel/project.json <<'EOF'
+          {
+            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+            "projectName": "codejam"
+          }
+          EOF
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
@@ -72,26 +80,6 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./apps/client
           vercel-args: '--prod --prebuilt'
-
-      - name: Notify Slack (Client Deploy)
-        if: steps.changes.outputs.client == 'true'
-        uses: slackapi/slack-github-action@v2
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": "🚀 잼이 프로덕션으로 발사되었습니다!",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "🚀 *잼이 프로덕션으로 발사되었습니다!*\n\n*커밋:* ${{ github.event.head_commit.message }}\n*URL:* ${{ steps.vercel-deploy.outputs.preview-url }}\n*작성자:* ${{ github.actor }}"
-                  }
-                }
-              ]
-            }
 
       - name: Build server and dependencies
         if: steps.changes.outputs.server == 'true'
@@ -142,4 +130,24 @@ jobs:
               -p 3000:3000 \
               --env-file /root/.env.prod \
               ${{ secrets.NCP_REGISTRY_URL }}/server:prod-${{ github.sha }}
-            docker image prune -af --filter "until=24h"
+            docker image prune -af
+
+      - name: Notify Slack (Production Deploy)
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚀 *Production 배포가 완료되었습니다!*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🚀 *Production 배포가 완료되었습니다!*\n\n*배포 항목:*\n${{ steps.changes.outputs.client == 'true' && '✅ Client' || '' }}${{ steps.changes.outputs.client == 'true' && steps.changes.outputs.server == 'true' && '\n' || '' }}${{ steps.changes.outputs.server == 'true' && '✅ Server' || '' }}\n\n*커밋:* ${{ github.event.head_commit.message }}${{ steps.changes.outputs.client == 'true' && format('\n*URL:* {0}', steps.vercel-deploy.outputs.production-url) || '' }}\n*작성자:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
