@@ -30,12 +30,19 @@ interface FileState {
   capacityPercentage: number;
   isOverLimit: boolean;
 
+  // Remote update lock - IME composition
+  isRemoteUpdateLocked: boolean;
+  pendingRemoteDocUpdates: Uint8Array[];
+  pendingRemoteAwarenessUpdates: Uint8Array[];
+
   // Actions
   initialize: (roomCode: string) => number;
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
+  setRemoteUpdateLock: (locked: boolean) => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
+  flushPendingRemoteUpdates: () => void;
   measureCapacity: () => number;
 
   // CRUD Actions
@@ -58,6 +65,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   capacityBytes: 0,
   capacityPercentage: 0,
   isOverLimit: false,
+
+  // Remote update lock 초기값
+  isRemoteUpdateLocked: false,
+  pendingRemoteDocUpdates: [],
+  pendingRemoteAwarenessUpdates: [],
 
   initialize: (roomCode: string) => {
     const state = get();
@@ -142,34 +154,77 @@ export const useFileStore = create<FileState>((set, get) => ({
     }
   },
 
+  setRemoteUpdateLock: (locked: boolean) => {
+    set({ isRemoteUpdateLocked: locked });
+    console.log('[Remote update lock]', locked);
+
+    // Flush when unlocked
+    if (!locked) get().flushPendingRemoteUpdates();
+  },
+
   applyRemoteDocUpdate: (message: Uint8Array) => {
-    const { yDoc } = get();
+    const { yDoc, isRemoteUpdateLocked } = get();
     if (!yDoc) return;
 
-    const update =
-      message instanceof Uint8Array ? message : new Uint8Array(message);
+    // Queue update if locked
+    if (isRemoteUpdateLocked) {
+      set((state) => {
+        const updates = [...state.pendingRemoteDocUpdates, message];
+        return { pendingRemoteDocUpdates: updates };
+      });
+      return;
+    }
 
-    const decoder = createDecoder(update);
-    const encoder = createEncoder();
+    // Apply remote update immediately
+    applyRemoteDocUpdate(yDoc, message);
+  },
 
-    readSyncMessage(decoder, encoder, yDoc, 'remote');
+  flushPendingRemoteUpdates: () => {
+    const {
+      yDoc,
+      awareness,
+      pendingRemoteDocUpdates,
+      pendingRemoteAwarenessUpdates,
+    } = get();
 
-    // Send reply if needed (sync protocol)
-    const reply = toUint8Array(encoder);
-    if (reply.byteLength > 0) {
-      const { roomCode } = useSocketStore.getState();
-      if (roomCode) emitFileUpdate(roomCode, reply);
+    if (
+      !yDoc ||
+      (pendingRemoteDocUpdates.length === 0 &&
+        pendingRemoteAwarenessUpdates.length === 0)
+    )
+      return;
+
+    // Clear the queues first to prevent re-entrancy issues
+    set({ pendingRemoteDocUpdates: [], pendingRemoteAwarenessUpdates: [] });
+
+    // Apply each queued doc update
+    pendingRemoteDocUpdates.forEach((message) => {
+      applyRemoteDocUpdate(yDoc, message);
+    });
+
+    // Apply each queued awareness update
+    if (awareness) {
+      pendingRemoteAwarenessUpdates.forEach((message) => {
+        applyRemoteAwarenessUpdate(awareness, message);
+      });
     }
   },
 
   applyRemoteAwarenessUpdate: (message: Uint8Array) => {
-    const state = get();
-    if (!state.awareness) return;
+    const { awareness, isRemoteUpdateLocked } = get();
+    if (!awareness) return;
 
-    const update =
-      message instanceof Uint8Array ? message : new Uint8Array(message);
+    // Queue update if locked
 
-    applyAwarenessUpdate(state.awareness, update, 'remote');
+    if (isRemoteUpdateLocked) {
+      set((state) => {
+        const updates = [...state.pendingRemoteAwarenessUpdates, message];
+        return { pendingRemoteAwarenessUpdates: updates };
+      });
+      return;
+    }
+
+    applyRemoteAwarenessUpdate(awareness, message);
   },
 
   destroy: () => {
@@ -311,3 +366,36 @@ export const useFileStore = create<FileState>((set, get) => ({
     return total;
   },
 }));
+
+/**
+ * Apply remote doc update to Y.Doc (internal helper)
+ */
+const applyRemoteDocUpdate = (yDoc: Doc, message: Uint8Array) => {
+  const update =
+    message instanceof Uint8Array ? message : new Uint8Array(message);
+
+  const decoder = createDecoder(update);
+  const encoder = createEncoder();
+
+  readSyncMessage(decoder, encoder, yDoc, 'remote');
+
+  // Send reply if needed (sync protocol)
+  const reply = toUint8Array(encoder);
+  if (reply.byteLength > 0) {
+    const { roomCode } = useSocketStore.getState();
+    if (roomCode) emitFileUpdate(roomCode, reply);
+  }
+};
+
+/**
+ * Apply remote awareness update (internal helper)
+ */
+const applyRemoteAwarenessUpdate = (
+  awareness: Awareness,
+  message: Uint8Array,
+) => {
+  const update =
+    message instanceof Uint8Array ? message : new Uint8Array(message);
+
+  applyAwarenessUpdate(awareness, update, 'remote');
+};

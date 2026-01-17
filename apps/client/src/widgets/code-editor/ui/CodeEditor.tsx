@@ -12,6 +12,7 @@ import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
+import { useFileStore } from '@/stores/file';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -49,6 +50,10 @@ export default function CodeEditor({
   const { isDark } = useDarkMode();
   const { fontSize } = useSettings();
 
+  const setRemoteUpdateLock = useFileStore(
+    (state) => state.setRemoteUpdateLock,
+  );
+
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
 
@@ -58,7 +63,6 @@ export default function CodeEditor({
         basicSetup,
         yCollab(yText, awareness),
         getLanguageExtension(language),
-        safeInput({ allowAscii: true }),
         EditorState.readOnly.of(readOnly), // viewer일 때만 완전 읽기 전용
         themeCompartment.of(isDark ? oneDark : []),
         fontSizeCompartment.of(
@@ -82,7 +86,18 @@ export default function CodeEditor({
 
     viewRef.current = view;
 
+    // Set up composition event listeners for IME
+    const onCompositionStart = () => setRemoteUpdateLock(true);
+    const onCompositionEnd = () => setRemoteUpdateLock(false);
+
+    const editorDOM = view.dom;
+    editorDOM.addEventListener('compositionstart', onCompositionStart);
+    editorDOM.addEventListener('compositionend', onCompositionEnd);
+
     return () => {
+      editorDOM.removeEventListener('compositionstart', onCompositionStart);
+      editorDOM.removeEventListener('compositionend', onCompositionEnd);
+      setRemoteUpdateLock(false); // Unlock on cleanup
       view.destroy();
     };
   }, [
@@ -94,6 +109,7 @@ export default function CodeEditor({
     fontSizeCompartment,
     fontSize,
     isDark,
+    setRemoteUpdateLock,
   ]);
 
   useEffect(() => {
