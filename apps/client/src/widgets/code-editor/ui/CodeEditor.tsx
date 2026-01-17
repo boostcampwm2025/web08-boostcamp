@@ -7,9 +7,9 @@ import { css } from '@codemirror/lang-css';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { useYText } from '@/shared/lib/hooks/useYText';
 import { yCollab } from 'y-codemirror.next';
-import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
+import { compositionTracker } from '../plugin/CompositionTracker';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
 import { useFileStore } from '@/stores/file';
@@ -63,6 +63,7 @@ export default function CodeEditor({
         basicSetup,
         yCollab(yText, awareness),
         getLanguageExtension(language),
+        compositionTracker(setRemoteUpdateLock), // IME composition tracker
         EditorState.readOnly.of(readOnly), // viewer일 때만 완전 읽기 전용
         themeCompartment.of(isDark ? oneDark : []),
         fontSizeCompartment.of(
@@ -86,65 +87,7 @@ export default function CodeEditor({
 
     viewRef.current = view;
 
-    /**
-     * IME Composition Lock
-     *
-     * Prevents remote Y.js updates during IME composition
-     * Remote doc and awareness updates are queued and flushed when composition ends.
-     *
-     * Idle timeout: If composition doesn't end within 30 seconds
-     * force unlock to prevent indefinite queuing of remote updates.
-     */
-    const COMPOSITION_IDLE_TIMEOUT = 30 * 1000; // 30 seconds
-    let compositionIdleTimer: number | null = null;
-
-    // Force cancel composition by blurring
-    const onCompositionTimeout: () => void = () => {
-      // Clear timer
-      if (compositionIdleTimer) {
-        clearTimeout(compositionIdleTimer);
-        compositionIdleTimer = null;
-      }
-
-      // Blur and unlock
-      view.contentDOM.blur();
-      setTimeout(() => view.focus(), 0);
-      setRemoteUpdateLock(false);
-    };
-
-    const onCompositionStart = () => {
-      setRemoteUpdateLock(true);
-
-      // Unlock after timeout to handle stuck composition states
-      compositionIdleTimer = setTimeout(
-        onCompositionTimeout,
-        COMPOSITION_IDLE_TIMEOUT,
-      );
-    };
-
-    const onCompositionEnd = () => {
-      setRemoteUpdateLock(false);
-
-      // Clear timeout since composition ended normally
-      if (compositionIdleTimer) {
-        clearTimeout(compositionIdleTimer);
-        compositionIdleTimer = null;
-      }
-    };
-
-    const editorDOM = view.dom;
-    editorDOM.addEventListener('compositionstart', onCompositionStart);
-    editorDOM.addEventListener('compositionend', onCompositionEnd);
-
-    return () => {
-      editorDOM.removeEventListener('compositionstart', onCompositionStart);
-      editorDOM.removeEventListener('compositionend', onCompositionEnd);
-
-      if (compositionIdleTimer) clearTimeout(compositionIdleTimer);
-      setRemoteUpdateLock(false); // Unlock on cleanup
-
-      view.destroy();
-    };
+    return () => view.destroy();
   }, [
     yText,
     awareness,

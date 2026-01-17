@@ -155,11 +155,15 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   setRemoteUpdateLock: (locked: boolean) => {
+    // Prevent redundant operations
+    if (locked === get().isRemoteUpdateLocked) return;
+
+    // Flush before unlocking
+    // This prevents new updates from being processed while flushing
+    if (!locked) get().flushPendingRemoteUpdates();
+
     set({ isRemoteUpdateLocked: locked });
     console.log('[Remote update lock]', locked);
-
-    // Flush when unlocked
-    if (!locked) get().flushPendingRemoteUpdates();
   },
 
   applyRemoteDocUpdate: (message: Uint8Array) => {
