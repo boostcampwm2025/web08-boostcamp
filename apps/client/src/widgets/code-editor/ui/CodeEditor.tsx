@@ -86,9 +86,51 @@ export default function CodeEditor({
 
     viewRef.current = view;
 
-    // Set up composition event listeners for IME
-    const onCompositionStart = () => setRemoteUpdateLock(true);
-    const onCompositionEnd = () => setRemoteUpdateLock(false);
+    /**
+     * IME Composition Lock
+     *
+     * Prevents remote Y.js updates during IME composition
+     * Remote doc and awareness updates are queued and flushed when composition ends.
+     *
+     * Idle timeout: If composition doesn't end within 30 seconds
+     * force unlock to prevent indefinite queuing of remote updates.
+     */
+    const COMPOSITION_IDLE_TIMEOUT = 30 * 1000; // 30 seconds
+    let compositionIdleTimer: number | null = null;
+
+    // Force cancel composition by blurring
+    const onCompositionTimeout: () => void = () => {
+      // Clear timer
+      if (compositionIdleTimer) {
+        clearTimeout(compositionIdleTimer);
+        compositionIdleTimer = null;
+      }
+
+      // Blur and unlock
+      view.contentDOM.blur();
+      setTimeout(() => view.focus(), 0);
+      setRemoteUpdateLock(false);
+    };
+
+    const onCompositionStart = () => {
+      setRemoteUpdateLock(true);
+
+      // Unlock after timeout to handle stuck composition states
+      compositionIdleTimer = setTimeout(
+        onCompositionTimeout,
+        COMPOSITION_IDLE_TIMEOUT,
+      );
+    };
+
+    const onCompositionEnd = () => {
+      setRemoteUpdateLock(false);
+
+      // Clear timeout since composition ended normally
+      if (compositionIdleTimer) {
+        clearTimeout(compositionIdleTimer);
+        compositionIdleTimer = null;
+      }
+    };
 
     const editorDOM = view.dom;
     editorDOM.addEventListener('compositionstart', onCompositionStart);
@@ -97,7 +139,10 @@ export default function CodeEditor({
     return () => {
       editorDOM.removeEventListener('compositionstart', onCompositionStart);
       editorDOM.removeEventListener('compositionend', onCompositionEnd);
+
+      if (compositionIdleTimer) clearTimeout(compositionIdleTimer);
       setRemoteUpdateLock(false); // Unlock on cleanup
+
       view.destroy();
     };
   }, [
