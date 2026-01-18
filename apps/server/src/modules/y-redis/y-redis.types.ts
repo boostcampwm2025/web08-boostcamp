@@ -21,4 +21,14 @@ export interface IPersistenceDoc {
   getUpdates(): Promise<IPersistenceDoc>;
 }
 
+/**
+ * The result of the compaction process.
+ * @field snapshot - A binary Uint8Array representing the integrated state of all Y.Doc updates.
+ * @field clock - The offset (logical timestamp) of the last update included in this snapshot.
+ */
+export interface CompactionResult {
+  snapshot: Uint8Array;
+  clock: number;
+}
+
 export type UpdateHandler = (update: Uint8Array) => void;

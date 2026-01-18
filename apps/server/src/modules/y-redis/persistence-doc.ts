@@ -3,8 +3,13 @@ import { createMutex, mutex } from 'lib0/mutex';
 import { Logger } from '@nestjs/common';
 import type { Redis } from 'ioredis';
 import { YRedis } from './y-redis.types';
-import { getUpdatesKey } from './y-redis.utils';
-import type { IPersistenceDoc, UpdateHandler } from './y-redis.types';
+import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
+import { COMPACT_SCRIPT } from './y-redis.constants';
+import type {
+  IPersistenceDoc,
+  CompactionResult,
+  UpdateHandler,
+} from './y-redis.types';
 
 export class PersistenceDoc implements IPersistenceDoc {
   private readonly logger = new Logger(PersistenceDoc.name);
@@ -89,9 +94,16 @@ export class PersistenceDoc implements IPersistenceDoc {
   async getUpdates(): Promise<PersistenceDoc> {
     const startClock = this._clock;
 
+    // Read offset from Redis (defaults to 0 if not exists)
+    const offsetStr = await this.redis.get(getOffsetKey(this.name));
+    const offset = offsetStr ? parseInt(offsetStr, 10) : 0;
+
+    // Calculate physical index
+    const physicalStartIndex = startClock - offset;
+
     const updates = await this.redis.lrangeBuffer(
       getUpdatesKey(this.name),
-      startClock,
+      physicalStartIndex,
       -1,
     );
 
@@ -129,5 +141,48 @@ export class PersistenceDoc implements IPersistenceDoc {
     }
 
     return this.getUpdates();
+  }
+
+  async compact(): Promise<CompactionResult> {
+    const { updates, newOffset } = await this.consumeUpdates();
+
+    const message = `Compacting ${updates.length} updates for ${this.name}`;
+    this.logger.debug(message);
+
+    // Create snapshot by merging all updates
+
+    const tempDoc = new Y.Doc();
+    tempDoc.transact(() => {
+      updates.forEach((update) => {
+        Y.applyUpdate(tempDoc, update);
+      });
+    });
+
+    const snapshot = Y.encodeStateAsUpdate(tempDoc);
+
+    const compactMessage = `Compacted ${this.name}: 
+      removed ${updates.length} updates, new offset: ${newOffset}`;
+    this.logger.log(compactMessage);
+
+    return { snapshot, clock: newOffset };
+  }
+
+  private async consumeUpdates(): Promise<{
+    updates: Buffer[];
+    newOffset: number;
+  }> {
+    const updatesKey = getUpdatesKey(this.name);
+    const offsetKey = getOffsetKey(this.name);
+
+    // Execute Lua script for atomicity
+
+    const [updates, newOffsetStr] = (await this.redis.eval(
+      COMPACT_SCRIPT,
+      2,
+      updatesKey,
+      offsetKey,
+    )) as [Buffer[], string];
+
+    return { updates, newOffset: Number(newOffsetStr) };
   }
 }

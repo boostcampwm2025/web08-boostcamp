@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import * as Y from 'yjs';
 import { Redis } from 'ioredis';
-import { YRedis } from './y-redis.types';
-import { getUpdatesKey } from './y-redis.utils';
+import { YRedis, CompactionResult } from './y-redis.types';
+import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import { PersistenceDoc } from './persistence-doc';
 
 @Injectable()
@@ -89,6 +89,17 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     return result === 1;
   }
 
+  async compactDoc(name: string): Promise<CompactionResult> {
+    const doc = this.docs.get(name);
+
+    if (!doc) {
+      const message = `DOCUMENT_NOT_FOUND: ${name}`;
+      throw new Error(message);
+    }
+
+    return doc.compact();
+  }
+
   async closeDoc(name: string): Promise<void> {
     const doc = this.docs.get(name);
     if (doc) {
@@ -103,8 +114,9 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     const doc = this.docs.get(name);
     if (doc) await doc.destroy();
 
-    const key = getUpdatesKey(name);
-    const result = await this.redis.del(key);
+    const updatesKey = getUpdatesKey(name);
+    const offsetKey = getOffsetKey(name);
+    const result = await this.redis.del(updatesKey, offsetKey);
 
     const message = `Cleared document: ${name}`;
     this.logger.debug(message);
@@ -114,8 +126,9 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
 
   async clearAllDocs(): Promise<void> {
     const deletePromises = Array.from(this.docs.keys()).map((name) => {
-      const key = getUpdatesKey(name);
-      return this.redis.del(key);
+      const updatesKey = getUpdatesKey(name);
+      const offsetKey = getOffsetKey(name);
+      return this.redis.del(updatesKey, offsetKey);
     });
 
     await Promise.all(deletePromises);
