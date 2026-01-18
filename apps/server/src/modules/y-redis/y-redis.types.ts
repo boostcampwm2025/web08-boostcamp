@@ -6,6 +6,12 @@ export type YRedis = Redis & RedisBuffer;
 export type RedisBuffer = {
   rpushBuffer(key: string, value: Buffer): Promise<number>;
   lrangeBuffer(key: string, start: number, stop: number): Promise<Buffer[]>;
+
+  evalBuffer(
+    script: string,
+    numKeys: number,
+    ...args: (string | number | Buffer)[]
+  ): Promise<any>;
 };
 
 export interface YRedisOptions {

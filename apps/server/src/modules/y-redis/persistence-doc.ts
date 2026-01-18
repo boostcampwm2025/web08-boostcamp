@@ -335,7 +335,7 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     // LRANGE updates + GET offset
 
-    const [updates, offset] = (await this.redis.eval(
+    const [updates, offset] = (await this.redis.evalBuffer(
       FETCH_UPDATES_SCRIPT,
       2,
       updatesKey,
@@ -356,7 +356,7 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     // LTRIM updates + SET new offset
 
-    const [updates, newOffset] = (await this.redis.eval(
+    const [updates, newOffset] = (await this.redis.evalBuffer(
       COMPACT_SCRIPT,
       2,
       updatesKey,
