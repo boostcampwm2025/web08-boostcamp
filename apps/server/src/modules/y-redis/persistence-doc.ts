@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 import type { Redis } from 'ioredis';
 import { YRedis } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
-import { COMPACT_SCRIPT } from './y-redis.constants';
+import { COMPACT_SCRIPT, PUSH_UPDATE_SCRIPT } from './y-redis.constants';
 import type {
   IPersistenceDoc,
   CompactionResult,
@@ -32,27 +32,29 @@ export class PersistenceDoc implements IPersistenceDoc {
     public readonly doc: Y.Doc,
   ) {
     this.mtx = createMutex();
-    this.key = getUpdatesKey(this.name);
 
     this.updateHandler = (update: Uint8Array) => {
       // mtx: only store update in redis if this document update does not originate from redis
       this.mtx(() => {
         this._totalByteLength += update.byteLength;
 
-        this.redis
-          .rpushBuffer(this.key, Buffer.from(update))
-          .then((len: number) => {
-            if (len === this._clock + 1) {
+        this.pushUpdate(Buffer.from(update))
+          .then(({ len, offset }) => {
+            const logicalClock = len + offset;
+
+            if (logicalClock === this._clock + 1) {
               this._clock++;
               if (this._fetchingClock < this._clock) {
                 this._fetchingClock = this._clock;
               }
             }
 
-            this.redis.publish(this.name, len.toString()).catch((err) => {
-              const message = `Failed to publish update to Redis: ${err.message}`;
-              this.logger.error(message);
-            });
+            this.redis
+              .publish(this.name, logicalClock.toString())
+              .catch((err) => {
+                const message = `Failed to publish update to Redis: ${err.message}`;
+                this.logger.error(message);
+              });
           })
           .catch((err) => {
             const message = `Failed to push update to Redis: ${err.message}`;
@@ -167,6 +169,25 @@ export class PersistenceDoc implements IPersistenceDoc {
     return { snapshot, clock: newOffset };
   }
 
+  private async pushUpdate(
+    update: Buffer,
+  ): Promise<{ len: number; offset: number }> {
+    const updatesKey = getUpdatesKey(this.name);
+    const offsetKey = getOffsetKey(this.name);
+
+    // Execute Lua script atomically
+    // RPUSH + GET offset
+    const [len, offset] = (await this.redis.eval(
+      PUSH_UPDATE_SCRIPT,
+      2,
+      updatesKey,
+      offsetKey,
+      update,
+    )) as [number, number];
+
+    return { len, offset };
+  }
+
   private async consumeUpdates(): Promise<{
     updates: Buffer[];
     newOffset: number;
@@ -174,15 +195,15 @@ export class PersistenceDoc implements IPersistenceDoc {
     const updatesKey = getUpdatesKey(this.name);
     const offsetKey = getOffsetKey(this.name);
 
-    // Execute Lua script for atomicity
+    // Execute Lua script atomically
 
-    const [updates, newOffsetStr] = (await this.redis.eval(
+    const [updates, newOffset] = (await this.redis.eval(
       COMPACT_SCRIPT,
       2,
       updatesKey,
       offsetKey,
-    )) as [Buffer[], string];
+    )) as [Buffer[], number];
 
-    return { updates, newOffset: Number(newOffsetStr) };
+    return { updates, newOffset };
   }
 }
