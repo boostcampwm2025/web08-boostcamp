@@ -5,6 +5,7 @@ import type { Redis } from 'ioredis';
 import { YRedis } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import {
+  REDIS_KEY_TTL,
   COMPACT_SCRIPT,
   PUSH_UPDATE_SCRIPT,
   FETCH_UPDATES_SCRIPT,
@@ -296,6 +297,7 @@ export class PersistenceDoc implements IPersistenceDoc {
       updatesKey,
       offsetKey,
       update,
+      REDIS_KEY_TTL,
     )) as [number, number];
 
     return { len, offset };
@@ -315,6 +317,7 @@ export class PersistenceDoc implements IPersistenceDoc {
       updatesKey,
       offsetKey,
       clock,
+      REDIS_KEY_TTL,
     )) as [Buffer[], number];
 
     return { updates, offset };

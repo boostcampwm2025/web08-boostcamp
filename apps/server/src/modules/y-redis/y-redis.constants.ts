@@ -1,6 +1,10 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+// Redis key TTL
+
+export const REDIS_KEY_TTL = 24 * 60 * 60 + 60 * 60; // 24H + 1H
+
 // Load Lua scripts
 
 export const COMPACT_SCRIPT = readFileSync(

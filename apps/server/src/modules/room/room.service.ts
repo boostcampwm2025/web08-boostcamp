@@ -110,6 +110,7 @@ export class RoomService {
         room: savedRoom,
         roomId: savedRoom.roomId,
         content: this.fileService.generateInitialSnapshot(),
+        clock: 1,
       });
 
       await queryRunner.manager.save(document);
