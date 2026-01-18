@@ -17,20 +17,8 @@ export interface IPersistenceDoc {
   name: string;
   doc: Y.Doc;
   synced: Promise<IPersistenceDoc>;
-  initialize(options: PersistenceDocInitializeOptions): void;
   destroy(): Promise<void>;
   getUpdates(retryCount?: number): Promise<IPersistenceDoc>;
-}
-
-/**
- * Options for initializing PersistenceDoc state from external source
- */
-export interface PersistenceDocInitializeOptions {
-  /** Logical clock value from snapshot */
-  clock: number;
-
-  /** Total byte length of all updates (for tracking) */
-  totalByteLength: number;
 }
 
 /**
@@ -48,7 +36,7 @@ export type UpdateHandler = (update: Uint8Array) => void;
 /**
  * Callback to get snapshot from external storage (e.g., database)
  */
-export type GetSnapshotCallback = () => Promise<{
-  snapshot: Buffer;
+export type GetLatestDocStateCallback = () => Promise<{
+  snapshot: Uint8Array | null;
   clock: number;
 }>;

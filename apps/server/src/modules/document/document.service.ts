@@ -71,4 +71,13 @@ export class DocumentService {
 
     return documents.map((doc) => doc.docId);
   }
+
+  async getLatestDocState(docId: string): Promise<Document | null> {
+    const document = await this.documentRepository.findOne({
+      where: { docId },
+      select: ['docId', 'content', 'clock'],
+    });
+
+    return document;
+  }
 }

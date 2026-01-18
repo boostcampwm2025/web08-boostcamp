@@ -473,27 +473,40 @@ export class FileService {
   /**
    * Hydrate Y.Doc
    *
-   * 1. Check if doc exists in Redis (lookahead)
-   * 2. Bind to Redis for persistence
-   * 3. If not in Redis, restore snapshot from DB
+   * Load snapshot and clock from DB
+   * Bind to Redis for persistence with initial snapshot and clock
+   * Wait for synchronization with Redis
    */
   private async hydrateDoc(docId: string, doc: Doc): Promise<void> {
-    // Lookahead - Check if doc exists in Redis
-    const existsInRedis = await this.yRedis.hasDocInRedis(docId);
+    // Load snapshot from DB
 
-    // Bind to Redis for persistence and hydration
-    // It can be empty
-    const pdoc = this.yRedis.bind(docId, doc);
-    await pdoc.synced; // Wait for hydration from Redis
+    const document = await this.documentService.getLatestDocState(docId);
+    if (!document) throw new Error(`DOCUMENT_NOT_FOUND: ${docId}`);
 
-    // If not in Redis, restore snapshot from DB
-    if (!existsInRedis) {
-      const content = await this.documentService.getDocContentById(docId);
-      if (content) {
-        applyUpdate(doc, new Uint8Array(content));
-        this.logger.log(`📄 Restored Y.Doc from DB for document: ${docId}`);
-      }
-    }
+    const snapshot = document.content;
+    const clock = document.clock;
+
+    // Define getSnapshot callback for resilience
+
+    const getLatestDocState = async () => {
+      const document = await this.documentService.getLatestDocState(docId);
+      if (!document) throw new Error(`DOCUMENT_NOT_FOUND: ${docId}`);
+
+      const { content, clock } = document;
+      return { snapshot: content, clock };
+    };
+
+    // Bind to Redis
+
+    const pdoc = this.yRedis.bind(
+      docId,
+      doc,
+      snapshot,
+      clock,
+      getLatestDocState,
+    );
+
+    await pdoc.synced; // Wait for hydration from DB + Redis
   }
 
   /** Generate File ID - UUID v7 */

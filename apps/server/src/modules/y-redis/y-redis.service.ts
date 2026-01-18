@@ -7,7 +7,11 @@ import {
 } from '@nestjs/common';
 import * as Y from 'yjs';
 import { Redis } from 'ioredis';
-import { YRedis, CompactionResult, GetSnapshotCallback } from './y-redis.types';
+import {
+  YRedis,
+  CompactionResult,
+  GetLatestDocStateCallback,
+} from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import { PersistenceDoc } from './persistence-doc';
 
@@ -64,7 +68,9 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   bind(
     name: string,
     ydoc: Y.Doc,
-    getSnapshot: GetSnapshotCallback,
+    initialSnapshot: Buffer | null,
+    initialClock: number,
+    getLatestDocState: GetLatestDocStateCallback,
   ): PersistenceDoc {
     if (this.docs.has(name)) {
       const message = `"${name}" is already bound to this YRedis instance`;
@@ -74,10 +80,11 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     const pd = new PersistenceDoc(
       this.redis,
       this.sub,
-      this.docs,
       name,
       ydoc,
-      getSnapshot,
+      initialSnapshot,
+      initialClock,
+      getLatestDocState,
     );
     this.docs.set(name, pd);
 
@@ -92,12 +99,6 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
 
   hasDoc(name: string): boolean {
     return this.docs.has(name);
-  }
-
-  async hasDocInRedis(name: string): Promise<boolean> {
-    const key = getUpdatesKey(name);
-    const result = await this.redis.exists(key);
-    return result === 1;
   }
 
   async compactDoc(
@@ -116,17 +117,19 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
 
   async closeDoc(name: string): Promise<void> {
     const doc = this.docs.get(name);
-    if (doc) {
-      await doc.destroy();
+    if (!doc) return;
 
-      const message = `Closed document: ${name}`;
-      this.logger.debug(message);
-    }
+    await doc.destroy();
+    this.docs.delete(name);
+
+    const message = `Closed document: ${name}`;
+    this.logger.debug(message);
   }
 
   async clearDoc(name: string): Promise<number> {
     const doc = this.docs.get(name);
     if (doc) await doc.destroy();
+    this.docs.delete(name);
 
     const updatesKey = getUpdatesKey(name);
     const offsetKey = getOffsetKey(name);
