@@ -33,7 +33,7 @@ import type {
  * Callback design:
  * - **getLatestDocState**: Provided at construction, called during clock inconsistency recovery
  *   Returns { snapshot, clock } from persistent storage (e.g., database)
- * - **onCompactComplete**: Provided to compact(), called after compaction completes
+ * - **onCompact**: Provided to compact(), called on compaction
  *   Receives CompactionResult to save to persistent storage
  *
  * Initialization:
@@ -273,36 +273,35 @@ export class PersistenceDoc implements IPersistenceDoc {
   }
 
   async compact(
-    onCompactComplete?: (snapshot: Uint8Array, clock: number) => Promise<void>,
+    onCompact?: (snapshot: Uint8Array, clock: number) => Promise<void>,
   ): Promise<CompactionResult> {
-    const { updates, newOffset } = await this.consumeUpdates();
+    // Capture current clock
+    const targetClock = this._clock;
 
-    const message = `Compacting ${updates.length} updates for ${this.name}`;
+    // Generate snapshot from current Y.doc state
+    // Y.doc already contains the full state
+    const snapshot = Y.encodeStateAsUpdate(this.doc);
+
+    // Save to data first - this ensures crash safety
+    // If we crash after database save but before Redis compact,
+    // Redis will have redundant updates, which is safe due to Yjs idempotency
+    if (onCompact) {
+      await onCompact(snapshot, targetClock);
+    }
+
+    // Now compact Redis up to target clock
+    // This ensures snapshot and offset are synchronized
+    const { updates, newOffset } = await this.consumeUpdates(targetClock);
+
+    const message = `Compacted ${updates.length} updates for ${this.name}`;
     this.logger.debug(message);
 
-    // Create snapshot by merging all updates
-
-    const tempDoc = new Y.Doc();
-
-    tempDoc.transact(() => {
-      updates.forEach((update) => {
-        Y.applyUpdate(tempDoc, update);
-      });
-    });
-
-    const snapshot = Y.encodeStateAsUpdate(tempDoc);
     this._snapshotByteLength = snapshot.byteLength;
     this._updatesByteLength = 0;
 
     const compactMessage = `Compacted ${this.name}:
       removed ${updates.length} updates, new offset: ${newOffset}`;
     this.logger.log(compactMessage);
-
-    // Call callback if provided
-
-    if (onCompactComplete) {
-      await onCompactComplete(snapshot, newOffset);
-    }
 
     return { snapshot, clock: newOffset };
   }
@@ -347,7 +346,7 @@ export class PersistenceDoc implements IPersistenceDoc {
     return { updates, offset };
   }
 
-  private async consumeUpdates(): Promise<{
+  private async consumeUpdates(clock: number): Promise<{
     updates: Buffer[];
     newOffset: number;
   }> {
@@ -361,6 +360,7 @@ export class PersistenceDoc implements IPersistenceDoc {
       2,
       updatesKey,
       offsetKey,
+      clock,
     )) as [Buffer[], number];
 
     return { updates, newOffset };
