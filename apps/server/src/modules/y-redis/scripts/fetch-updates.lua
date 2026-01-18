@@ -11,7 +11,13 @@ local offset = tonumber(offsetStr or "0")
 local clock = tonumber(ARGV[1])
 local index = clock - offset
 
-if index < 0 then index = 0 end
+-- Consistency Recovery
+-- The local clock is behind the Redis offset (clock < offset).
+-- This occurs if Redis was compacted but the DB snapshot update is still in progress.
+-- Return an empty list to let the app trigger a snapshot reload from the database.
+if clock < offset then
+  return { {}, offset }
+end
 
 -- Fetch updates from physical index to end
 local updates = redis.call('LRANGE', KEYS[1], index, -1)

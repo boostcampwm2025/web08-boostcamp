@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import * as Y from 'yjs';
 import { Redis } from 'ioredis';
-import { YRedis, CompactionResult } from './y-redis.types';
+import { YRedis, CompactionResult, GetSnapshotCallback } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import { PersistenceDoc } from './persistence-doc';
 
@@ -61,13 +61,24 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     await this.destroy();
   }
 
-  bind(name: string, ydoc: Y.Doc): PersistenceDoc {
+  bind(
+    name: string,
+    ydoc: Y.Doc,
+    getSnapshot: GetSnapshotCallback,
+  ): PersistenceDoc {
     if (this.docs.has(name)) {
       const message = `"${name}" is already bound to this YRedis instance`;
       throw new Error(message);
     }
 
-    const pd = new PersistenceDoc(this.redis, this.sub, this.docs, name, ydoc);
+    const pd = new PersistenceDoc(
+      this.redis,
+      this.sub,
+      this.docs,
+      name,
+      ydoc,
+      getSnapshot,
+    );
     this.docs.set(name, pd);
 
     const message = `Bound state for document: ${name}`;
@@ -89,7 +100,10 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     return result === 1;
   }
 
-  async compactDoc(name: string): Promise<CompactionResult> {
+  async compactDoc(
+    name: string,
+    onCompactComplete?: (result: CompactionResult) => Promise<void>,
+  ): Promise<CompactionResult> {
     const doc = this.docs.get(name);
 
     if (!doc) {
@@ -97,7 +111,7 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
       throw new Error(message);
     }
 
-    return doc.compact();
+    return doc.compact(onCompactComplete);
   }
 
   async closeDoc(name: string): Promise<void> {

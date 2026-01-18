@@ -13,8 +13,38 @@ import type {
   IPersistenceDoc,
   CompactionResult,
   UpdateHandler,
+  PersistenceDocInitializeOptions as InitializeOptions,
+  GetSnapshotCallback,
 } from './y-redis.types';
 
+/**
+ * PersistenceDoc - Redis-backed Y.Doc persistence layer
+ *
+ * Manages Y.Doc updates in Redis with support for compaction.
+ *
+ * Key concepts:
+ * - Updates: A list of Y.Doc updates stored in Redis. Each update is a binary.
+ * - Offset: Total number of compacted/removed updates (stored in Redis)
+ * - Logical Clock (_clock): Total number of updates seen by this instance
+ * - Physical Index: Position in Redis list = clock - offset
+ *
+ * Callback design:
+ * - **getSnapshot**: Provided at construction, called during clock inconsistency recovery
+ *   Returns { snapshot, clock, totalByteLength? } from persistent storage (e.g., database)
+ * - **onCompactComplete**: Provided to compact(), called after compaction completes
+ *   Receives CompactionResult to save to persistent storage
+ *
+ * Initialization:
+ * 1. **Recommended**: Call initialize(options) after binding with clock from DB
+ *    - Avoids inconsistency handling if clock matches offset
+ * 2. **Auto-Recovery**: Don't call initialize() or pass clock=0
+ *    - If offset > 0, triggers getSnapshot callback to reload
+ *
+ * Consistency guarantee:
+ * - When `clock < offset`, triggers snapshot reload via `getSnapshot` callback
+ * - This can happen during initial hydration or if database snapshot is stale
+ * - getUpdates() implements exponential backoff retry with snapshot reload
+ */
 export class PersistenceDoc implements IPersistenceDoc {
   private readonly logger = new Logger(PersistenceDoc.name);
 
@@ -24,6 +54,7 @@ export class PersistenceDoc implements IPersistenceDoc {
   private _fetchingClock = 0;
   private _totalByteLength = 0;
   private readonly updateHandler: UpdateHandler;
+  private readonly getSnapshot: GetSnapshotCallback;
 
   public readonly synced: Promise<PersistenceDoc>;
 
@@ -33,8 +64,11 @@ export class PersistenceDoc implements IPersistenceDoc {
     private readonly docs: Map<string, PersistenceDoc>,
     public readonly name: string,
     public readonly doc: Y.Doc,
+
+    getSnapshot: GetSnapshotCallback,
   ) {
     this.mtx = createMutex();
+    this.getSnapshot = getSnapshot;
 
     this.updateHandler = (update: Uint8Array) => {
       // mtx: only store update in redis if this document update does not originate from redis
@@ -90,17 +124,34 @@ export class PersistenceDoc implements IPersistenceDoc {
     return this._totalByteLength;
   }
 
+  /**
+   * Initialize PersistenceDoc state from external source (e.g., DB snapshot)
+   * Call this before syncing to avoid triggering inconsistency handling
+   * If not called, clock defaults to 0 and inconsistency logic may fire
+   */
+  initialize(options: InitializeOptions): void {
+    this._clock = options.clock;
+    this._fetchingClock = options.clock;
+    this._totalByteLength = options.totalByteLength;
+  }
+
   async destroy(): Promise<void> {
     this.doc.off('update', this.updateHandler);
     this.docs.delete(this.name);
     await this.sub.unsubscribe(this.name);
   }
 
-  async getUpdates(): Promise<PersistenceDoc> {
+  async getUpdates(retries?: number): Promise<PersistenceDoc> {
+    const currentRetries = retries ?? 0;
     const startClock = this._clock;
 
     // Fetch offset and updates atomically
-    const { offset, updates } = await this.fetchUpdates(startClock);
+    const { updates, offset } = await this.fetchUpdates(startClock);
+
+    // Resilience check: detect clock behind offset
+    if (startClock < offset) {
+      return this.handleClockInconsistency(startClock, offset, currentRetries);
+    }
 
     const message = `Fetched ${updates.length} updates for ${this.name} (offset: ${offset})`;
     this.logger.debug(message);
@@ -135,10 +186,70 @@ export class PersistenceDoc implements IPersistenceDoc {
       this._fetchingClock = this._clock;
     }
 
-    return this.getUpdates();
+    // Recursive call to catch up if new updates arrived during the current fetch
+    return this.getUpdates(0);
   }
 
-  async compact(): Promise<CompactionResult> {
+  /**
+   * Handle clock inconsistency when local clock is behind Redis offset
+   * This can happen when Redis compaction completes but DB snapshot update is still in progress
+   */
+  private async handleClockInconsistency(
+    clock: number,
+    offset: number,
+    currentRetries: number,
+  ): Promise<PersistenceDoc> {
+    const MAX_RETRIES = 5;
+    const BASE_DELAY_MS = 50;
+
+    if (currentRetries >= MAX_RETRIES) {
+      const errorMsg =
+        `Clock inconsistency persisted after ${MAX_RETRIES} retries. ` +
+        `clock=${clock}, offset=${offset}. ` +
+        `This indicates DB snapshot is behind Redis compaction. ` +
+        `Please check DB snapshot and Redis offset synchronization.`;
+      this.logger.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    const delay = BASE_DELAY_MS * Math.pow(2, currentRetries);
+    const warnMsg =
+      `Clock inconsistency detected: clock=${clock} < offset=${offset}. ` +
+      `Reloading from DB after ${delay}ms (retry ${currentRetries + 1}/${MAX_RETRIES})...`;
+    this.logger.warn(warnMsg);
+
+    // Wait with exponential backoff
+
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
+    // Reload snapshot from external source (e.g., database)
+
+    const { snapshot, clock: snapshotClock } = await this.getSnapshot();
+
+    const reloadMessage = `Reloaded snapshot: clock=${snapshotClock}, 
+      snapshot size=${snapshot.byteLength} bytes`;
+    this.logger.log(reloadMessage);
+
+    // Apply snapshot and update clock
+
+    this.mtx(() => {
+      this.doc.transact(() => {
+        Y.applyUpdate(this.doc, snapshot);
+
+        this._clock = snapshotClock;
+        this._fetchingClock = snapshotClock;
+        this._totalByteLength = snapshot.byteLength;
+      });
+    });
+
+    // Retry getUpdates
+
+    return this.getUpdates(currentRetries + 1);
+  }
+
+  async compact(
+    onCompactComplete?: (result: CompactionResult) => Promise<void>,
+  ): Promise<CompactionResult> {
     const { updates, newOffset } = await this.consumeUpdates();
 
     const message = `Compacting ${updates.length} updates for ${this.name}`;
@@ -155,11 +266,18 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     const snapshot = Y.encodeStateAsUpdate(tempDoc);
 
-    const compactMessage = `Compacted ${this.name}: 
+    const compactMessage = `Compacted ${this.name}:
       removed ${updates.length} updates, new offset: ${newOffset}`;
     this.logger.log(compactMessage);
 
-    return { snapshot, clock: newOffset };
+    const result: CompactionResult = { snapshot, clock: newOffset };
+
+    // Call callback if provided
+    if (onCompactComplete) {
+      await onCompactComplete(result);
+    }
+
+    return result;
   }
 
   private async pushUpdate(
