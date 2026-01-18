@@ -7,7 +7,8 @@ export const REDIS_KEY_TTL = 24 * 60 * 60 + 60 * 60; // 24H + 1H
 
 // Compaction threshold
 
-export const COMPACTION_THRESHOLD = 1 * 1024 * 1024; // 1MB
+export const MAX_UPDATES_COUNT = 500; // 500 updates
+export const MAX_UPDATES_SIZE_BYTES = 64 * 1024; // 64KB
 
 // Load Lua scripts
 

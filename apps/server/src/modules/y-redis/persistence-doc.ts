@@ -6,7 +6,8 @@ import { YRedis } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import {
   REDIS_KEY_TTL,
-  COMPACTION_THRESHOLD,
+  MAX_UPDATES_COUNT,
+  MAX_UPDATES_SIZE_BYTES,
   COMPACT_SCRIPT,
   PUSH_UPDATE_SCRIPT,
   FETCH_UPDATES_SCRIPT,
@@ -105,9 +106,9 @@ export class PersistenceDoc implements IPersistenceDoc {
 
             // Compact if threshold exceeded
 
-            if (this._updatesByteLength >= COMPACTION_THRESHOLD) {
+            if (this.shouldCompact(len, this._updatesByteLength)) {
               const compactMessage = `Compaction triggered for 
-                ${this.name} (${this._updatesByteLength} bytes)`;
+                ${this.name} (${len} updates of ${this._updatesByteLength} bytes)`;
               this.logger.log(compactMessage);
 
               this.compact(this.updateDocState).catch((err) => {
@@ -304,6 +305,16 @@ export class PersistenceDoc implements IPersistenceDoc {
     this.logger.log(compactMessage);
 
     return { snapshot, clock: newOffset };
+  }
+
+  private shouldCompact(
+    updatesLength: number,
+    updatesByteLength: number,
+  ): boolean {
+    const isTooManyUpdates = updatesLength > MAX_UPDATES_COUNT;
+    const isTooLargeUpdates = updatesByteLength > MAX_UPDATES_SIZE_BYTES;
+
+    return isTooManyUpdates || isTooLargeUpdates;
   }
 
   private async pushUpdate(
