@@ -3,7 +3,7 @@ import { createMutex, mutex } from 'lib0/mutex';
 import { Logger } from '@nestjs/common';
 import type { Redis } from 'ioredis';
 import { YRedis } from './y-redis.types';
-import { getDocKey } from './y-redis.utils';
+import { getUpdatesKey } from './y-redis.utils';
 import type { IPersistenceDoc, UpdateHandler } from './y-redis.types';
 
 export class PersistenceDoc implements IPersistenceDoc {
@@ -27,7 +27,7 @@ export class PersistenceDoc implements IPersistenceDoc {
     public readonly doc: Y.Doc,
   ) {
     this.mtx = createMutex();
-    this.key = getDocKey(this.name);
+    this.key = getUpdatesKey(this.name);
 
     this.updateHandler = (update: Uint8Array) => {
       // mtx: only store update in redis if this document update does not originate from redis
@@ -90,7 +90,7 @@ export class PersistenceDoc implements IPersistenceDoc {
     const startClock = this._clock;
 
     const updates = await this.redis.lrangeBuffer(
-      getDocKey(this.name),
+      getUpdatesKey(this.name),
       startClock,
       -1,
     );

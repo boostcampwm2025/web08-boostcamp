@@ -8,7 +8,7 @@ import {
 import * as Y from 'yjs';
 import { Redis } from 'ioredis';
 import { YRedis } from './y-redis.types';
-import { getDocKey } from './y-redis.utils';
+import { getUpdatesKey } from './y-redis.utils';
 import { PersistenceDoc } from './persistence-doc';
 
 @Injectable()
@@ -84,7 +84,7 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async hasDocInRedis(name: string): Promise<boolean> {
-    const key = getDocKey(name);
+    const key = getUpdatesKey(name);
     const result = await this.redis.exists(key);
     return result === 1;
   }
@@ -103,7 +103,7 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     const doc = this.docs.get(name);
     if (doc) await doc.destroy();
 
-    const key = getDocKey(name);
+    const key = getUpdatesKey(name);
     const result = await this.redis.del(key);
 
     const message = `Cleared document: ${name}`;
@@ -114,7 +114,7 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
 
   async clearAllDocs(): Promise<void> {
     const deletePromises = Array.from(this.docs.keys()).map((name) => {
-      const key = getDocKey(name);
+      const key = getUpdatesKey(name);
       return this.redis.del(key);
     });
 
