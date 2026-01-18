@@ -4,7 +4,11 @@ import { Logger } from '@nestjs/common';
 import type { Redis } from 'ioredis';
 import { YRedis } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
-import { COMPACT_SCRIPT, PUSH_UPDATE_SCRIPT } from './y-redis.constants';
+import {
+  COMPACT_SCRIPT,
+  PUSH_UPDATE_SCRIPT,
+  FETCH_UPDATES_SCRIPT,
+} from './y-redis.constants';
 import type {
   IPersistenceDoc,
   CompactionResult,
@@ -14,7 +18,6 @@ import type {
 export class PersistenceDoc implements IPersistenceDoc {
   private readonly logger = new Logger(PersistenceDoc.name);
 
-  private readonly key: string;
   private readonly mtx: mutex;
 
   private _clock = 0;
@@ -96,20 +99,10 @@ export class PersistenceDoc implements IPersistenceDoc {
   async getUpdates(): Promise<PersistenceDoc> {
     const startClock = this._clock;
 
-    // Read offset from Redis (defaults to 0 if not exists)
-    const offsetStr = await this.redis.get(getOffsetKey(this.name));
-    const offset = offsetStr ? parseInt(offsetStr, 10) : 0;
+    // Fetch offset and updates atomically
+    const { offset, updates } = await this.fetchUpdates(startClock);
 
-    // Calculate physical index
-    const physicalStartIndex = startClock - offset;
-
-    const updates = await this.redis.lrangeBuffer(
-      getUpdatesKey(this.name),
-      physicalStartIndex,
-      -1,
-    );
-
-    const message = `Fetched ${updates.length} updates for ${this.name}`;
+    const message = `Fetched ${updates.length} updates for ${this.name} (offset: ${offset})`;
     this.logger.debug(message);
 
     this.mtx(() => {
@@ -175,8 +168,8 @@ export class PersistenceDoc implements IPersistenceDoc {
     const updatesKey = getUpdatesKey(this.name);
     const offsetKey = getOffsetKey(this.name);
 
-    // Execute Lua script atomically
     // RPUSH + GET offset
+
     const [len, offset] = (await this.redis.eval(
       PUSH_UPDATE_SCRIPT,
       2,
@@ -188,6 +181,25 @@ export class PersistenceDoc implements IPersistenceDoc {
     return { len, offset };
   }
 
+  private async fetchUpdates(
+    clock: number,
+  ): Promise<{ updates: Buffer[]; offset: number }> {
+    const updatesKey = getUpdatesKey(this.name);
+    const offsetKey = getOffsetKey(this.name);
+
+    // LRANGE updates + GET offset
+
+    const [updates, offset] = (await this.redis.eval(
+      FETCH_UPDATES_SCRIPT,
+      2,
+      updatesKey,
+      offsetKey,
+      clock,
+    )) as [Buffer[], number];
+
+    return { updates, offset };
+  }
+
   private async consumeUpdates(): Promise<{
     updates: Buffer[];
     newOffset: number;
@@ -195,7 +207,7 @@ export class PersistenceDoc implements IPersistenceDoc {
     const updatesKey = getUpdatesKey(this.name);
     const offsetKey = getOffsetKey(this.name);
 
-    // Execute Lua script atomically
+    // LTRIM updates + SET new offset
 
     const [updates, newOffset] = (await this.redis.eval(
       COMPACT_SCRIPT,
