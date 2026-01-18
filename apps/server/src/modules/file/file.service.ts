@@ -56,17 +56,8 @@ export type OriginType = 'server' | 'client' | undefined;
 export class FileService {
   private readonly logger = new Logger(FileService.name);
 
-  /**
-   * Doc size limit
-   *
-   * TODO: Redis 에 있는 편집 이력을 주기적으로 압축하는 로직 필요
-   * 현재 상태 - 모든 편집 작업이 개별 업데이트로 저장됨
-   * 단일 문자 크기는 20~30 bytes
-   * 모든 업데이트 이력을 저장하면 메모리 사용량이 빠르게 증가함
-   * 최적화를 하지 않으면 클라이언트에서 1MB 를 사용하기 전에 Redis 에서 10배 이상을 사용하게 됨
-   */
-
-  private readonly MAX_DOC_SIZE = 30 * 1024 * 1024; // 30MB
+  // Doc size limit
+  private readonly MAX_DOC_SIZE = 3 * 1024 * 1024; // 3MB
 
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();
@@ -457,7 +448,8 @@ export class FileService {
     const pdoc = this.yRedis.getDoc(docId);
     if (!pdoc) return 0;
 
-    return pdoc.totalByteLength + message.byteLength;
+    const docByteLength = pdoc.snapshotByteLength + pdoc.updatesByteLength;
+    return docByteLength + message.byteLength;
   }
 
   /**
@@ -496,6 +488,16 @@ export class FileService {
       return { snapshot: content, clock };
     };
 
+    // Define updateDocState callback for compaction
+
+    const updateDocState = async (snapshot: Uint8Array, clock: number) => {
+      await this.documentService.updateDocState(
+        docId,
+        Buffer.from(snapshot),
+        clock,
+      );
+    };
+
     // Bind to Redis
 
     const pdoc = this.yRedis.bind(
@@ -504,6 +506,7 @@ export class FileService {
       snapshot,
       clock,
       getLatestDocState,
+      updateDocState,
     );
 
     await pdoc.synced; // Wait for hydration from DB + Redis

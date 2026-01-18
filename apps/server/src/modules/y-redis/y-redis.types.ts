@@ -40,3 +40,11 @@ export type GetLatestDocStateCallback = () => Promise<{
   snapshot: Uint8Array | null;
   clock: number;
 }>;
+
+/**
+ * Callback to update snapshot in external storage (e.g., database)
+ */
+export type UpdateDocStateCallback = (
+  snapshot: Uint8Array,
+  clock: number,
+) => Promise<void>;

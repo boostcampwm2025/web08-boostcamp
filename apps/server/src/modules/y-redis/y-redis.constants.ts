@@ -5,6 +5,10 @@ import { join } from 'path';
 
 export const REDIS_KEY_TTL = 24 * 60 * 60 + 60 * 60; // 24H + 1H
 
+// Compaction threshold
+
+export const COMPACTION_THRESHOLD = 1 * 1024 * 1024; // 1MB
+
 // Load Lua scripts
 
 export const COMPACT_SCRIPT = readFileSync(

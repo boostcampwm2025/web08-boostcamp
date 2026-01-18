@@ -11,6 +11,7 @@ import {
   YRedis,
   CompactionResult,
   GetLatestDocStateCallback,
+  UpdateDocStateCallback,
 } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import { PersistenceDoc } from './persistence-doc';
@@ -68,9 +69,10 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   bind(
     name: string,
     ydoc: Y.Doc,
-    initialSnapshot: Buffer | null,
-    initialClock: number,
+    snapshot: Uint8Array | null,
+    clock: number,
     getLatestDocState: GetLatestDocStateCallback,
+    updateDocState: UpdateDocStateCallback,
   ): PersistenceDoc {
     if (this.docs.has(name)) {
       const message = `"${name}" is already bound to this YRedis instance`;
@@ -82,9 +84,10 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
       this.sub,
       name,
       ydoc,
-      initialSnapshot,
-      initialClock,
+      snapshot,
+      clock,
       getLatestDocState,
+      updateDocState,
     );
     this.docs.set(name, pd);
 
@@ -103,7 +106,7 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
 
   async compactDoc(
     name: string,
-    onCompactComplete?: (result: CompactionResult) => Promise<void>,
+    onCompactComplete?: (snapshot: Uint8Array, clock: number) => Promise<void>,
   ): Promise<CompactionResult> {
     const doc = this.docs.get(name);
 

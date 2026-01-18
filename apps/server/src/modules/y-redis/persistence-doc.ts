@@ -6,6 +6,7 @@ import { YRedis } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import {
   REDIS_KEY_TTL,
+  COMPACTION_THRESHOLD,
   COMPACT_SCRIPT,
   PUSH_UPDATE_SCRIPT,
   FETCH_UPDATES_SCRIPT,
@@ -15,6 +16,7 @@ import type {
   CompactionResult,
   UpdateHandler,
   GetLatestDocStateCallback,
+  UpdateDocStateCallback,
 } from './y-redis.types';
 
 /**
@@ -50,9 +52,11 @@ export class PersistenceDoc implements IPersistenceDoc {
 
   private _clock = 0;
   private _fetchingClock = 0;
-  private _totalByteLength = 0;
+  private _updatesByteLength = 0;
+  private _snapshotByteLength = 0;
   private readonly updateHandler: UpdateHandler;
   private readonly getLatestDocState: GetLatestDocStateCallback;
+  private readonly updateDocState: UpdateDocStateCallback;
 
   public readonly synced: Promise<PersistenceDoc>;
 
@@ -62,10 +66,11 @@ export class PersistenceDoc implements IPersistenceDoc {
     public readonly name: string,
     public readonly doc: Y.Doc,
 
-    snapshot: Buffer | null,
+    snapshot: Uint8Array | null,
     clock: number,
 
     getLatestDocState: GetLatestDocStateCallback,
+    updateDocState: UpdateDocStateCallback,
   ) {
     this.mtx = createMutex();
 
@@ -73,11 +78,12 @@ export class PersistenceDoc implements IPersistenceDoc {
     this._fetchingClock = clock;
 
     this.getLatestDocState = getLatestDocState;
+    this.updateDocState = updateDocState;
 
     this.updateHandler = (update: Uint8Array) => {
       // mtx: only store update in redis if this document update does not originate from redis
       this.mtx(() => {
-        this._totalByteLength += update.byteLength;
+        this._updatesByteLength += update.byteLength;
 
         this.pushUpdate(Buffer.from(update))
           .then(({ len, offset }) => {
@@ -96,6 +102,19 @@ export class PersistenceDoc implements IPersistenceDoc {
                 const message = `Failed to publish update to Redis: ${err.message}`;
                 this.logger.error(message);
               });
+
+            // Compact if threshold exceeded
+
+            if (this._updatesByteLength >= COMPACTION_THRESHOLD) {
+              const compactMessage = `Compaction triggered for 
+                ${this.name} (${this._updatesByteLength} bytes)`;
+              this.logger.log(compactMessage);
+
+              this.compact(this.updateDocState).catch((err) => {
+                const errorMessage = `Compaction failed: ${err.message}`;
+                this.logger.error(errorMessage);
+              });
+            }
           })
           .catch((err) => {
             const message = `Failed to push update to Redis: ${err.message}`;
@@ -108,7 +127,8 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     if (snapshot) {
       Y.applyUpdate(this.doc, snapshot);
-      this._totalByteLength = snapshot.byteLength;
+      this._snapshotByteLength = snapshot.byteLength;
+      this._updatesByteLength = 0;
     } else if (doc.store.clients.size > 0) {
       this.updateHandler(Y.encodeStateAsUpdate(doc));
     }
@@ -131,8 +151,12 @@ export class PersistenceDoc implements IPersistenceDoc {
     this._fetchingClock = value;
   }
 
-  get totalByteLength(): number {
-    return this._totalByteLength;
+  get updatesByteLength(): number {
+    return this._updatesByteLength;
+  }
+
+  get snapshotByteLength(): number {
+    return this._snapshotByteLength;
   }
 
   async destroy(): Promise<void> {
@@ -159,7 +183,7 @@ export class PersistenceDoc implements IPersistenceDoc {
       this.doc.transact(() => {
         updates.forEach((update) => {
           Y.applyUpdate(this.doc, update);
-          this._totalByteLength += update.byteLength;
+          this._updatesByteLength += update.byteLength;
         });
 
         const nextClock = startClock + updates.length;
@@ -238,7 +262,8 @@ export class PersistenceDoc implements IPersistenceDoc {
 
         this._clock = snapshotClock;
         this._fetchingClock = snapshotClock;
-        this._totalByteLength = snapshot.byteLength;
+        this._snapshotByteLength = snapshot.byteLength;
+        this._updatesByteLength = 0;
       });
     });
 
@@ -248,7 +273,7 @@ export class PersistenceDoc implements IPersistenceDoc {
   }
 
   async compact(
-    onCompactComplete?: (result: CompactionResult) => Promise<void>,
+    onCompactComplete?: (snapshot: Uint8Array, clock: number) => Promise<void>,
   ): Promise<CompactionResult> {
     const { updates, newOffset } = await this.consumeUpdates();
 
@@ -266,21 +291,20 @@ export class PersistenceDoc implements IPersistenceDoc {
     });
 
     const snapshot = Y.encodeStateAsUpdate(tempDoc);
-    this._totalByteLength = snapshot.byteLength;
+    this._snapshotByteLength = snapshot.byteLength;
+    this._updatesByteLength = 0;
 
     const compactMessage = `Compacted ${this.name}:
       removed ${updates.length} updates, new offset: ${newOffset}`;
     this.logger.log(compactMessage);
 
-    const result: CompactionResult = { snapshot, clock: newOffset };
-
     // Call callback if provided
 
     if (onCompactComplete) {
-      await onCompactComplete(result);
+      await onCompactComplete(snapshot, newOffset);
     }
 
-    return result;
+    return { snapshot, clock: newOffset };
   }
 
   private async pushUpdate(

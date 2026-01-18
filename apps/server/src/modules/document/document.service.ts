@@ -80,4 +80,12 @@ export class DocumentService {
 
     return document;
   }
+
+  async updateDocState(
+    docId: string,
+    content: Buffer,
+    clock: number,
+  ): Promise<void> {
+    await this.documentRepository.update({ docId }, { content, clock });
+  }
 }
