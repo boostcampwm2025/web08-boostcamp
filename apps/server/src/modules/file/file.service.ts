@@ -57,7 +57,7 @@ export class FileService {
   private readonly logger = new Logger(FileService.name);
 
   // Doc size limit
-  private readonly MAX_DOC_SIZE = 3 * 1024 * 1024; // 3MB
+  private readonly MAX_DOC_SIZE = 5 * 1024 * 1024; // 5MB
 
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();
