@@ -1,9 +1,9 @@
-import { ViewPlugin } from '@codemirror/view';
+import { ViewPlugin, ViewUpdate } from '@codemirror/view';
 
 /**
  * Composition Tracker Plugin
  *
- * Tracks IME composition using DOM events.
+ * Tracks IME composition using CodeMirror's view.composing property.
  *
  * Features:
  * - Locks remote updates during composition
@@ -13,13 +13,39 @@ import { ViewPlugin } from '@codemirror/view';
 export const compositionTracker = (
   setRemoteUpdateLock: (locked: boolean) => void,
 ) => {
-  const COMPOSITION_IDLE_TIMEOUT = 30 * 1000; // 30 seconds
+  const COMPOSITION_IDLE_TIMEOUT = 60 * 1000; // 1 minute
 
   return ViewPlugin.define((view) => {
     let compositionIdleTimer: number | null = null;
+    let wasComposing = false;
 
-    const onCompositionStart = () => {
-      // Lock remote updates
+    const update = (update: ViewUpdate) => {
+      const isComposing = update.view.composing;
+
+      // Detect composition start
+      if (isComposing && !wasComposing) {
+        startCompositionLock();
+      }
+
+      // Detect composition end
+      if (!isComposing && wasComposing) {
+        endCompositionLock();
+      }
+
+      wasComposing = isComposing;
+    };
+
+    const destroy = () => {
+      // Clean up
+      if (compositionIdleTimer) {
+        clearTimeout(compositionIdleTimer);
+      }
+
+      // Released lock on destroy
+      setRemoteUpdateLock(false);
+    };
+
+    const startCompositionLock = () => {
       setRemoteUpdateLock(true);
       console.log('[Composition] Started');
 
@@ -27,9 +53,9 @@ export const compositionTracker = (
       compositionIdleTimer = setTimeout(forceUnlock, COMPOSITION_IDLE_TIMEOUT);
     };
 
-    const onCompositionEnd = () => {
-      // Unlock remote updates
-      setRemoteUpdateLock(false);
+    const endCompositionLock = () => {
+      // Deferred update
+      setTimeout(() => setRemoteUpdateLock(false), 0);
       console.log('[Composition] Ended');
 
       // Clear timeout
@@ -54,25 +80,6 @@ export const compositionTracker = (
       console.log('[Composition] Force unlocked after timeout');
     };
 
-    // Register DOM event listeners
-
-    view.dom.addEventListener('compositionstart', onCompositionStart);
-    view.dom.addEventListener('compositionend', onCompositionEnd);
-
-    const destroy = () => {
-      // Remove event listeners
-      view.dom.removeEventListener('compositionstart', onCompositionStart);
-      view.dom.removeEventListener('compositionend', onCompositionEnd);
-
-      // Clean up
-      if (compositionIdleTimer) {
-        clearTimeout(compositionIdleTimer);
-      }
-
-      // Released lock on destroy
-      setRemoteUpdateLock(false);
-    };
-
-    return { destroy };
+    return { update, destroy };
   });
 };
