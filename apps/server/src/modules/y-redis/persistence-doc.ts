@@ -292,16 +292,17 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     // Now compact Redis up to target clock
     // This ensures snapshot and offset are synchronized
-    const { updates, newOffset } = await this.consumeUpdates(targetClock);
+    const { oldOffset, newOffset } = await this.consumeUpdates(targetClock);
 
-    const message = `Compacted ${updates.length} updates for ${this.name}`;
+    const trimmedCount = newOffset - oldOffset;
+    const message = `Compacted ${trimmedCount} updates for ${this.name}`;
     this.logger.debug(message);
 
     this._snapshotByteLength = snapshot.byteLength;
     this._updatesByteLength = 0;
 
     const compactMessage = `Compacted ${this.name}:
-      removed ${updates.length} updates, new offset: ${newOffset}`;
+      removed ${trimmedCount} updates, offset: ${oldOffset} -> ${newOffset}`;
     this.logger.log(compactMessage);
 
     return { snapshot, clock: newOffset };
@@ -358,22 +359,22 @@ export class PersistenceDoc implements IPersistenceDoc {
   }
 
   private async consumeUpdates(clock: number): Promise<{
-    updates: Buffer[];
+    oldOffset: number;
     newOffset: number;
   }> {
     const updatesKey = getUpdatesKey(this.name);
     const offsetKey = getOffsetKey(this.name);
 
-    // LTRIM updates + SET new offset
+    // DEL + RPUSH + SET new offset
 
-    const [updates, newOffset] = (await this.redis.evalBuffer(
+    const [oldOffset, newOffset] = (await this.redis.eval(
       COMPACT_SCRIPT,
       2,
       updatesKey,
       offsetKey,
       clock,
-    )) as [Buffer[], number];
+    )) as [number, number];
 
-    return { updates, newOffset };
+    return { oldOffset, newOffset };
   }
 }
