@@ -25,6 +25,9 @@ export class Document {
   @Column({ type: 'bytea', nullable: true, select: false })
   content: Buffer | null;
 
+  @Column({ type: 'int', default: 0 })
+  clock: number;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
