@@ -4,18 +4,21 @@
 -- ARGV[2]: TTL in seconds
 -- RETURN: { len: number, offset: number }
 
+local updatesKey = KEYS[1]
+local offsetKey = KEYS[2]
+local updateData = ARGV[1]
 local ttl = tonumber(ARGV[2])
 
 -- Push update to the list
-local len = redis.call('RPUSH', KEYS[1], ARGV[1])
+local len = redis.call('RPUSH', updatesKey, updateData)
 
 -- Get current offset (Default to zero)
-local offsetStr = redis.call('GET', KEYS[2])
+local offsetStr = redis.call('GET', offsetKey)
 local offset = tonumber(offsetStr or "0")
 
 -- Set TTL
-redis.call('EXPIRE', KEYS[1], ttl, 'NX')
-if offsetStr then redis.call('EXPIRE', KEYS[2], ttl) end
+redis.call('EXPIRE', updatesKey, ttl, 'NX')
+if offsetStr then redis.call('EXPIRE', offsetKey, ttl, 'NX') end
 
 -- Return length and offset
 return { len, offset }
