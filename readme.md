@@ -114,3 +114,9 @@
 - [**Client README**](./apps/client/README.md) - 프론트엔드 애플리케이션 문서
 - [**Server README**](./apps/server/README.md) - 백엔드 서버 문서
 - [**Common README**](./packages/common/README.md) - 공유 패키지 문서
+
+---
+
+## 아키텍처 다이어그램
+
+<img width="2802" height="1577" alt="infra architecture" src="https://github.com/user-attachments/assets/d5643431-e21a-4cc4-84df-1b780ac1a1f3" />
