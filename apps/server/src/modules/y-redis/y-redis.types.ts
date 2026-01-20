@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import type { Redis } from 'ioredis';
 
-export type YRedis = Redis & RedisBuffer;
+export type YRedis = Redis & RedisBuffer & RedisCustomCommands;
 
 export type RedisBuffer = {
   rpushBuffer(key: string, value: Buffer): Promise<number>;
@@ -12,6 +12,28 @@ export type RedisBuffer = {
     numKeys: number,
     ...args: (string | number | Buffer)[]
   ): Promise<any>;
+};
+
+export type RedisCustomCommands = {
+  compactUpdates(
+    updatesKey: string,
+    offsetKey: string,
+    clock: number,
+  ): Promise<[number, number]>;
+
+  pushUpdate(
+    updatesKey: string,
+    offsetKey: string,
+    update: Buffer,
+    ttl: number,
+  ): Promise<[number, number]>;
+
+  fetchUpdatesBuffer(
+    updatesKey: string,
+    offsetKey: string,
+    clock: number,
+    ttl: number,
+  ): Promise<[Buffer[], number]>;
 };
 
 export interface YRedisOptions {

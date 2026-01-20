@@ -15,6 +15,11 @@ import {
 } from './y-redis.types';
 import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import { PersistenceDoc } from './persistence-doc';
+import {
+  COMPACT_SCRIPT,
+  PUSH_UPDATE_SCRIPT,
+  FETCH_UPDATES_SCRIPT,
+} from './y-redis.constants';
 
 @Injectable()
 export class YRedisService implements OnModuleInit, OnModuleDestroy {
@@ -28,6 +33,8 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     this.redis = this._redis.duplicate() as YRedis;
     this.sub = this._redis.duplicate();
+
+    this.defineCommands(this.redis);
 
     this.sub.on('message', (channel: string, sclock: string) => {
       const pdoc = this.docs.get(channel);
@@ -64,6 +71,26 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy() {
     await this.destroy();
+  }
+
+  /**
+   * Define custom Lua commands
+   */
+  private defineCommands(redis: YRedis): void {
+    redis.defineCommand('compactUpdates', {
+      numberOfKeys: 2,
+      lua: COMPACT_SCRIPT,
+    });
+
+    redis.defineCommand('pushUpdate', {
+      numberOfKeys: 2,
+      lua: PUSH_UPDATE_SCRIPT,
+    });
+
+    redis.defineCommand('fetchUpdates', {
+      numberOfKeys: 2,
+      lua: FETCH_UPDATES_SCRIPT,
+    });
   }
 
   bind(

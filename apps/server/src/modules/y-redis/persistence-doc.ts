@@ -8,9 +8,6 @@ import {
   REDIS_KEY_TTL,
   MAX_UPDATES_COUNT,
   MAX_UPDATES_SIZE_BYTES,
-  COMPACT_SCRIPT,
-  PUSH_UPDATE_SCRIPT,
-  FETCH_UPDATES_SCRIPT,
 } from './y-redis.constants';
 import type {
   IPersistenceDoc,
@@ -326,14 +323,12 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     // RPUSH + GET offset
 
-    const [len, offset] = (await this.redis.eval(
-      PUSH_UPDATE_SCRIPT,
-      2,
+    const [len, offset] = await this.redis.pushUpdate(
       updatesKey,
       offsetKey,
       update,
       REDIS_KEY_TTL,
-    )) as [number, number];
+    );
 
     return { len, offset };
   }
@@ -346,14 +341,12 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     // LRANGE updates + GET offset
 
-    const [updates, offset] = (await this.redis.evalBuffer(
-      FETCH_UPDATES_SCRIPT,
-      2,
+    const [updates, offset] = await this.redis.fetchUpdatesBuffer(
       updatesKey,
       offsetKey,
       clock,
       REDIS_KEY_TTL,
-    )) as [Buffer[], number];
+    );
 
     return { updates, offset };
   }
@@ -367,13 +360,11 @@ export class PersistenceDoc implements IPersistenceDoc {
 
     // DEL + RPUSH + SET new offset
 
-    const [oldOffset, newOffset] = (await this.redis.eval(
-      COMPACT_SCRIPT,
-      2,
+    const [oldOffset, newOffset] = await this.redis.compactUpdates(
       updatesKey,
       offsetKey,
       clock,
-    )) as [number, number];
+    );
 
     return { oldOffset, newOffset };
   }
