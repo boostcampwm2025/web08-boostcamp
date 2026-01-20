@@ -6,14 +6,11 @@ import {
 } from 'typeorm';
 
 /**
- * 방장 퇴장 시 Host 권한 처리 정책
+ * 방 설정
  */
-export enum HostTransferPolicy {
-  /** 권한을 넘기지 않고 방장을 공석으로 둠 (기본값) */
-  NO_TRANSFER = 'no_transfer',
-
-  /** 권한을 자동으로 넘김 */
-  AUTO_TRANSFER = 'auto_transfer',
+export enum RoomType {
+  QUICK = 'quick',
+  CUSTOM = 'custom',
 }
 
 /**
@@ -27,6 +24,14 @@ export enum DefaultRolePolicy {
   EDITOR = 'editor',
 }
 
+/**
+ * 방을 폭파할 수 있는 권한 범위
+ */
+export enum WhoCanDestroyRoom {
+  HOST = 'host',
+  EDITOR = 'editor',
+}
+
 @Entity('rooms')
 export class Room {
   @PrimaryGeneratedColumn()
@@ -35,18 +40,20 @@ export class Room {
   @Column({ type: 'varchar', unique: true })
   roomCode: string;
 
+  @Column({
+    type: 'enum',
+    enum: RoomType,
+  })
+  roomType: RoomType;
+
   @Column({ type: 'varchar', nullable: true })
   roomPassword: string | null;
 
   @Column({ type: 'varchar', nullable: true })
   hostPassword: string | null;
 
-  @Column({
-    type: 'enum',
-    enum: HostTransferPolicy,
-    default: HostTransferPolicy.NO_TRANSFER,
-  })
-  hostTransferPolicy: HostTransferPolicy;
+  @Column({ type: 'integer' })
+  maxPts: number;
 
   @Column({
     type: 'enum',
@@ -54,6 +61,13 @@ export class Room {
     default: DefaultRolePolicy.VIEWER,
   })
   defaultRolePolicy: DefaultRolePolicy;
+
+  @Column({
+    type: 'enum',
+    enum: WhoCanDestroyRoom,
+    default: WhoCanDestroyRoom.HOST,
+  })
+  whoCanDestroyRoom: WhoCanDestroyRoom;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
