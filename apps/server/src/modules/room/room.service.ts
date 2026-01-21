@@ -5,7 +5,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, LessThan, Repository } from 'typeorm';
-import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
+import { CreateCustomRoomDto } from './dto/create-custom-room.dto';
+
+import {
+  Room,
+  RoomType,
+  DefaultRolePolicy,
+  WhoCanDestroyRoom,
+} from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
 import { Document } from '../document/document.entity';
@@ -20,6 +27,8 @@ import { RoomCreationOptions } from './room.interface';
 @Injectable()
 export class RoomService {
   private readonly logger = new Logger(RoomService.name);
+
+  private readonly QUICK_ROOM_MAX_PTS = 6;
 
   constructor(
     @InjectRepository(Room)
@@ -67,8 +76,29 @@ export class RoomService {
 
   async createQuickRoom(): Promise<CreateRoomResponseDto> {
     const options: RoomCreationOptions = {
-      hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
+      roomType: RoomType.QUICK,
+      maxPts: this.QUICK_ROOM_MAX_PTS,
+      defaultRolePolicy: DefaultRolePolicy.EDITOR,
+      whoCanDestroyRoom: WhoCanDestroyRoom.EDITOR,
+      roomCreatorRole: PtRole.EDITOR,
+    };
+
+    return this.createRoom(options);
+  }
+
+  async createCustomRoom(
+    dto: CreateCustomRoomDto,
+  ): Promise<CreateRoomResponseDto> {
+    const { roomPassword, hostPassword, maxPts } = dto;
+
+    const options: RoomCreationOptions = {
+      roomType: RoomType.CUSTOM,
+      roomPassword,
+      hostPassword,
+      maxPts,
       defaultRolePolicy: DefaultRolePolicy.VIEWER,
+      whoCanDestroyRoom: WhoCanDestroyRoom.HOST,
+      roomCreatorRole: PtRole.HOST,
     };
 
     return this.createRoom(options);
@@ -79,6 +109,16 @@ export class RoomService {
   ): Promise<CreateRoomResponseDto> {
     const roomCode = await this.generateUniqueRoomCode();
 
+    const {
+      roomType,
+      roomPassword,
+      hostPassword,
+      maxPts,
+      defaultRolePolicy,
+      whoCanDestroyRoom,
+      roomCreatorRole,
+    } = options;
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -86,10 +126,12 @@ export class RoomService {
     try {
       const newRoom = queryRunner.manager.create(Room, {
         roomCode,
-        hostTransferPolicy: options.hostTransferPolicy,
-        defaultRolePolicy: options.defaultRolePolicy,
-        roomPassword: options.roomPassword,
-        hostPassword: options.hostPassword,
+        roomType,
+        roomPassword,
+        hostPassword,
+        maxPts,
+        defaultRolePolicy,
+        whoCanDestroyRoom,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
@@ -98,7 +140,7 @@ export class RoomService {
       const hostPt = queryRunner.manager.create(Pt, {
         room: savedRoom,
         ptHash: this.ptService.generatePtHash(),
-        role: PtRole.HOST,
+        role: roomCreatorRole,
         nickname: 'Host',
         color: '#E0E0E0',
         presence: PtPresence.ONLINE,

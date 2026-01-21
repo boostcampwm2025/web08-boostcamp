@@ -8,6 +8,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
+import { CreateCustomRoomDto } from './dto/create-custom-room.dto';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 
 @Controller('api/rooms')
@@ -42,5 +43,12 @@ export class RoomController {
   @Post('quick')
   async createQuickRoom(): Promise<CreateRoomResponseDto> {
     return await this.roomService.createQuickRoom();
+  }
+
+  @Post('custom')
+  async createCustomRoom(
+    dto: CreateCustomRoomDto,
+  ): Promise<CreateRoomResponseDto> {
+    return await this.roomService.createCustomRoom(dto);
   }
 }

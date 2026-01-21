@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomService } from './room.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
+import { DefaultRolePolicy, Room } from './room.entity';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
 import { PtRole } from '../pt/pt.entity';
@@ -99,7 +99,7 @@ describe('RoomService', () => {
   });
 
   describe('createQuickRoom', () => {
-    it('성공 시: 트랜잭션 내에서 Room과 방장(Pt)을 저장하고 결과를 반환한다', async () => {
+    it('성공 시: 트랜잭션 내에서 Room과 Pt를 저장하고 결과를 반환한다', async () => {
       // Arrange
       jest
         .spyOn(service as any, 'generateRoomCode')
@@ -110,7 +110,7 @@ describe('RoomService', () => {
       const savedPt = {
         ptId: MOCK_PT_ID,
         room: savedRoom,
-        role: PtRole.HOST,
+        role: PtRole.EDITOR,
       };
       const savedDocument = {
         docId: 'mock-doc-id',
@@ -140,8 +140,7 @@ describe('RoomService', () => {
         1,
         expect.objectContaining({
           roomCode: MOCK_ROOM_CODE,
-          hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
-          defaultRolePolicy: DefaultRolePolicy.VIEWER,
+          defaultRolePolicy: DefaultRolePolicy.EDITOR,
         }),
       );
 
@@ -149,7 +148,7 @@ describe('RoomService', () => {
         2,
         expect.objectContaining({
           room: savedRoom,
-          role: PtRole.HOST,
+          role: PtRole.EDITOR,
           ptHash: MOCK_PT_HASH,
         }),
       );

@@ -1,8 +1,13 @@
-import { DefaultRolePolicy, HostTransferPolicy } from './room.entity';
+import { RoomType, DefaultRolePolicy, WhoCanDestroyRoom } from './room.entity';
+import { PtRole } from '../pt/pt.entity';
 
 export interface RoomCreationOptions {
-  hostTransferPolicy: HostTransferPolicy;
-  defaultRolePolicy: DefaultRolePolicy;
+  roomType: RoomType;
   roomPassword?: string;
   hostPassword?: string;
+  maxPts: number;
+  defaultRolePolicy: DefaultRolePolicy;
+  whoCanDestroyRoom: WhoCanDestroyRoom;
+
+  roomCreatorRole: PtRole;
 }
