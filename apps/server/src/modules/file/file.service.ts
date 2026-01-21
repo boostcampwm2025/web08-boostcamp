@@ -137,19 +137,46 @@ export class FileService {
   }
 
   /**
-   * Remove Y.Doc for a document
-   * Y.Doc is removed when room is closed or expired
-   * TODO: Call this when last participant leaves
+   * Close Y.Doc for a document
+   * Unloads Y.Doc from memory but keeps Redis data intact
+   * Use this when all participants are offline to save memory
+   * Redis keys remain so the doc can be restored when participants rejoin
    */
-  async removeDoc(docId: string): Promise<boolean> {
+  async closeDoc(docId: string): Promise<boolean> {
     const roomDoc = this.docs.get(docId);
-
     if (!roomDoc) return false;
 
     const { doc, awareness } = roomDoc;
 
-    // Clean up YRedisService first
+    // Close Y.Doc in Redis
+    // Unload from memory, keep Redis keys
     await this.yRedis.closeDoc(docId);
+
+    // Clean up listeners
+    doc.off('update', this.docListener());
+    awareness.off('update', this.awarenessListener(awareness));
+
+    // Remove from map
+    this.docs.delete(docId);
+    this.logger.log(`Closed Y.Doc for document: ${docId}`);
+
+    return true;
+  }
+
+  /**
+   * Remove Y.Doc for a document
+   * Permanently removes Y.Doc from memory and clears Redis keys
+   * Use this when room is closed or expired and data is no longer needed
+   */
+  async removeDoc(docId: string): Promise<boolean> {
+    const roomDoc = this.docs.get(docId);
+    if (!roomDoc) return false;
+
+    const { doc, awareness } = roomDoc;
+
+    // Clear Y.Doc from Redis
+    // Remove from memory and delete Redis keys
+    await this.yRedis.clearDoc(docId);
 
     // Clean up listeners
     doc.off('update', this.docListener());

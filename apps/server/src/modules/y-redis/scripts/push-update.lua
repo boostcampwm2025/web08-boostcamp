@@ -17,8 +17,8 @@ local offsetStr = redis.call('GET', offsetKey)
 local offset = tonumber(offsetStr or "0")
 
 -- Set TTL
-redis.call('EXPIRE', updatesKey, ttl, 'NX')
-if offsetStr then redis.call('EXPIRE', offsetKey, ttl, 'NX') end
+redis.call('EXPIRE', updatesKey, ttl)
+if offsetStr then redis.call('EXPIRE', offsetKey, ttl) end
 
 -- Return length and offset
 return { len, offset }
