@@ -25,11 +25,11 @@ export function useLineAvatars(
           if (clientID === awareness.clientID) return; // 나 자신 제외
 
           const cursor = state.cursor;
-          const user = (state.user as any) || {};
+          const user = (state.user as RemoteUser) || {};
 
           // 필수 데이터 검증
           if (!user.hash || !cursor || !cursor.anchor) return;
-          if (user.currentFileId && user.currentFileId !== fileId) return;
+          // if (user.currentFileId && user.currentFileId !== fileId) return;
 
           activeUsers.push({
             hash: user.hash,

@@ -12,10 +12,10 @@ interface UseCodeMirrorProps {
   autoFocus?: boolean;
   // Dynamic Update Props
   compartments: {
-    theme: any;
-    fontSize: any;
-    avatar: any;
-    cursorStyle: any;
+    theme: import('@codemirror/state').Compartment;
+    fontSize: import('@codemirror/state').Compartment;
+    avatar: import('@codemirror/state').Compartment;
+    cursorStyle: import('@codemirror/state').Compartment;
   };
   showRemoteCursor: boolean;
   showGutterAvatars: boolean;
@@ -24,7 +24,7 @@ interface UseCodeMirrorProps {
   fontSize: number;
   yText: Y.Text | null;
   users: RemoteUser[];
-  handleGutterClick: any;
+  handleGutterClick?: import('../plugin/LineAvatars').OnAvatarClick;
 }
 
 export function useCodeMirror(props: UseCodeMirrorProps) {
@@ -83,7 +83,7 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
   useEffect(() => {
     viewRef.current?.dispatch({
       effects: compartments.avatar.reconfigure(
-        showGutterAvatars
+        showGutterAvatars && handleGutterClick
           ? lineAvatarExtension(users, yText, handleGutterClick, fontSize)
           : [], // false일 경우 extension 제거
       ),

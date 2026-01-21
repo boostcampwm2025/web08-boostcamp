@@ -16,7 +16,7 @@ export interface AvatarUser {
   name?: string;
 }
 
-type OnAvatarClick = (params: {
+export type OnAvatarClick = (params: {
   event: MouseEvent;
   users: AvatarUser[];
 }) => void;
@@ -161,7 +161,7 @@ export const lineAvatarExtension = (
               });
             }
           }
-        } catch (e) {
+        } catch {
           // Yjs 변환 에러 무시
         }
       }

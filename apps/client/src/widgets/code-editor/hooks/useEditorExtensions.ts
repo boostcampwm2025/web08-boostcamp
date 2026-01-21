@@ -142,6 +142,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
         }),
       }),
     ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- isDark, fontSize, users, handleGutterClick은 view 재생성 방지 목적
   }, [
     yText,
     awareness,
