@@ -119,4 +119,4 @@
 
 ## 아키텍처 다이어그램
 
-<img width="2802" height="1577" alt="infra architecture" src="https://github.com/user-attachments/assets/d5643431-e21a-4cc4-84df-1b780ac1a1f3" />
+![infra-architecture](https://github.com/user-attachments/assets/98408aa5-556e-4969-8024-54875913e885)
