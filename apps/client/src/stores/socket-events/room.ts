@@ -29,12 +29,17 @@ export const setupRoomEventHandlers = () => {
   };
 };
 
-export const emitJoinRoom = (roomCode: string, nickname?: string) => {
+export const emitJoinRoom = (
+  roomCode: string,
+  nickname?: string,
+  password?: string | null,
+) => {
   const savedRoomToken = getRoomToken(roomCode);
 
   socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
     roomCode,
     token: savedRoomToken || undefined,
     nickname: nickname || undefined,
+    password: password || undefined,
   });
 };
