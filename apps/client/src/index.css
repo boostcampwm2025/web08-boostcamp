@@ -16,6 +16,9 @@
   --color-foreground: var(--foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 }
 
 :root {
@@ -78,7 +81,7 @@
   --muted-foreground: #a1a1aa;
   --accent: #27272a;
   --accent-foreground: #fafafa;
-  --destructive: #7f1d1d;
+  --destructive: #ef4444;
   --destructive-foreground: #fafafa;
   --border: #27272a;
   --input: #27272a;

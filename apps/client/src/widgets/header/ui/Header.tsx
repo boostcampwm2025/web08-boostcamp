@@ -32,6 +32,7 @@ import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { useFileStore } from '@/stores/file';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { SettingsDialog } from '@/widgets/dialog/SettingsDialog';
+import { LeaveRoomButton } from './buttons/LeaveRoomButton';
 
 type HeaderProps = {
   roomCode: string;
@@ -301,6 +302,8 @@ export default function Header({ roomCode }: HeaderProps) {
             </>
           )}
         </Button>
+
+        <LeaveRoomButton />
       </div>
     </header>
   );
