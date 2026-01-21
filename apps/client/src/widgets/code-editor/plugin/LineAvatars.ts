@@ -16,12 +16,24 @@ class AvatarMarker extends GutterMarker {
     wrapper.style.display = 'flex';
     wrapper.style.alignItems = 'center';
     wrapper.style.justifyContent = 'flex-end';
-    wrapper.style.gap = '-4px'; // 겹치기
     wrapper.style.paddingRight = '4px';
 
     // 최대 3명까지만 표시
-    this.users.slice(0, 3).forEach((user) => {
-      const el = createAvatarElement(user.ptHash, user.color, 20);
+    this.users.slice(0, 3).forEach((user, index) => {
+      const el = createAvatarElement(user.ptHash, user.color, 24);
+
+      el.style.position = 'relative';
+      el.style.boxSizing = 'border-box';
+      el.style.border = '1px solid #fff';
+      el.style.borderRadius = '50%';
+
+      if (index > 0) {
+        el.style.marginLeft = '-10px'; // 24px 크기 기준 10px 겹치기
+      }
+
+      // 0번(맨 왼쪽)이 가장 위로 오게 함
+      el.style.zIndex = (10 - index).toString();
+
       wrapper.appendChild(el);
     });
 
