@@ -13,7 +13,7 @@ import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
 import { lineAvatarExtension, type AvatarUser } from '../plugin/LineAvatars';
-import { useLineAvatars } from '@/shared/lib/hooks/useLineAvatars';
+import { useLineAvatars } from '@/widgets/code-editor/hooks/useLineAvatars';
 import { AvatarGutterMenu } from './AvatarGutterMenu';
 
 type Language = 'javascript' | 'html' | 'css';
