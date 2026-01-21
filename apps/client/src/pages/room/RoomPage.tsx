@@ -13,6 +13,7 @@ import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import type { RoomJoinStatus } from '@codejam/common';
+import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 
 function RoomPage() {
   const {
@@ -22,6 +23,8 @@ function RoomPage() {
     roomError,
     handleNicknameConfirm,
   } = useRoomJoin();
+
+  useAwarenessSync();
 
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
