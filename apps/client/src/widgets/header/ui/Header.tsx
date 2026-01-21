@@ -24,7 +24,9 @@ import {
   Sun,
   Moon,
   Plus,
+  Bomb,
 } from 'lucide-react';
+import { DestroyRoomDialog } from '@/widgets/dialog/DestroyRoomDialog';
 import { toast } from 'sonner';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { extname } from '@/shared/lib/file';
@@ -279,6 +281,18 @@ export default function Header({ roomCode }: HeaderProps) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* 방 폭파 다이얼로그 */}
+        <DestroyRoomDialog>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs h-8 px-2 sm:px-3 text-destructive hover:text-destructive"
+          >
+            <Bomb className="h-4 w-4" />
+            <span className="hidden lg:inline">Destroy</span>
+          </Button>
+        </DestroyRoomDialog>
 
         <SettingsDialog />
 
