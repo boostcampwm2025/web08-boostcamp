@@ -10,6 +10,9 @@ import { NicknameInputDialog } from '@/widgets/nickname-input';
 import { Toaster } from '@/shared/ui/sonner';
 import { FileList } from '@/widgets/files';
 import { useFileStore } from '@/stores/file';
+import { useLoaderData } from 'react-router-dom';
+import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
+import type { RoomJoinStatus } from '@codejam/common';
 
 function RoomPage() {
   const {
@@ -22,6 +25,8 @@ function RoomPage() {
 
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
+
+  const loader = useLoaderData<RoomJoinStatus>();
 
   useSocket(paramCode || '');
 
@@ -56,11 +61,22 @@ function RoomPage() {
           />
         </div>
       </main>
-      <NicknameInputDialog
-        open={isNicknameDialogOpen}
-        onOpenChange={setIsNicknameDialogOpen}
-        onConfirm={handleNicknameConfirm}
-      />
+      {loader === 'FULL' ? (
+        <ErrorDialog
+          title="사람이 가득 찼습니다!"
+          description="현재 방에 인원이 많습니다."
+          buttonLabel="뒤로가기"
+          onSubmit={() => {
+            window.location.href = '/';
+          }}
+        />
+      ) : (
+        <NicknameInputDialog
+          open={isNicknameDialogOpen}
+          onOpenChange={setIsNicknameDialogOpen}
+          onConfirm={handleNicknameConfirm}
+        />
+      )}
       <Toaster />
     </div>
   );
