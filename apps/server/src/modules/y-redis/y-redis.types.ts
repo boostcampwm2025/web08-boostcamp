@@ -1,11 +1,39 @@
 import * as Y from 'yjs';
 import type { Redis } from 'ioredis';
 
-export type YRedis = Redis & RedisBuffer;
+export type YRedis = Redis & RedisBuffer & RedisCustomCommands;
 
 export type RedisBuffer = {
   rpushBuffer(key: string, value: Buffer): Promise<number>;
   lrangeBuffer(key: string, start: number, stop: number): Promise<Buffer[]>;
+
+  evalBuffer(
+    script: string,
+    numKeys: number,
+    ...args: (string | number | Buffer)[]
+  ): Promise<any>;
+};
+
+export type RedisCustomCommands = {
+  compactUpdates(
+    updatesKey: string,
+    offsetKey: string,
+    clock: number,
+  ): Promise<[number, number]>;
+
+  pushUpdate(
+    updatesKey: string,
+    offsetKey: string,
+    update: Buffer,
+    ttl: number,
+  ): Promise<[number, number]>;
+
+  fetchUpdatesBuffer(
+    updatesKey: string,
+    offsetKey: string,
+    clock: number,
+    ttl: number,
+  ): Promise<[Buffer[], number]>;
 };
 
 export interface YRedisOptions {
@@ -18,7 +46,33 @@ export interface IPersistenceDoc {
   doc: Y.Doc;
   synced: Promise<IPersistenceDoc>;
   destroy(): Promise<void>;
-  getUpdates(): Promise<IPersistenceDoc>;
+  getUpdates(retryCount?: number): Promise<IPersistenceDoc>;
+}
+
+/**
+ * The result of the compaction process.
+ * @field snapshot - A binary Uint8Array representing the integrated state of all Y.Doc updates.
+ * @field clock - The offset (logical timestamp) of the last update included in this snapshot.
+ */
+export interface CompactionResult {
+  snapshot: Uint8Array;
+  clock: number;
 }
 
 export type UpdateHandler = (update: Uint8Array) => void;
+
+/**
+ * Callback to get snapshot from external storage (e.g., database)
+ */
+export type GetLatestDocStateCallback = () => Promise<{
+  snapshot: Uint8Array | null;
+  clock: number;
+}>;
+
+/**
+ * Callback to update snapshot in external storage (e.g., database)
+ */
+export type UpdateDocStateCallback = (
+  snapshot: Uint8Array,
+  clock: number,
+) => Promise<void>;

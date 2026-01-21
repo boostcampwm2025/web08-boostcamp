@@ -13,6 +13,12 @@ const mockYRedisService = {
 
 const mockDocumentService = {
   getDocContentById: jest.fn().mockResolvedValue(null),
+  getLatestDocState: jest.fn().mockResolvedValue({
+    docId: 'doc-1',
+    content: null,
+    clock: 0,
+  }),
+  updateDocState: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('FileService', () => {
