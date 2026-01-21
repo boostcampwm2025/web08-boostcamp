@@ -156,10 +156,10 @@ export default function Header({ roomCode }: HeaderProps) {
         </div>
       </a>
 
-      {/* Room ID - 화면 작을 땐 ID만 표시 */}
+      {/* Room CODE - 화면 작을 땐 CODE만 표시 */}
       <div className="flex items-center gap-2 ml-2 sm:ml-6 shrink-0">
         <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider hidden md:block">
-          ROOM ID
+          ROOM CODE
         </span>
         <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 border border-border rounded-md bg-secondary/50">
           <span className="font-mono text-xs sm:text-sm font-semibold max-w-[80px] sm:max-w-none truncate">
