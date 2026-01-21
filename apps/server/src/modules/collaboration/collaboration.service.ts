@@ -10,6 +10,7 @@ import {
   type FilenameCheckPayload,
   type FileRenamePayload,
   type FileDeletePayload,
+  type PtUpdateNamePayload,
 } from '@codejam/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
@@ -164,12 +165,26 @@ export class CollaborationService {
     const { roomId } = client.data;
     const { ptId, role } = payload;
 
-    await this.ptService.updatePtRole(
-      client,
-      server,
-      ptId,
-      role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
-    );
+    await this.ptService.updatePt(client, server, ptId, {
+      role: role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
+    });
+
+    const pt = await this.ptService.getPt(roomId, ptId);
+    if (!pt) return;
+
+    this.notifyUpdatePt(client, server, pt);
+  }
+
+  /** 참가자 이름 업데이트 */
+  async handleUpdatePtName(
+    client: CollabSocket,
+    server: Server,
+    payload: PtUpdateNamePayload,
+  ): Promise<void> {
+    const { roomId } = client.data;
+    const { ptId, nickname } = payload;
+
+    await this.ptService.updatePt(client, server, ptId, { nickname });
 
     const pt = await this.ptService.getPt(roomId, ptId);
     if (!pt) return;

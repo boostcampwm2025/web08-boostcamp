@@ -8,6 +8,7 @@ import {
   type FilenameCheckResultPayload,
   type FileRenamePayload,
   type FileDeletePayload,
+  type PtUpdateNamePayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -108,12 +109,25 @@ export class CollaborationGateway
 
   /** C -> S PtRole 업데이트 */
   @UseGuards(HostGuard)
-  @SubscribeMessage(SOCKET_EVENTS.UPDATE_PT)
-  async handlePtUpdate(
+  @SubscribeMessage(SOCKET_EVENTS.UPDATE_ROLE_PT)
+  async handlePtRoleUpdate(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: PtUpdateRolePayload,
   ) {
     await this.collaborationService.handleUpdatePtRole(
+      client,
+      this.server,
+      payload,
+    );
+  }
+
+  /** C -> S Pt 이름 업데이트 */
+  @SubscribeMessage(SOCKET_EVENTS.UPDATE_NICKNAME_PT)
+  async handlePtNameUpdate(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: PtUpdateNamePayload,
+  ) {
+    await this.collaborationService.handleUpdatePtName(
       client,
       this.server,
       payload,

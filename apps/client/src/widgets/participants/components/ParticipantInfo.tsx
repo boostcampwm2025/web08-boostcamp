@@ -1,6 +1,6 @@
 import { usePt } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
-import type { ParticipantProps } from '../lib/types';
+import type { EditableProps, ParticipantProps } from '../lib/types';
 import { ParticipantName } from './ParticipantName';
 import { RoleSwitcher } from './RoleSwitcher';
 
@@ -11,9 +11,11 @@ import { RoleSwitcher } from './RoleSwitcher';
  */
 export function ParticipantInfo({
   ptId,
+  editable,
+  onEditable,
   canToggle,
   onToggleRole,
-}: ParticipantProps) {
+}: ParticipantProps & EditableProps) {
   const pt = usePt(ptId);
   const myPtId = useRoomStore((state) => state.myPtId);
 
@@ -27,7 +29,14 @@ export function ParticipantInfo({
 
   return (
     <div className="flex flex-col min-w-0 gap-1">
-      <ParticipantName nickname={nickname} ptHash={ptHash} isMe={isMe} />
+      <ParticipantName
+        editable={editable}
+        onEditable={onEditable}
+        nickname={nickname}
+        ptHash={ptHash}
+        ptId={ptId}
+        isMe={isMe}
+      />
 
       <div className="flex items-center h-6">
         <RoleSwitcher
