@@ -169,6 +169,11 @@ export class PtService {
     await this.ptRepository.update({ roomId, ptId }, { role });
   }
 
+  /** 현재 방에 있는 인원 수 */
+  async roomCounter(roomId: number): Promise<number> {
+    return await this.ptRepository.count({ where: { roomId } });
+  }
+
   /** 참가자 상태 업데이트 */
   private async updatePtPresence(
     roomId: number,
