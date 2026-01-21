@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  server-prod:
+    image: codejam.kr.ncr.ntruss.com/server:prod
+    container_name: server-prod
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - /root/.env.prod
+
+  server-staging:
+    image: codejam.kr.ncr.ntruss.com/server:staging
+    container_name: server-staging
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    env_file:
+      - /root/.env.staging
