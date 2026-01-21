@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import { EditorView } from 'codemirror';
 import { type Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { lineAvatarExtension, type AvatarUser } from '../plugin/LineAvatars';
+import { lineAvatarExtension, type RemoteUser } from '../plugin/LineAvatars';
+import * as Y from 'yjs';
 
 interface UseCodeMirrorProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -17,7 +18,8 @@ interface UseCodeMirrorProps {
   };
   isDark: boolean;
   fontSize: number;
-  lineToUsersMap: Map<number, AvatarUser[]>;
+  yText: Y.Text | null;
+  users: RemoteUser[];
   handleGutterClick: any;
 }
 
@@ -29,7 +31,8 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
     compartments,
     isDark,
     fontSize,
-    lineToUsersMap,
+    yText,
+    users,
     handleGutterClick,
   } = props;
 
@@ -73,10 +76,10 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
   useEffect(() => {
     viewRef.current?.dispatch({
       effects: compartments.avatar.reconfigure(
-        lineAvatarExtension(lineToUsersMap, handleGutterClick, fontSize),
+        lineAvatarExtension(users, yText, handleGutterClick, fontSize),
       ),
     });
-  }, [lineToUsersMap, handleGutterClick, fontSize, compartments.avatar]);
+  }, [users, yText, handleGutterClick, fontSize, compartments.avatar]);
 
   return { viewRef };
 }

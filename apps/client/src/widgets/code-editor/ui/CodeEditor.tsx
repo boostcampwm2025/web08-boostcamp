@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { EditorView } from 'codemirror';
-
+import { useRef } from 'react'; // useState, useEffect 불필요
 // Hooks
 import { useYText } from '@/shared/lib/hooks/useYText';
+import type { CodeEditorProps } from '../lib/types';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
 import { useAvatarMenu } from '../hooks/useAvatarMenu';
@@ -12,14 +11,6 @@ import { useCodeMirror } from '../hooks/useCodeMirror';
 
 // Components
 import { AvatarGutterMenu } from './AvatarGutterMenu';
-
-type Language = 'javascript' | 'html' | 'css';
-
-interface CodeEditorProps {
-  fileId?: string;
-  language?: Language;
-  readOnly?: boolean;
-}
 
 export default function CodeEditor({
   fileId = 'prototype',
@@ -32,16 +23,9 @@ export default function CodeEditor({
   const { isDark } = useDarkMode();
   const { fontSize } = useSettings();
 
-  const [editorView, setEditorView] = useState<EditorView | null>(null);
-
   const { menuState, handleGutterClick, closeMenu } = useAvatarMenu();
 
-  const lineToUsersMap = useLineAvatars(
-    awareness ?? undefined,
-    yText ?? undefined,
-    fileId,
-    editorView, // 여기서 editorView 필요
-  );
+  const users = useLineAvatars(awareness ?? undefined, fileId);
 
   const { extensions, compartments } = useEditorExtensions({
     yText: yText ?? null,
@@ -50,11 +34,11 @@ export default function CodeEditor({
     readOnly,
     isDark,
     fontSize,
-    lineToUsersMap,
+    users,
     handleGutterClick,
   });
 
-  const { viewRef } = useCodeMirror({
+  useCodeMirror({
     containerRef,
     docString: yText?.toString() ?? '',
     extensions,
@@ -62,22 +46,14 @@ export default function CodeEditor({
     compartments,
     isDark,
     fontSize,
-    lineToUsersMap,
+    yText: yText ?? null,
+    users,
     handleGutterClick,
   });
-
-  // useCodeMirror가 생성한 viewRef.current를 로컬 state인 editorView로 동기화.
-  // 이를 통해 useLineAvatars에게 생성된 뷰 인스턴스를 전달.
-  useEffect(() => {
-    if (viewRef.current && viewRef.current !== editorView) {
-      setEditorView(viewRef.current);
-    }
-  }, [viewRef.current, editorView]);
 
   return (
     <>
       <div ref={containerRef} className="h-full" />
-
       <AvatarGutterMenu
         isOpen={menuState.isOpen}
         position={menuState.position}

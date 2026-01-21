@@ -10,7 +10,11 @@ import * as Y from 'yjs';
 import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
-import { lineAvatarExtension, type AvatarUser } from '../plugin/LineAvatars';
+import {
+  lineAvatarExtension,
+  type AvatarUser,
+  type RemoteUser,
+} from '../plugin/LineAvatars';
 import { getLanguageExtension } from '../lib/constants';
 import { type Language } from '../lib/types';
 
@@ -21,7 +25,7 @@ interface UseEditorExtensionsProps {
   readOnly: boolean;
   isDark: boolean;
   fontSize: number;
-  lineToUsersMap: Map<number, AvatarUser[]>;
+  users: RemoteUser[];
   handleGutterClick: (params: {
     event: MouseEvent;
     users: AvatarUser[];
@@ -36,7 +40,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
     readOnly,
     isDark,
     fontSize,
-    lineToUsersMap,
+    users,
     handleGutterClick,
   } = props;
 
@@ -67,7 +71,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
         EditorView.theme({ '&': { fontSize: `${fontSize}px` } }),
       ),
       compartments.avatar.of(
-        lineAvatarExtension(lineToUsersMap, handleGutterClick),
+        lineAvatarExtension(users, yText, handleGutterClick, fontSize),
       ),
 
       // ReadOnly Handling

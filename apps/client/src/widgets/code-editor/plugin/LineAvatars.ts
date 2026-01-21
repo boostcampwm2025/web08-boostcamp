@@ -1,13 +1,20 @@
 import { createAvatarElement } from '@/shared/ui/avatar-dom';
 import { gutter, GutterMarker } from '@codemirror/view';
+import * as Y from 'yjs';
+
+// React에서 넘겨줄 데이터 타입 (위치 정보 포함)
+export interface RemoteUser {
+  hash: string;
+  color: string;
+  name?: string;
+  cursor: Y.RelativePosition; // 위치 계산을 위해 필요
+}
 
 export interface AvatarUser {
   hash: string;
   color: string;
   name?: string;
 }
-
-export type LineToUsersMap = Map<number, AvatarUser[]>;
 
 type OnAvatarClick = (params: {
   event: MouseEvent;
@@ -70,7 +77,6 @@ class AvatarMarker extends GutterMarker {
     );
     avatarEl.style.width = '100%';
     avatarEl.style.height = '100%';
-    // avatarEl.style.borderRadius = '50%';
 
     avatarContainer.appendChild(avatarEl);
 
@@ -121,23 +127,47 @@ class AvatarMarker extends GutterMarker {
 }
 
 /**
- * 데이터를 주입받아 Gutter를 생성하는 함수
- * @param lineUsersMap 라인 번호(1-based)를 키로 하고 유저 배열을 값으로 갖는 Map
+ * @param users - React에서 넘어온 유저 리스트 (RelativePosition 포함)
+ * @param yText - 위치 변환을 위한 Y.Text 객체
  */
 export const lineAvatarExtension = (
-  lineUsersMap: LineToUsersMap,
+  users: RemoteUser[],
+  yText: Y.Text | null,
   onAvatarClick: OnAvatarClick,
   fontSize: number = 14,
 ) => {
   return gutter({
     // 각 라인마다 실행되어 마커를 반환할지 결정
-    lineMarker(view, line) {
-      // line.from(인덱스)을 라인 번호로 변환
-      const lineNo = view.state.doc.lineAt(line.from).number;
-      const users = lineUsersMap.get(lineNo);
+    lineMarker(_, line) {
+      if (!yText || !yText.doc || users.length === 0) return null;
 
-      if (users && users.length > 0) {
-        return new AvatarMarker(users, onAvatarClick, fontSize);
+      const usersOnThisLine: AvatarUser[] = [];
+
+      for (const user of users) {
+        try {
+          const absPos = Y.createAbsolutePositionFromRelativePosition(
+            user.cursor,
+            yText.doc,
+          );
+
+          if (absPos) {
+            const index = absPos.index;
+            // 유저의 커서 위치가 현재 라인 범위 안에 있는지 확인
+            if (index >= line.from && index <= line.to) {
+              usersOnThisLine.push({
+                hash: user.hash,
+                color: user.color,
+                name: user.name,
+              });
+            }
+          }
+        } catch (e) {
+          // Yjs 변환 에러 무시
+        }
+      }
+
+      if (usersOnThisLine.length > 0) {
+        return new AvatarMarker(usersOnThisLine, onAvatarClick, fontSize);
       }
       return null;
     },
