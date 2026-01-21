@@ -21,7 +21,12 @@ export default function CodeEditor({
 
   const { yText, awareness } = useYText(fileId);
   const { isDark } = useDarkMode();
-  const { fontSize } = useSettings();
+  const {
+    fontSize,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
+  } = useSettings();
 
   const { menuState, handleGutterClick, closeMenu } = useAvatarMenu();
 
@@ -36,6 +41,9 @@ export default function CodeEditor({
     fontSize,
     users,
     handleGutterClick,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
   });
 
   useCodeMirror({
@@ -49,6 +57,9 @@ export default function CodeEditor({
     yText: yText ?? null,
     users,
     handleGutterClick,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
   });
 
   return (

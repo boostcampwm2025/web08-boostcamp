@@ -15,7 +15,11 @@ interface UseCodeMirrorProps {
     theme: any;
     fontSize: any;
     avatar: any;
+    cursorStyle: any;
   };
+  showRemoteCursor: boolean;
+  showGutterAvatars: boolean;
+  alwaysShowCursorLabels: boolean;
   isDark: boolean;
   fontSize: number;
   yText: Y.Text | null;
@@ -29,6 +33,9 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
     docString,
     extensions,
     compartments,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
     isDark,
     fontSize,
     yText,
@@ -76,10 +83,40 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
   useEffect(() => {
     viewRef.current?.dispatch({
       effects: compartments.avatar.reconfigure(
-        lineAvatarExtension(users, yText, handleGutterClick, fontSize),
+        showGutterAvatars
+          ? lineAvatarExtension(users, yText, handleGutterClick, fontSize)
+          : [], // false일 경우 extension 제거
       ),
     });
-  }, [users, yText, handleGutterClick, fontSize, compartments.avatar]);
+  }, [
+    users,
+    yText,
+    handleGutterClick,
+    fontSize,
+    compartments.avatar,
+    showGutterAvatars,
+  ]);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: compartments.cursorStyle.reconfigure(
+        EditorView.theme({
+          ...(!showRemoteCursor && {
+            '.cm-ySelection, .cm-ySelectionInfo, .cm-ySelectionCaret': {
+              display: 'none !important',
+            },
+          }),
+          ...(alwaysShowCursorLabels && {
+            '.cm-ySelectionInfo': {
+              opacity: '1 !important',
+              visibility: 'visible !important',
+              transition: 'none !important',
+            },
+          }),
+        }),
+      ),
+    });
+  }, [showRemoteCursor, alwaysShowCursorLabels, compartments.cursorStyle]);
 
   return { viewRef };
 }

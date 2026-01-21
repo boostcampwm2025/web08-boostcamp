@@ -30,6 +30,9 @@ interface UseEditorExtensionsProps {
     event: MouseEvent;
     users: AvatarUser[];
   }) => void;
+  showRemoteCursor: boolean;
+  showGutterAvatars: boolean;
+  alwaysShowCursorLabels: boolean;
 }
 
 export function useEditorExtensions(props: UseEditorExtensionsProps) {
@@ -42,6 +45,9 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
     fontSize,
     users,
     handleGutterClick,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
   } = props;
 
   // Compartments
@@ -51,6 +57,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       fontSize: new Compartment(),
       avatar: new Compartment(),
       readOnly: new Compartment(),
+      cursorStyle: new Compartment(),
     }),
     [],
   );
@@ -71,9 +78,29 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
         EditorView.theme({ '&': { fontSize: `${fontSize}px` } }),
       ),
       compartments.avatar.of(
-        lineAvatarExtension(users, yText, handleGutterClick, fontSize),
+        showGutterAvatars
+          ? lineAvatarExtension(users, yText, handleGutterClick, fontSize)
+          : [],
       ),
-
+      compartments.cursorStyle.of(
+        EditorView.theme({
+          // 원격 커서 숨기기
+          ...(!showRemoteCursor && {
+            '.cm-ySelection, .cm-ySelectionInfo, .cm-ySelectionCaret': {
+              display: 'none !important',
+            },
+          }),
+          // 이름 항상 보이기 로직
+          ...(alwaysShowCursorLabels && {
+            '.cm-ySelectionInfo': {
+              opacity: '1 !important',
+              visibility: 'visible !important',
+              // 필요 시 애니메이션 제거
+              transition: 'none !important',
+            },
+          }),
+        }),
+      ),
       // ReadOnly Handling
       EditorState.readOnly.of(readOnly),
       ...(readOnly ? [readOnlyToast()] : []),
@@ -87,7 +114,16 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
         }),
       }),
     ];
-  }, [yText, awareness, language, readOnly, compartments]);
+  }, [
+    yText,
+    awareness,
+    language,
+    readOnly,
+    compartments,
+    showGutterAvatars,
+    showRemoteCursor,
+    alwaysShowCursorLabels,
+  ]);
 
   return { extensions, compartments };
 }
