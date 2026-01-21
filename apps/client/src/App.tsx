@@ -8,16 +8,22 @@ import NotFoundPage from '@/pages/not-found/NotFoundPage';
 import HomePage from '@/pages/home/HomePage';
 import { checkRoomExists } from '@/shared/api/room';
 
+export interface LoaderData {
+  roomCode: string;
+  max: boolean;
+}
+
 async function roomLoader({ params }: LoaderFunctionArgs) {
   const { roomCode } = params;
   if (!roomCode) {
     throw new Response('Room code is required', { status: 400 });
   }
-  const exists = await checkRoomExists(roomCode);
-  if (!exists) {
+  const response = await checkRoomExists(roomCode);
+  if (!response.exists) {
     throw new Response('Room not found', { status: 404 });
   }
-  return { roomCode };
+
+  return { roomCode, max: response.max };
 }
 
 const router = createBrowserRouter([

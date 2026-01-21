@@ -8,17 +8,31 @@ interface CreateQuickRoomResponse {
   token: RoomToken;
 }
 
-export async function checkRoomExists(roomCode: string): Promise<boolean> {
+interface RoomExistsResponse {
+  exists: boolean;
+  max: boolean;
+}
+
+export async function checkRoomExists(
+  roomCode: string,
+): Promise<RoomExistsResponse> {
   try {
-    const response = await fetch(`${ROOM_API_PREFIX}/${roomCode}/exists`);
-
+    const response = await fetch(`${ROOM_API_PREFIX}/${roomCode}/join`);
+    const json = (await response.json()) as {
+      message?: string;
+    } & RoomExistsResponse;
     if (!response.ok) {
-      const message = 'Room not found';
-      throw new Error(message);
-    }
+      const message = () => {
+        if (json.message === 'ROOM_NOT_FOUND') {
+          return 'Room not found';
+        }
 
-    const { exists } = await response.json();
-    return exists;
+        return 'Unknown Error';
+      };
+
+      throw new Error(message());
+    }
+    return json;
   } catch (e) {
     const error = e as Error;
     throw error;
