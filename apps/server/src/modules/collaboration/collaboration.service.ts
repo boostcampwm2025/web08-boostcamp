@@ -306,6 +306,29 @@ export class CollaborationService {
   }
 
   /**
+   * 방 폭파 처리
+   * 1. 모든 클라이언트에게 알림
+   * 2. 소켓 연결 종료
+   * 3. 데이터 정리 (DB 삭제 + Y.Doc 메모리 해제)
+   */
+  async handleDestroyRoom(client: CollabSocket, server: Server): Promise<void> {
+    const { roomId, roomCode, docId } = client.data;
+
+    this.logger.log(`[DESTROY_ROOM] Destroying room: ${roomCode}`);
+
+    // 1. 모든 클라이언트에게 폭파 알림
+    server.to(roomCode).emit(SOCKET_EVENTS.ROOM_DESTROYED, {});
+
+    // 2. 소켓 연결 종료
+    server.in(roomCode).disconnectSockets(true);
+
+    // 3. 데이터 정리
+    await this.roomService.destroyRoom(roomId, docId);
+
+    this.logger.log(`[DESTROY_ROOM] Room ${roomCode} destroyed successfully`);
+  }
+
+  /**
    * [Scheduler용] 방 만료 처리 로직
    * - 방에 있는 유저들에게 만료 이벤트 전송
    * - 소켓 연결 강제 종료
