@@ -10,12 +10,15 @@ export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {
     console.log(`🎉 [WELCOME] My PtId: ${data.myPtId}`);
 
-    const { myPtId, token } = data;
-    const { roomCode, setMyPtId } = useRoomStore.getState();
+    const { myPtId, token, roomType, whoCanDestroyRoom } = data;
+    const { roomCode, setMyPtId, setRoomType, setWhoCanDestroyRoom } =
+      useRoomStore.getState();
 
     if (!roomCode) return;
 
     setMyPtId(myPtId);
+    setRoomType(roomType);
+    setWhoCanDestroyRoom(whoCanDestroyRoom);
     setRoomToken(roomCode, token);
 
     // Initialize filestore after joining room

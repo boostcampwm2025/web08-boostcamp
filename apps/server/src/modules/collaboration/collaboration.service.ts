@@ -108,7 +108,7 @@ export class CollaborationService {
     // Y.Doc 준비
     await this.fileService.prepareDoc(client, server);
 
-    await this.notifyParticipantJoined(client, server, pt, newToken);
+    await this.notifyParticipantJoined(client, server, pt, newToken, room);
 
     this.logger.log(
       `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
@@ -285,11 +285,17 @@ export class CollaborationService {
     server: Server,
     pt: Pt,
     token: RoomToken,
+    room: Room,
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
 
     // 본인에게: 내 ptId 및 토큰 전달
-    client.emit(SOCKET_EVENTS.WELCOME, { myPtId: pt.ptId, token });
+    client.emit(SOCKET_EVENTS.WELCOME, {
+      myPtId: pt.ptId,
+      token,
+      roomType: room.roomType,
+      whoCanDestroyRoom: room.whoCanDestroyRoom,
+    });
 
     // 다른 참가자들에게: 새 참가자 입장 알림
     client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });
