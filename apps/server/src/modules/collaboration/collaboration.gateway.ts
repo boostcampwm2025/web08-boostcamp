@@ -24,6 +24,7 @@ import { CollaborationService } from './collaboration.service';
 import type { CollabSocket } from './collaboration.types';
 import { PermissionGuard } from './guards/permission.guard';
 import { HostGuard } from './guards/host.guard';
+import { DestroyRoomGuard } from './guards/destroy-room.guard';
 
 @WebSocketGateway({
   cors: {
@@ -148,6 +149,13 @@ export class CollaborationGateway
     @MessageBody() payload: FileDeletePayload,
   ) {
     this.collaborationService.handleFileDelete(this.server, client, payload);
+  }
+
+  /** C -> S 방 폭파 요청 */
+  @UseGuards(DestroyRoomGuard)
+  @SubscribeMessage(SOCKET_EVENTS.DESTROY_ROOM)
+  async handleDestroyRoom(@ConnectedSocket() client: CollabSocket) {
+    await this.collaborationService.handleDestroyRoom(client, this.server);
   }
 
   /**
