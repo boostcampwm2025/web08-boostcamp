@@ -11,6 +11,7 @@ import { RoomService } from './room.service';
 import { CreateCustomRoomDto } from './dto/create-custom-room.dto';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 import { PtService } from '../pt/pt.service';
+import { RoomJoinStatus } from '@codejam/common';
 
 @Controller('api/rooms')
 export class RoomController {
@@ -19,15 +20,17 @@ export class RoomController {
     private readonly ptService: PtService,
   ) {}
 
-  @Get(':roomCode/join')
-  async checkRoomExists(@Param('roomCode') roomCode: string) {
+  @Get(':roomCode/joinable')
+  async checkRoomExists(
+    @Param('roomCode') roomCode: string,
+  ): Promise<RoomJoinStatus> {
     const room = await this.roomService.findRoomByCode(roomCode);
-    if (!room) throw new NotFoundException('ROOM_NOT_FOUND');
+    if (!room) return 'NOT_FOUND';
 
     const counter = await this.ptService.roomCounter(room.roomId);
-    if (counter >= room.maxPts) return { max: true, exists: true };
+    if (counter >= room.maxPts) return 'FULL';
 
-    return { max: false, exists: true };
+    return 'JOINABLE';
   }
 
   @Post(':roomCode/checkHost')
