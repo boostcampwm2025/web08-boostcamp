@@ -70,6 +70,12 @@ export class CollaborationGateway
     }
   }
 
+  /** C -> S: 방 나가기 요청 */
+  @SubscribeMessage(SOCKET_EVENTS.LEFT_ROOM)
+  async handleLeftRoom(@ConnectedSocket() client: CollabSocket) {
+    await this.collaborationService.handleLeftRoom(client, this.server);
+  }
+
   /** C -> S: 문서 동기화 요청 */
   @SubscribeMessage(SOCKET_EVENTS.REQUEST_DOC)
   handleRequestDoc(@ConnectedSocket() client: CollabSocket) {

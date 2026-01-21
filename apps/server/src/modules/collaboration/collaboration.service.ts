@@ -115,6 +115,40 @@ export class CollaborationService {
     );
   }
 
+  /** 방 나가기 */
+  async handleLeftRoom(client: CollabSocket, server: Server): Promise<void> {
+    const { roomId, roomCode, ptId, role } = client.data;
+    if (!roomId || !roomCode || !ptId) return;
+
+    // 참가자 삭제 및 다른 참가자들에게 알림
+
+    await this.ptService.deletePt(roomId, ptId);
+
+    client.emit(SOCKET_EVENTS.GOODBYE);
+    server.to(roomCode).emit(SOCKET_EVENTS.PT_LEFT, { ptId });
+
+    await client.leave(roomCode);
+
+    this.logger.log(`[LEFT_ROOM] ptId: ${ptId} left room ${roomCode}`);
+
+    // TODO: Host Transfer
+    // Host 가 나갔다면 다른 참가자를 찾아서 Promote
+
+    if (role == PtRole.HOST) {
+      // const newHostPtId = ...;
+      // updatePtRole(newHostPtId, PtRole.HOST)
+    }
+
+    // TODO: Destroy Room
+    // 참가자가 없으면 방을 폭파
+
+    const hasParticipants = await this.ptService.hasParticipants(roomId);
+
+    if (!hasParticipants) {
+      // await this.roomService.destroyRoom(roomId);
+    }
+  }
+
   /** 초기 로드: 문서 상태 요청 */
   handleRequestDoc(client: CollabSocket, server: Server): void {
     const { docId } = client.data;
