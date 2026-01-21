@@ -6,21 +6,25 @@ import { useSocket } from '@/shared/lib/hooks/useSocket';
 import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
-import { NicknameInputDialog } from '@/widgets/nickname-input';
 import { Toaster } from '@/shared/ui/sonner';
 import { FileList } from '@/widgets/files';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import type { RoomJoinStatus } from '@codejam/common';
+import { PrepareStage } from './PrepareStage';
 
 function RoomPage() {
   const {
     paramCode,
     isNicknameDialogOpen,
+    isPasswordDialogOpen,
+    setIsPasswordDialogOpen,
     setIsNicknameDialogOpen,
     roomError,
+    passwordError,
     handleNicknameConfirm,
+    handlePasswordConfirm,
   } = useRoomJoin();
 
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
@@ -71,10 +75,14 @@ function RoomPage() {
           }}
         />
       ) : (
-        <NicknameInputDialog
-          open={isNicknameDialogOpen}
-          onOpenChange={setIsNicknameDialogOpen}
-          onConfirm={handleNicknameConfirm}
+        <PrepareStage
+          isNicknameDialogOpen={isNicknameDialogOpen}
+          isPasswordDialogOpen={isPasswordDialogOpen}
+          setIsNicknameDialogOpen={setIsNicknameDialogOpen}
+          setIsPasswordDialogOpen={setIsPasswordDialogOpen}
+          passwordError={passwordError}
+          handleNicknameConfirm={handleNicknameConfirm}
+          handlePasswordConfirm={handlePasswordConfirm}
         />
       )}
       <Toaster />
