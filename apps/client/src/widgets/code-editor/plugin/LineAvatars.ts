@@ -9,12 +9,25 @@ export interface AvatarUser {
 
 export type LineToUsersMap = Map<number, AvatarUser[]>;
 
+type OnAvatarClick = (params: {
+  event: MouseEvent;
+  users: AvatarUser[];
+}) => void;
+
 class AvatarMarker extends GutterMarker {
   private users: AvatarUser[];
+  private onClick: OnAvatarClick | null;
+  private fontSize: number;
 
-  constructor(users: AvatarUser[]) {
+  constructor(
+    users: AvatarUser[],
+    onClick: OnAvatarClick | null,
+    fontSize: number,
+  ) {
     super();
     this.users = users;
+    this.onClick = onClick;
+    this.fontSize = fontSize;
   }
 
   eq(other: AvatarMarker) {
@@ -23,30 +36,85 @@ class AvatarMarker extends GutterMarker {
   }
 
   toDOM() {
+    const size = this.fontSize;
+    const avatarSize = Math.round(size * 1.2); // 아바타 크기
+    const gutterWidth = Math.round(avatarSize + 10); // 좌우 여백 포함 Gutter 너비
+    const lineHeight = Math.round(size * 1.5); // 라인 높이 추정
+
     const wrapper = document.createElement('div');
+
+    wrapper.style.width = `${gutterWidth}px`;
+    wrapper.style.height = `${lineHeight}px`;
     wrapper.style.display = 'flex';
     wrapper.style.alignItems = 'center';
-    wrapper.style.justifyContent = 'flex-end';
-    wrapper.style.paddingRight = '4px';
+    wrapper.style.justifyContent = 'center';
+    wrapper.style.cursor = 'pointer';
 
-    // 최대 3명까지만 표시
-    this.users.slice(0, 3).forEach((user, index) => {
-      const el = createAvatarElement(user.hash, user.color, 24);
+    if (this.users.length === 0) return wrapper;
 
-      el.style.position = 'relative';
-      el.style.boxSizing = 'border-box';
-      el.style.border = '1px solid #fff';
-      el.style.borderRadius = '50%';
+    const firstUser = this.users[0];
+    const userCount = this.users.length;
 
-      if (index > 0) {
-        el.style.marginLeft = '-10px'; // 24px 크기 기준 10px 겹치기
-      }
+    const avatarContainer = document.createElement('div');
+    avatarContainer.style.position = 'relative';
+    avatarContainer.style.width = `${avatarSize}px`;
+    avatarContainer.style.height = `${avatarSize}px`;
+    avatarContainer.style.borderRadius = '50%';
+    avatarContainer.style.overflow = 'hidden'; // 둥근 테두리 밖으로 나가는 것 방지
+    avatarContainer.style.border = '1px solid rgba(255, 255, 255, 0.5)'; // 테두리 살짝
 
-      // 0번(맨 왼쪽)이 가장 위로 오게 함
-      el.style.zIndex = (10 - index).toString();
+    const avatarEl = createAvatarElement(
+      firstUser.hash,
+      firstUser.color,
+      avatarSize,
+    );
+    avatarEl.style.width = '100%';
+    avatarEl.style.height = '100%';
+    // avatarEl.style.borderRadius = '50%';
 
-      wrapper.appendChild(el);
-    });
+    avatarContainer.appendChild(avatarEl);
+
+    if (userCount > 1) {
+      const extraCount = userCount - 1;
+
+      // 베이스 아바타를 흐리게/어둡게 처리
+      avatarEl.style.filter = 'brightness(0.6) contrast(1.2)'; // 밝기를 낮추고 대비를 높임
+      avatarEl.style.opacity = '0.9';
+
+      // 오버레이 텍스트 컨테이너 생성
+      const overlayEl = document.createElement('div');
+      overlayEl.textContent = `+${extraCount}`;
+
+      // 스타일링: 아바타 컨테이너를 기준으로 절대 위치 중앙 정렬
+      overlayEl.style.position = 'absolute';
+      overlayEl.style.top = '0';
+      overlayEl.style.left = '0';
+      overlayEl.style.width = '100%';
+      overlayEl.style.height = '100%';
+      overlayEl.style.display = 'flex';
+      overlayEl.style.alignItems = 'center';
+      overlayEl.style.justifyContent = 'center';
+
+      // 텍스트 스타일
+      overlayEl.style.color = '#ffffff';
+      overlayEl.style.fontSize = `${Math.max(10, Math.round(avatarSize * 0.5))}px`;
+      overlayEl.style.fontWeight = '700';
+      overlayEl.style.textShadow = '0px 1px 2px rgba(0,0,0,0.8)';
+      overlayEl.style.backgroundColor = 'rgba(0, 0, 0, 0.2)'; // 전체적으로 살짝 어두운 막 추가
+
+      // 컨테이너에 오버레이 추가 (아바타 위에 쌓임)
+      avatarContainer.appendChild(overlayEl);
+    }
+
+    wrapper.appendChild(avatarContainer);
+
+    if (this.onClick) {
+      wrapper.onmousedown = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.onClick!({ event: e, users: this.users });
+      };
+    }
 
     return wrapper;
   }
@@ -56,7 +124,11 @@ class AvatarMarker extends GutterMarker {
  * 데이터를 주입받아 Gutter를 생성하는 함수
  * @param lineUsersMap 라인 번호(1-based)를 키로 하고 유저 배열을 값으로 갖는 Map
  */
-export const lineAvatarExtension = (lineUsersMap: LineToUsersMap) => {
+export const lineAvatarExtension = (
+  lineUsersMap: LineToUsersMap,
+  onAvatarClick: OnAvatarClick,
+  fontSize: number = 14,
+) => {
   return gutter({
     // 각 라인마다 실행되어 마커를 반환할지 결정
     lineMarker(view, line) {
@@ -65,12 +137,12 @@ export const lineAvatarExtension = (lineUsersMap: LineToUsersMap) => {
       const users = lineUsersMap.get(lineNo);
 
       if (users && users.length > 0) {
-        return new AvatarMarker(users);
+        return new AvatarMarker(users, onAvatarClick, fontSize);
       }
       return null;
     },
     initialSpacer: () => {
-      return new AvatarMarker([]);
+      return new AvatarMarker([], null, fontSize);
     },
   });
 };

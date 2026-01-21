@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { Compartment, EditorState } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
@@ -12,8 +12,9 @@ import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
-import { lineAvatarExtension } from '../plugin/LineAvatars';
+import { lineAvatarExtension, type AvatarUser } from '../plugin/LineAvatars';
 import { useLineAvatars } from '@/shared/lib/hooks/useLineAvatars';
+import { AvatarGutterMenu } from './AvatarGutterMenu';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -59,6 +60,29 @@ export default function CodeEditor({
     viewRef.current,
   );
 
+  const [menuState, setMenuState] = useState<{
+    isOpen: boolean;
+    position: { x: number; y: number } | null;
+    users: AvatarUser[];
+  }>({
+    isOpen: false,
+    position: null,
+    users: [],
+  });
+
+  const handleGutterClick = useCallback(
+    ({ event, users }: { event: MouseEvent; users: AvatarUser[] }) => {
+      const rect = (event.target as HTMLElement).getBoundingClientRect();
+
+      setMenuState({
+        isOpen: true,
+        position: { x: rect.right, y: rect.top }, // Gutter 바로 오른쪽에 표시
+        users,
+      });
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
 
@@ -76,7 +100,9 @@ export default function CodeEditor({
             '&': { fontSize: `${fontSize}px` },
           }),
         ),
-        avatarCompartment.of(lineAvatarExtension(lineToUsersMap)),
+        avatarCompartment.of(
+          lineAvatarExtension(lineToUsersMap, handleGutterClick),
+        ),
         EditorState.readOnly.of(readOnly),
         ...(readOnly ? [readOnlyToast()] : []),
         capacityLimitInputBlocker(),
@@ -114,10 +140,10 @@ export default function CodeEditor({
     if (!view) return;
     view.dispatch({
       effects: avatarCompartment.reconfigure(
-        lineAvatarExtension(lineToUsersMap),
+        lineAvatarExtension(lineToUsersMap, handleGutterClick, fontSize),
       ),
     });
-  }, [lineToUsersMap, avatarCompartment]);
+  }, [lineToUsersMap, avatarCompartment, handleGutterClick, fontSize]);
 
   // 다크모드 변경 시 테마 compartment 갱신
   useEffect(() => {
@@ -142,5 +168,15 @@ export default function CodeEditor({
     });
   }, [fontSize, fontSizeCompartment]);
 
-  return <div ref={editorRef} className="h-full" />;
+  return (
+    <>
+      <div ref={editorRef} className="h-full" />
+      <AvatarGutterMenu
+        isOpen={menuState.isOpen}
+        position={menuState.position}
+        users={menuState.users}
+        onClose={() => setMenuState((prev) => ({ ...prev, isOpen: false }))}
+      />
+    </>
+  );
 }
