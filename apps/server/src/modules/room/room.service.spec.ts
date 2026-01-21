@@ -262,13 +262,13 @@ describe('RoomService', () => {
     it('DB 삭제 후 Y.Doc 해제가 순차적으로 실행된다', async () => {
       // Arrange
       const callOrder: string[] = [];
-      repository.delete.mockImplementation(async () => {
+      repository.delete.mockImplementation(() => {
         callOrder.push('deleteRooms');
-        return { affected: 1, raw: [] };
+        return Promise.resolve({ affected: 1, raw: [] });
       });
-      fileService.removeDoc.mockImplementation(async () => {
+      fileService.removeDoc.mockImplementation(() => {
         callOrder.push('removeDoc');
-        return true;
+        return Promise.resolve(true);
       });
 
       // Act

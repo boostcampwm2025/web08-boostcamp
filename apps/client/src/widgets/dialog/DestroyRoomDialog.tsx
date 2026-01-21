@@ -37,8 +37,7 @@ export function DestroyRoomDialog({ children }: DestroyRoomDialogProps) {
               <span className="text-destructive font-medium">
                 모든 참가자가 퇴장되고 방이 삭제됩니다.
               </span>
-              <br />
-              이 작업은 되돌릴 수 없습니다.
+              <br />이 작업은 되돌릴 수 없습니다.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row justify-end gap-2 mt-4 border-t pt-4">
