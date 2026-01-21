@@ -18,6 +18,32 @@ import {
 import { getLanguageExtension } from '../lib/constants';
 import { type Language } from '../lib/types';
 
+const cursorTheme = EditorView.theme({
+  // 커서 이름표 스타일
+  '.cm-ySelectionInfo': {
+    padding: '2px 6px',
+    position: 'absolute',
+    top: '-1.6em', // 커서 위에 위치
+    left: '-1px',
+    zIndex: '1000',
+    borderRadius: '6px',
+    borderBottomLeftRadius: '0', // 말풍선 느낌
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: 'white', // 배경색은 y-codemirror가 유저 컬러로 자동 지정함, 글자는 흰색
+    pointerEvents: 'none',
+    userSelect: 'none',
+    whiteSpace: 'nowrap',
+    lineHeight: 'normal',
+    transition: 'opacity 0.2s ease-in-out',
+  },
+  '.cm-ySelectionCaretDot': {
+    display: 'none',
+  },
+});
+
 interface UseEditorExtensionsProps {
   yText: Y.Text | null;
   awareness: Awareness | null;
@@ -71,6 +97,8 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       getLanguageExtension(language),
       safeInput({ allowAscii: true }),
       capacityLimitInputBlocker(),
+
+      cursorTheme,
 
       // Dynamic Compartments Initial Config
       compartments.theme.of(isDark ? oneDark : []),
