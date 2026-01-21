@@ -34,6 +34,7 @@ export function useAwarenessSync() {
         name: myPt.nickname,
         color: myPt.color,
         id: myPt.ptId,
+        hash: myPt.ptHash,
       });
     }
   }, [myPt?.nickname, myPt?.color, awareness, myPtId]);
