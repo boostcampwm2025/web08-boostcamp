@@ -33,3 +33,9 @@ export interface PtUpdateRolePayload {
   ptId: string;
   role: "editor" | "viewer";
 }
+
+/** 참가자 닉네임 업데이트 (C <-> S) */
+export interface PtUpdateNamePayload {
+  ptId: string;
+  nickname: string;
+}

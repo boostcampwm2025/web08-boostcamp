@@ -10,6 +10,8 @@ export const SOCKET_EVENTS = {
   PT_DISCONNECT: "room:pt_disconnect",
   PT_LEFT: "room:pt_left",
   UPDATE_PT: "pt:update",
+  UPDATE_ROLE_PT: "pt:update_role",
+  UPDATE_NICKNAME_PT: "pt:update_nickname",
 
   UPDATE_FILE: "file:update",
   UPDATE_AWARENESS: "awareness:update",
