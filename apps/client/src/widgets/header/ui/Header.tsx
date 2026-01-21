@@ -23,6 +23,8 @@ import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { useFileStore } from '@/stores/file';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { SettingsDialog } from '@/widgets/dialog/SettingsDialog';
+import { useRoomStore } from '@/stores/room';
+import { usePt } from '@/stores/pts';
 
 type HeaderProps = {
   roomCode: string;
@@ -36,6 +38,11 @@ export default function Header({ roomCode }: HeaderProps) {
   const { getFileId, createFile } = useFileStore();
   const [uploadFile, setUploadFile] = useState<File | undefined>(undefined);
   const [filename, setFilename] = useState('');
+
+  // 방 폭파 버튼 조건부 렌더링을 위한 상태
+  const { myPtId, whoCanDestroyRoom } = useRoomStore();
+  const myPt = usePt(myPtId);
+  const canDestroyRoom = myPt?.role === whoCanDestroyRoom;
 
   const uploadRef = useRef<HTMLInputElement>(null);
 
@@ -241,17 +248,19 @@ export default function Header({ roomCode }: HeaderProps) {
           </Button>
         </ShareDialog>
 
-        {/* 방 폭파 다이얼로그 */}
-        <DestroyRoomDialog>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-xs h-8 px-2 sm:px-3 text-destructive hover:text-destructive"
-          >
-            <Bomb className="h-4 w-4" />
-            <span className="hidden lg:inline">Destroy</span>
-          </Button>
-        </DestroyRoomDialog>
+        {/* 방 폭파 다이얼로그 - 권한이 있는 경우에만 표시 */}
+        {canDestroyRoom && (
+          <DestroyRoomDialog>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs h-8 px-2 sm:px-3 text-destructive hover:text-destructive"
+            >
+              <Bomb className="h-4 w-4" />
+              <span className="hidden lg:inline">Destroy</span>
+            </Button>
+          </DestroyRoomDialog>
+        )}
 
         <SettingsDialog />
 
