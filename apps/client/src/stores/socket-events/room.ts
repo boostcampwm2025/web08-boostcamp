@@ -2,8 +2,15 @@ import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS, type WelcomePayload } from '@codejam/common';
 import { useRoomStore } from '../room';
 import { useFileStore } from '../file';
-import { getRoomToken } from '@/shared/lib/storage';
-import { setRoomToken } from '@/shared/lib/storage';
+import {
+  getRoomToken,
+  setRoomToken,
+  removeRoomToken,
+} from '@/shared/lib/storage';
+
+const redirectToHome = () => {
+  window.location.href = '/';
+};
 
 export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {
@@ -22,10 +29,21 @@ export const setupRoomEventHandlers = () => {
     initialize(roomCode);
   };
 
+  const onGoodbye = () => {
+    console.log('👋 [GOODBYE] Left the room');
+
+    const { roomCode } = useRoomStore.getState();
+    if (roomCode) removeRoomToken(roomCode);
+
+    redirectToHome();
+  };
+
   socket.on(SOCKET_EVENTS.WELCOME, onWelcome);
+  socket.on(SOCKET_EVENTS.GOODBYE, onGoodbye);
 
   return () => {
     socket.off(SOCKET_EVENTS.WELCOME, onWelcome);
+    socket.off(SOCKET_EVENTS.GOODBYE, onGoodbye);
   };
 };
 
@@ -37,4 +55,8 @@ export const emitJoinRoom = (roomCode: string, nickname?: string) => {
     token: savedRoomToken || undefined,
     nickname: nickname || undefined,
   });
+};
+
+export const emitLeftRoom = () => {
+  socket.emit(SOCKET_EVENTS.LEFT_ROOM);
 };
