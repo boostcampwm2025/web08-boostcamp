@@ -5,6 +5,8 @@ export const SOCKET_EVENTS = {
   ROOM_DOC: "room:doc",
   ROOM_AWARENESS: "room:awareness",
   ROOM_EXPIRED: "room:expired",
+  DESTROY_ROOM: "room:destroy",
+  ROOM_DESTROYED: "room:destroyed",
 
   PT_JOINED: "room:pt_joined",
   PT_DISCONNECT: "room:pt_disconnect",
