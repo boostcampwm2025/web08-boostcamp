@@ -1,14 +1,25 @@
 import { createAvatarElement } from '@/shared/ui/avatar-dom';
-import { gutter, GutterMarker, ViewPlugin } from '@codemirror/view';
-import type { Awareness } from 'y-protocols/awareness.js';
-import * as Y from 'yjs';
+import { gutter, GutterMarker } from '@codemirror/view';
+
+export interface AvatarUser {
+  hash: string;
+  color: string;
+  name?: string;
+}
+
+export type LineToUsersMap = Map<number, AvatarUser[]>;
 
 class AvatarMarker extends GutterMarker {
-  private users: { ptHash: string; color: string }[];
+  private users: AvatarUser[];
 
-  constructor(users: { ptHash: string; color: string }[]) {
+  constructor(users: AvatarUser[]) {
     super();
     this.users = users;
+  }
+
+  eq(other: AvatarMarker) {
+    if (this.users.length !== other.users.length) return false;
+    return this.users.every((u, i) => u.hash === other.users[i].hash);
   }
 
   toDOM() {
@@ -20,7 +31,7 @@ class AvatarMarker extends GutterMarker {
 
     // 최대 3명까지만 표시
     this.users.slice(0, 3).forEach((user, index) => {
-      const el = createAvatarElement(user.ptHash, user.color, 24);
+      const el = createAvatarElement(user.hash, user.color, 24);
 
       el.style.position = 'relative';
       el.style.boxSizing = 'border-box';
@@ -42,18 +53,24 @@ class AvatarMarker extends GutterMarker {
 }
 
 /**
- * Awareness 기반 Line Avatar Extension
- * @param awareness Yjs Awareness 인스턴스
- * @param yText Y.Text 인스턴스 (좌표 변환용)
+ * 데이터를 주입받아 Gutter를 생성하는 함수
+ * @param lineUsersMap 라인 번호(1-based)를 키로 하고 유저 배열을 값으로 갖는 Map
  */
-export const lineAvatarExtension = (awareness: Awareness, yText: Y.Text) => {
-  /**
-   * TODO: Awareness 변경 감지용 플러그인
-   */
-  const updatePlugin = ViewPlugin.fromClass(class {});
+export const lineAvatarExtension = (lineUsersMap: LineToUsersMap) => {
+  return gutter({
+    // 각 라인마다 실행되어 마커를 반환할지 결정
+    lineMarker(view, line) {
+      // line.from(인덱스)을 라인 번호로 변환
+      const lineNo = view.state.doc.lineAt(line.from).number;
+      const users = lineUsersMap.get(lineNo);
 
-  /**
-   * TODO: 실제 Gutter 설정
-   */
-  const avatarGutter = gutter({});
+      if (users && users.length > 0) {
+        return new AvatarMarker(users);
+      }
+      return null;
+    },
+    initialSpacer: () => {
+      return new AvatarMarker([]);
+    },
+  });
 };

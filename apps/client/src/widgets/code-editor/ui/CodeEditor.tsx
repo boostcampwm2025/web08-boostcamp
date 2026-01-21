@@ -12,6 +12,11 @@ import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
+import {
+  lineAvatarExtension,
+  type LineToUsersMap,
+} from '../plugin/LineAvatars';
+import * as Y from 'yjs';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -44,6 +49,7 @@ export default function CodeEditor({
 
   const themeCompartment = useMemo(() => new Compartment(), []);
   const fontSizeCompartment = useMemo(() => new Compartment(), []);
+  const avatarCompartment = useMemo(() => new Compartment(), []);
 
   const { yText, awareness } = useYText(fileId);
   const { isDark } = useDarkMode();
@@ -66,6 +72,7 @@ export default function CodeEditor({
             '&': { fontSize: `${fontSize}px` },
           }),
         ),
+        avatarCompartment.of(lineAvatarExtension(new Map())),
         EditorState.readOnly.of(readOnly),
         ...(readOnly ? [readOnlyToast()] : []),
         capacityLimitInputBlocker(), // 용량 제한 체크 (항상 활성화)
@@ -94,7 +101,84 @@ export default function CodeEditor({
     fontSizeCompartment,
     fontSize,
     isDark,
+    avatarCompartment,
   ]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || !awareness || !yText?.doc) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout>;
+
+    const handleAwarenessChange = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+
+      debounceTimer = setTimeout(() => {
+        const currentView = viewRef.current;
+        if (!currentView) return;
+
+        const states = awareness.getStates();
+        const newLineToUsersMap: LineToUsersMap = new Map();
+
+        states.forEach((state, clientID) => {
+          if (clientID === awareness.clientID) return;
+
+          const cursor = state.cursor;
+          const user = (state.user as any) || {};
+          if (!user.hash || !cursor) return;
+
+          const userFileId = user.currentFileId;
+          if (userFileId && userFileId !== fileId) return;
+
+          let absIndex: number | null = null;
+          const relPos = cursor.head || cursor.anchor;
+
+          if (relPos) {
+            try {
+              const absolutePosition =
+                Y.createAbsolutePositionFromRelativePosition(
+                  relPos,
+                  yText.doc!,
+                );
+              if (absolutePosition) {
+                absIndex = absolutePosition.index;
+              }
+            } catch (error) {
+              console.warn('Pos calc error:', error);
+            }
+          }
+
+          if (absIndex !== null) {
+            const docLength = currentView.state.doc.length;
+            const pos = Math.min(Math.max(0, absIndex), docLength);
+            const line = currentView.state.doc.lineAt(pos);
+
+            const existing = newLineToUsersMap.get(line.number) || [];
+
+            if (!existing.some((u) => u.hash === user.hash)) {
+              newLineToUsersMap.set(line.number, [...existing, user]);
+            }
+
+            currentView.dispatch({
+              effects: avatarCompartment.reconfigure(
+                lineAvatarExtension(newLineToUsersMap),
+              ),
+            });
+          }
+        });
+      }, 50);
+    };
+
+    handleAwarenessChange();
+    awareness.on('change', handleAwarenessChange);
+    awareness.on('update', handleAwarenessChange);
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      awareness.off('change', handleAwarenessChange);
+      awareness.off('update', handleAwarenessChange);
+    };
+  }, [awareness, avatarCompartment, yText]);
 
   useEffect(() => {
     const view = viewRef.current;
