@@ -12,11 +12,8 @@ import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
-import {
-  lineAvatarExtension,
-  type LineToUsersMap,
-} from '../plugin/LineAvatars';
-import * as Y from 'yjs';
+import { lineAvatarExtension } from '../plugin/LineAvatars';
+import { useLineAvatars } from '@/shared/lib/hooks/useLineAvatars';
 
 type Language = 'javascript' | 'html' | 'css';
 
@@ -55,6 +52,13 @@ export default function CodeEditor({
   const { isDark } = useDarkMode();
   const { fontSize } = useSettings();
 
+  const lineToUsersMap = useLineAvatars(
+    awareness ?? undefined,
+    yText ?? undefined,
+    fileId,
+    viewRef.current,
+  );
+
   useEffect(() => {
     if (!editorRef.current || !yText || !awareness) return;
 
@@ -65,17 +69,17 @@ export default function CodeEditor({
         yCollab(yText, awareness),
         getLanguageExtension(language),
         safeInput({ allowAscii: true }),
-        EditorState.readOnly.of(readOnly), // viewer일 때만 완전 읽기 전용
+        EditorState.readOnly.of(readOnly),
         themeCompartment.of(isDark ? oneDark : []),
         fontSizeCompartment.of(
           EditorView.theme({
             '&': { fontSize: `${fontSize}px` },
           }),
         ),
-        avatarCompartment.of(lineAvatarExtension(new Map())),
+        avatarCompartment.of(lineAvatarExtension(lineToUsersMap)),
         EditorState.readOnly.of(readOnly),
         ...(readOnly ? [readOnlyToast()] : []),
-        capacityLimitInputBlocker(), // 용량 제한 체크 (항상 활성화)
+        capacityLimitInputBlocker(),
         EditorView.theme({
           '&': { height: '100%' },
           '.cm-scroller': { overflow: 'auto' },
@@ -104,97 +108,31 @@ export default function CodeEditor({
     avatarCompartment,
   ]);
 
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view || !awareness || !yText?.doc) return;
-
-    let debounceTimer: ReturnType<typeof setTimeout>;
-
-    const handleAwarenessChange = () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-
-      debounceTimer = setTimeout(() => {
-        const currentView = viewRef.current;
-        if (!currentView) return;
-
-        const states = awareness.getStates();
-        const newLineToUsersMap: LineToUsersMap = new Map();
-
-        states.forEach((state, clientID) => {
-          if (clientID === awareness.clientID) return;
-
-          const cursor = state.cursor;
-          const user = (state.user as any) || {};
-          if (!user.hash || !cursor) return;
-
-          const userFileId = user.currentFileId;
-          if (userFileId && userFileId !== fileId) return;
-
-          let absIndex: number | null = null;
-          const relPos = cursor.head || cursor.anchor;
-
-          if (relPos) {
-            try {
-              const absolutePosition =
-                Y.createAbsolutePositionFromRelativePosition(
-                  relPos,
-                  yText.doc!,
-                );
-              if (absolutePosition) {
-                absIndex = absolutePosition.index;
-              }
-            } catch (error) {
-              console.warn('Pos calc error:', error);
-            }
-          }
-
-          if (absIndex !== null) {
-            const docLength = currentView.state.doc.length;
-            const pos = Math.min(Math.max(0, absIndex), docLength);
-            const line = currentView.state.doc.lineAt(pos);
-
-            const existing = newLineToUsersMap.get(line.number) || [];
-
-            if (!existing.some((u) => u.hash === user.hash)) {
-              newLineToUsersMap.set(line.number, [...existing, user]);
-            }
-
-            currentView.dispatch({
-              effects: avatarCompartment.reconfigure(
-                lineAvatarExtension(newLineToUsersMap),
-              ),
-            });
-          }
-        });
-      }, 50);
-    };
-
-    handleAwarenessChange();
-    awareness.on('change', handleAwarenessChange);
-    awareness.on('update', handleAwarenessChange);
-
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      awareness.off('change', handleAwarenessChange);
-      awareness.off('update', handleAwarenessChange);
-    };
-  }, [awareness, avatarCompartment, yText]);
-
+  // lineToUsersMap이 바뀔 때 avatarCompartment만 갱신
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
+    view.dispatch({
+      effects: avatarCompartment.reconfigure(
+        lineAvatarExtension(lineToUsersMap),
+      ),
+    });
+  }, [lineToUsersMap, avatarCompartment]);
 
+  // 다크모드 변경 시 테마 compartment 갱신
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
     const themeExtension = isDark ? oneDark : [];
-
     view.dispatch({
       effects: themeCompartment.reconfigure(themeExtension),
     });
   }, [isDark, themeCompartment]);
 
+  // 폰트 사이즈 compartment 갱신
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
-
     view.dispatch({
       effects: fontSizeCompartment.reconfigure(
         EditorView.theme({
