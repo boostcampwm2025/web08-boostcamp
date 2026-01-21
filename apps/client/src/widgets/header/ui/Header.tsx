@@ -2,19 +2,7 @@ import { PROJECT_NAME } from '@codejam/common';
 import { useRef, useState, type ChangeEvent } from 'react';
 import LogoAnimation from '@/assets/logo_animation.svg';
 import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from '@/shared/ui/dialog';
 import {
   Check,
   Copy,
@@ -27,6 +15,7 @@ import {
   Bomb,
 } from 'lucide-react';
 import { DestroyRoomDialog } from '@/widgets/dialog/DestroyRoomDialog';
+import { ShareDialog } from '@/widgets/dialog/ShareDialog';
 import { toast } from 'sonner';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { extname } from '@/shared/lib/file';
@@ -241,46 +230,16 @@ export default function Header({ roomCode }: HeaderProps) {
         </Button>
 
         {/* 공유 다이얼로그 */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-xs h-8 px-2 sm:px-3"
-            >
-              <Share2 className="h-4 w-4" />
-              <span className="hidden lg:inline">Share</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Share Link</DialogTitle>
-              <DialogDescription>
-                현재 페이지의 링크를 복사하여 다른 사람에게 공유해보세요.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center space-x-2">
-              <div className="grid flex-1 gap-2">
-                <Label htmlFor="link" className="sr-only">
-                  Link
-                </Label>
-                <Input
-                  id="link"
-                  defaultValue={window.location.href}
-                  readOnly
-                  className="h-9"
-                />
-              </div>
-            </div>
-            <DialogFooter className="sm:justify-start">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary" size="sm">
-                  Close
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ShareDialog>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+          >
+            <Share2 className="h-4 w-4" />
+            <span className="hidden lg:inline">Share</span>
+          </Button>
+        </ShareDialog>
 
         {/* 방 폭파 다이얼로그 */}
         <DestroyRoomDialog>
