@@ -7,17 +7,21 @@ import RoomPage from '@/pages/room/RoomPage';
 import NotFoundPage from '@/pages/not-found/NotFoundPage';
 import HomePage from '@/pages/home/HomePage';
 import { checkRoomExists } from '@/shared/api/room';
+import type { RoomJoinStatus } from '@codejam/common';
 
-async function roomLoader({ params }: LoaderFunctionArgs) {
+async function roomLoader({
+  params,
+}: LoaderFunctionArgs): Promise<RoomJoinStatus> {
   const { roomCode } = params;
   if (!roomCode) {
     throw new Response('Room code is required', { status: 400 });
   }
-  const exists = await checkRoomExists(roomCode);
-  if (!exists) {
+  const status = await checkRoomExists(roomCode);
+  if (status === 'NOT_FOUND') {
     throw new Response('Room not found', { status: 404 });
   }
-  return { roomCode };
+
+  return status;
 }
 
 const router = createBrowserRouter([

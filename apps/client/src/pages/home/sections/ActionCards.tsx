@@ -68,11 +68,13 @@ export function ActionCards() {
     setJoinRoomError('');
 
     try {
-      const exists = await checkRoomExists(code);
-      if (!exists) return;
-
-      const roomUrl = getRoomUrl(code);
-      navigate(roomUrl);
+      const status = await checkRoomExists(code);
+      if (status === 'FULL') {
+        setJoinRoomError('Room member is max');
+      } else {
+        const roomUrl = getRoomUrl(code);
+        navigate(roomUrl);
+      }
     } catch (e) {
       const error = e as Error;
       setJoinRoomError(error.message);
