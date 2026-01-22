@@ -13,6 +13,7 @@ import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import type { RoomJoinStatus } from '@codejam/common';
 import { PrepareStage } from './PrepareStage';
+import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 
 function RoomPage() {
   const {
@@ -26,6 +27,8 @@ function RoomPage() {
     handleNicknameConfirm,
     handlePasswordConfirm,
   } = useRoomJoin();
+
+  useAwarenessSync();
 
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
@@ -53,7 +56,7 @@ function RoomPage() {
         <div className="bg-red-500 text-white p-4 text-center">{roomError}</div>
       )}
       <main className="flex-1 overflow-hidden flex">
-        <div className="border-r border-border h-full overflow-y-auto scrollbar-thin flex flex-col bg-sidebar w-64 shrink-0">
+        <div className="border-r border-border h-full overflow-y-auto scrollbar-thin flex flex-col bg-sidebar w-72 shrink-0">
           <Participants />
           <FileList />
         </div>

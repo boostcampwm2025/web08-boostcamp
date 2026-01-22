@@ -32,6 +32,14 @@ export interface ParticipantProps {
 }
 
 /**
+ * 닉네임 수정 Props 타입
+ */
+export interface EditableProps {
+  editable: boolean;
+  onEditable: (value: boolean) => void;
+}
+
+/**
  * 권한을 수정할 수 있는지 확인하는 타입
  */
 export interface PermissionPtProps {

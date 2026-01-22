@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomController } from './room.controller';
 import { RoomService } from './room.service';
+import { PtService } from '../pt/pt.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 
 describe('RoomController', () => {
@@ -11,6 +12,10 @@ describe('RoomController', () => {
     createQuickRoom: jest.fn(),
   };
 
+  const mockPtService = {
+    roomCounter: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoomController],
@@ -18,6 +23,10 @@ describe('RoomController', () => {
         {
           provide: RoomService,
           useValue: mockRoomService,
+        },
+        {
+          provide: PtService,
+          useValue: mockPtService,
         },
       ],
     }).compile();

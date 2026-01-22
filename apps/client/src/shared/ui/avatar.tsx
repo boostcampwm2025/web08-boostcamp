@@ -1,4 +1,5 @@
 import { type ElementType, type ReactNode } from 'react';
+import { AVATAR_BASE_CLASSES } from './avatar-shared';
 
 export interface AvatarProps {
   /**
@@ -42,7 +43,7 @@ export function Avatar({
 
   return (
     <div
-      className={`relative rounded-full ${className}`}
+      className={`${AVATAR_BASE_CLASSES} ${className}`}
       style={{ width: size, height: size }}
     >
       <div
