@@ -4,6 +4,7 @@ import { socket } from '@/shared/api/socket';
 import { emitJoinRoom } from '@/stores/socket-events';
 import { useRoomStore } from '@/stores/room';
 import { getRoomToken } from '@/shared/lib/storage';
+import { useTempValue } from '@/stores/temp';
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
@@ -25,7 +26,7 @@ export function useRoomJoin() {
 
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [passwordError, setPasswordError] = useState('');
-  const [password, setPassword] = useState('');
+  const { tempRoomPassword, setTempRoomPassword } = useTempValue();
 
   useEffect(() => {
     setIsNicknameDialogOpen(shouldShowNicknameDialog);
@@ -100,10 +101,10 @@ export function useRoomJoin() {
       if (!paramCode) return;
 
       setRoomError('');
-      emitJoinRoom(paramCode, nickname, password);
+      emitJoinRoom(paramCode, nickname, tempRoomPassword);
       setIsNicknameDialogOpen(false);
     },
-    [paramCode, password],
+    [paramCode, tempRoomPassword],
   );
 
   const handlePasswordConfirm = useCallback(
@@ -111,7 +112,7 @@ export function useRoomJoin() {
       if (!paramCode) return;
 
       setPasswordError('');
-      setPassword(password);
+      setTempRoomPassword(password);
       emitJoinRoom(paramCode, undefined, password);
     },
     [paramCode],
