@@ -1,0 +1,49 @@
+import { useState } from 'react';
+import { Check, Copy } from 'lucide-react';
+import { Button } from '@/shared/ui/button';
+import { toast } from 'sonner';
+
+interface RoomCodeProps {
+  roomCode: string;
+}
+
+export function RoomCode({ roomCode }: RoomCodeProps) {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyRoomCode = async () => {
+    try {
+      await navigator.clipboard.writeText(roomCode || '');
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+      toast.success('방 코드가 복사되었습니다.');
+    } catch (err) {
+      const error = err as Error;
+      toast.error(`복사에 실패했습니다: ${error.message}`);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 ml-2 sm:ml-6 shrink-0">
+      <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider hidden md:block">
+        ROOM CODE
+      </span>
+      <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 border border-border rounded-md bg-secondary/50">
+        <span className="font-mono text-xs sm:text-sm font-semibold max-w-[80px] sm:max-w-none truncate">
+          {roomCode}
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-4 w-4 p-0 hover:bg-transparent"
+          onClick={copyRoomCode}
+        >
+          {isCopied ? (
+            <Check className="h-3 w-3 text-green-500" />
+          ) : (
+            <Copy className="h-3 w-3" />
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
