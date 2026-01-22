@@ -3,12 +3,15 @@ import type { KeyboardEvent, ClipboardEvent } from 'react';
 
 export const ROOM_CODE_LENGTH = 6;
 
+type ColorKey = 'blue' | 'green' | 'purple';
+
 interface RoomCodeInputProps {
   value: string[];
   onChange: (code: string[]) => void;
   hasError?: boolean;
   onSubmit?: () => void;
   length?: number;
+  colorKey?: ColorKey;
 }
 
 export function RoomCodeInput({
@@ -17,6 +20,7 @@ export function RoomCodeInput({
   hasError = false,
   onSubmit,
   length = ROOM_CODE_LENGTH,
+  colorKey = 'green',
 }: RoomCodeInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -102,8 +106,28 @@ export function RoomCodeInput({
     inputRefs.current[nextIndex]?.focus();
   };
 
+  const colorStyles = {
+    blue: 'focus:border-brand-blue focus:ring-brand-blue/20 caret-brand-blue',
+    green:
+      'focus:border-brand-green focus:ring-brand-green/20 caret-brand-green',
+    purple: 'focus:border-purple-500 focus:ring-purple-100 caret-purple-500',
+  };
+
+  const activeColorStyle = colorStyles[colorKey];
+
   return (
-    <div className="flex gap-1 sm:gap-2 justify-center">
+    <div
+      className="
+        grid
+        justify-center
+        w-full
+        gap-[clamp(0.25rem,2vw,0.75rem)]
+      "
+      style={{
+        gridTemplateColumns: 'repeat(auto-fit, minmax(2.5rem, 1fr))',
+        maxWidth: '22rem',
+      }}
+    >
       {value.map((digit, index) => (
         <input
           key={index}
@@ -116,9 +140,20 @@ export function RoomCodeInput({
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={(e) => handlePaste(index, e)}
-          className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-center text-base sm:text-xl md:text-2xl font-semibold font-mono border-2 ${
-            hasError ? 'border-red-500' : 'border-gray-400'
-          } focus:border-gray-900 focus:outline-none transition-colors uppercase caret-transparent`}
+          className={`
+            w-full aspect-[3/4]
+            text-[clamp(1.25rem,4vw,2rem)]
+            text-center font-bold font-mono
+            border-2 rounded-xl shadow-sm
+            transition-all duration-200
+            uppercase caret-transparent
+            ${
+              hasError
+                ? 'border-red-300 bg-red-50 text-red-600 focus:border-red-500 focus:ring-4 focus:ring-red-100 caret-red-500'
+                : `border-gray-200 bg-white text-gray-800 focus:ring-4 focus:-translate-y-1 ${activeColorStyle}`
+            }
+            focus:outline-none
+          `}
         />
       ))}
     </div>
