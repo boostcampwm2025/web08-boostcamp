@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Hash, Settings } from 'lucide-react';
+import { Users, Hash, Settings2 } from 'lucide-react';
 import { ActionCard } from '../cards/ActionCard';
 import { RoomCodeInput, ROOM_CODE_LENGTH } from '../components/RoomCodeInput';
 import { Button } from '@/shared/ui/button';
@@ -8,11 +8,12 @@ import {
   createQuickRoom,
   checkRoomExists,
   createCustomRoom,
+  type CustomRoomData,
 } from '@/shared/api/room';
 import { getRoomUrl } from '@/shared/lib/routes';
 import { setRoomToken } from '@/shared/lib/storage';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { Input } from '@/shared/ui';
+import { CustomStartPopover } from '../components/CustomStartPopover';
 
 interface ErrorMessageProps {
   message: string;
@@ -33,21 +34,18 @@ function ErrorMessage({ message }: ErrorMessageProps) {
 export function ActionCards() {
   const navigate = useNavigate();
 
+  // Quick Start & Custom Start 공통 상태
+  const [quickStartError, setQuickStartError] = useState<string>('');
+  const [isQuickStartLoading, setIsQuickStartLoading] =
+    useState<boolean>(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  // Join Room 상태
   const [roomCode, setRoomCode] = useState<string[]>(
     Array(ROOM_CODE_LENGTH).fill(''),
   );
-  const [quickStartError, setQuickStartError] = useState<string>('');
   const [joinRoomError, setJoinRoomError] = useState<string>('');
-  const [isQuickStartLoading, setIsQuickStartLoading] =
-    useState<boolean>(false);
   const [isJoinRoomLoading, setIsJoinRoomLoading] = useState<boolean>(false);
-
-  const [customRoomData, setCustomRoomData] = useState({
-    maxPts: 6,
-    roomPassword: '',
-    hostPassword: '',
-  });
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handleQuickStart = async () => {
     if (isQuickStartLoading) return;
@@ -72,30 +70,21 @@ export function ActionCards() {
     }
   };
 
-  const handleCustomStart = async () => {
-    if (isQuickStartLoading) return; // 로딩 상태 공유 (또는 별도 분리 가능)
+  const handleCustomStart = async (data: CustomRoomData) => {
+    if (isQuickStartLoading) return; // 로딩 상태 공유
 
     setIsQuickStartLoading(true);
     setQuickStartError('');
 
     try {
-      // 숫자 형변환 확인
-      const payload = {
-        ...customRoomData,
-        maxPts: Number(customRoomData.maxPts),
-      };
-
-      const { roomCode, token } = await createCustomRoom(payload);
-
+      const { roomCode, token } = await createCustomRoom(data);
       setRoomToken(roomCode, token);
-      const url = getRoomUrl(roomCode);
-      navigate(url);
+      navigate(getRoomUrl(roomCode));
     } catch (e) {
-      const error = e as Error;
-      setQuickStartError(error.message);
+      setQuickStartError((e as Error).message);
     } finally {
       setIsQuickStartLoading(false);
-      setIsPopoverOpen(false);
+      setIsPopoverOpen(false); // 성공 시 팝오버 닫기
     }
   };
 
@@ -126,6 +115,7 @@ export function ActionCards() {
   return (
     <section className="mb-16">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
+        {/* === 방 만들기 카드 === */}
         <ActionCard
           icon={Users}
           title="방 만들기"
@@ -133,98 +123,49 @@ export function ActionCards() {
           colorKey="blue"
         >
           <div className="flex flex-col items-center gap-4 w-full">
-            <Button
-              onClick={handleQuickStart}
-              disabled={isQuickStartLoading}
-              className={`w-full ${
-                quickStartError
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              } text-white font-medium text-lg py-6 transition-all duration-200 rounded-none font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400`}
-            >
-              {isQuickStartLoading ? 'Loading...' : 'Quick Start'}
-            </Button>
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 py-2"
-                >
-                  <Settings className="w-4 h-4 mr-2" /> Custom Start
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 bg-white" align="center">
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 leading-none">
-                    방 옵션 설정
-                  </h4>
-                  <p className="text-sm text-gray-500">
-                    원하는 설정을 입력하고 방을 생성하세요.
-                  </p>
+            {/* Split Button 컨테이너 */}
+            <div className="flex w-full shadow-sm rounded-md">
+              {/* 왼쪽: Quick Start Button */}
+              <Button
+                onClick={handleQuickStart}
+                disabled={isQuickStartLoading}
+                className={`flex-1 rounded-r-none border-r ${
+                  quickStartError
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } text-white font-medium text-lg py-6 transition-all duration-200 font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400`}
+              >
+                {isQuickStartLoading ? 'Loading...' : 'Quick Start'}
+              </Button>
 
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-gray-600">
-                        최대 인원 (Max Pts)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="6"
-                        value={customRoomData.maxPts}
-                        onChange={(e) =>
-                          setCustomRoomData({
-                            ...customRoomData,
-                            maxPts: Number(e.target.value),
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-gray-600">
-                        방 비밀번호 (Optional)
-                      </label>
-                      <Input
-                        type="password"
-                        placeholder="입장 시 필요한 비밀번호"
-                        value={customRoomData.roomPassword}
-                        onChange={(e) =>
-                          setCustomRoomData({
-                            ...customRoomData,
-                            roomPassword: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-gray-600">
-                        호스트 비밀번호 (Optional)
-                      </label>
-                      <Input
-                        type="password"
-                        placeholder="방장 전용 비밀번호"
-                        value={customRoomData.hostPassword}
-                        onChange={(e) =>
-                          setCustomRoomData({
-                            ...customRoomData,
-                            hostPassword: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
+              {/* 오른쪽: Custom Start Popover Trigger */}
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
                   <Button
-                    onClick={handleCustomStart}
                     disabled={isQuickStartLoading}
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white mt-2"
+                    className={`w-14 rounded-l-none ${
+                      quickStartError
+                        ? 'bg-red-600 hover:bg-red-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white py-6 flex items-center justify-center`}
                   >
-                    {isQuickStartLoading ? '생성 중...' : '만들기'}
+                    <Settings2 className="w-5 h-5" />
                   </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+                </PopoverTrigger>
+
+                {/* Popover Content */}
+                <PopoverContent
+                  className="bg-white p-4 shadow-xl border border-gray-200"
+                  align="end"
+                  sideOffset={8}
+                >
+                  <CustomStartPopover
+                    onCreate={handleCustomStart}
+                    isLoading={isQuickStartLoading}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <ErrorMessage message={quickStartError} />
           </div>
