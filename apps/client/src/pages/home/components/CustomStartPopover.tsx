@@ -1,5 +1,6 @@
 import type { CustomRoomData } from '@/shared/api/room';
 import { Button, Input } from '@/shared/ui';
+import { Slider } from '@/shared/ui/slider';
 import { ArrowRight, Check, ChevronLeft, Lock, Users } from 'lucide-react';
 import { useState } from 'react';
 
@@ -16,15 +17,32 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
     hostPassword: '',
   });
 
+  const handleSliderChange = (value: number[]) => {
+    setData({ ...data, maxPts: value[0] });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = Number(e.target.value);
+    if (val > 150) val = 150;
+    if (val < 2) val = 2;
+    setData({ ...data, maxPts: val });
+  };
+
   return (
     <div className="p-1">
       {/* Header: 단계 표시 */}
       <div className="flex items-center justify-between mb-4">
-        <h4>
+        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
           {step === 1 ? (
-            <Users size={16} className="text-blue-500" />
+            <>
+              <Users size={16} className="text-blue-500" />
+              <span>인원 설정</span>
+            </>
           ) : (
-            <Lock size={16} className="text-purple-500" />
+            <>
+              <Lock size={16} className="text-purple-500" />
+              <span>보안 설정</span>
+            </>
           )}
         </h4>
         <span className="text-xs text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-full">
@@ -39,17 +57,26 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
             함께 작업할 최대 인원을 설정해주세요.
           </p>
           <div className="flex items-center gap-3">
-            <Input
-              type="number"
+            <Slider
+              defaultValue={[6]}
+              value={[data.maxPts]}
               min={2}
-              max={20}
-              value={data.maxPts}
-              onChange={(e) =>
-                setData({ ...data, maxPts: Number(e.target.value) })
-              }
-              className="text-lg font-mono"
+              max={150}
+              step={1}
+              onValueChange={handleSliderChange}
+              className="flex-1 cursor-pointer"
             />
-            <span className="text-sm text-gray-500">명</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <Input
+                type="number"
+                min={2}
+                max={20}
+                value={data.maxPts}
+                onChange={handleInputChange}
+                className="w-16 text-center font-mono h-9"
+              />
+              <span className="text-sm text-gray-500 font-medium">명</span>
+            </div>
           </div>
           <Button
             className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white"
