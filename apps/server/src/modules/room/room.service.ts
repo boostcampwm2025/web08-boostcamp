@@ -49,18 +49,6 @@ export class RoomService {
     return count > 0;
   }
 
-  /**
-   * 해당 방의 호스트인지 확인
-   */
-  async checkHost(roomId: number, ptId: string): Promise<boolean> {
-    const role = await this.ptService.checkRole(roomId, ptId);
-    if (!role || role !== PtRole.HOST) {
-      return false;
-    }
-
-    return true;
-  }
-
   async findRoomById(roomId: number): Promise<Room | null> {
     return this.roomRepository.findOne({ where: { roomId } });
   }
