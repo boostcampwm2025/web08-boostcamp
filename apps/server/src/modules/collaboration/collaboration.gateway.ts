@@ -205,8 +205,8 @@ export class CollaborationGateway
   /** C -> S 호스트 권한 요청 거절 */
   @UseGuards(HostGuard)
   @SubscribeMessage(SOCKET_EVENTS.REJECT_HOST_CLAIM)
-  async handleRejectHostClaim(@ConnectedSocket() client: CollabSocket) {
-    await this.collaborationService.handleRejectHostClaim(client, this.server);
+  handleRejectHostClaim(@ConnectedSocket() client: CollabSocket) {
+    this.collaborationService.handleRejectHostClaim(client, this.server);
   }
 
   /**

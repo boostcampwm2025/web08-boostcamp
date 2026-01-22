@@ -49,10 +49,13 @@ export function HostPasswordDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) handleClose();
-      else onOpenChange(isOpen);
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleClose();
+        else onOpenChange(isOpen);
+      }}
+    >
       <DialogContent showCloseButton={false}>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -76,9 +79,7 @@ export function HostPasswordDialog({
                 autoFocus
                 maxLength={16}
               />
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
           </div>
           <DialogFooter>

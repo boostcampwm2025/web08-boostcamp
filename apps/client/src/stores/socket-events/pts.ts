@@ -159,8 +159,7 @@ export const setupPtsEventHandlers = () => {
   const onHostClaimFailed = (data: { reason: string }) => {
     console.log(`❌ [HOST_CLAIM_FAILED] ${data.reason}`);
     toast.error(
-      CLAIM_FAIL_MESSAGES[data.reason] ||
-        '호스트 권한 요청에 실패했습니다.',
+      CLAIM_FAIL_MESSAGES[data.reason] || '호스트 권한 요청에 실패했습니다.',
     );
   };
 

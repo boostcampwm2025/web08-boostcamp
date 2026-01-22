@@ -63,9 +63,7 @@ export function HostClaimSwitcher({
         title={isDisabled ? '호스트 비밀번호가 설정되지 않은 방입니다' : ''}
       >
         {/* Current Role Pill (선택됨) */}
-        <div
-          className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-sm bg-white dark:bg-gray-600 shadow-sm left-0.5"
-        />
+        <div className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-sm bg-white dark:bg-gray-600 shadow-sm left-0.5" />
 
         {/* Current Role Label */}
         <div
@@ -80,9 +78,7 @@ export function HostClaimSwitcher({
         </div>
 
         {/* HOST Label */}
-        <div
-          className="z-10 flex-1 text-center text-[10px] font-bold uppercase tracking-wider transition-colors text-gray-400 dark:text-gray-500"
-        >
+        <div className="z-10 flex-1 text-center text-[10px] font-bold uppercase tracking-wider transition-colors text-gray-400 dark:text-gray-500">
           Host
         </div>
       </div>

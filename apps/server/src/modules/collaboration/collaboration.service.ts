@@ -511,7 +511,9 @@ export class CollaborationService {
     // 방 정보 조회
     const room = await this.roomService.findRoomById(roomId);
     if (!room) {
-      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, { reason: 'ROOM_NOT_FOUND' });
+      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
+        reason: 'ROOM_NOT_FOUND',
+      });
       return;
     }
 
@@ -534,13 +536,15 @@ export class CollaborationService {
     // 호스트 소켓 찾기
     const hostSocket = await this.findHostSocket(server, roomCode);
     if (!hostSocket) {
-      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, { reason: 'HOST_NOT_FOUND' });
+      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
+        reason: 'HOST_NOT_FOUND',
+      });
       return;
     }
 
     // 타임아웃 설정 (10초)
     const timeoutId = setTimeout(() => {
-      this.handleClaimTimeout(server, roomId);
+      void this.handleClaimTimeout(server, roomId);
     }, 10000);
 
     // pendingClaims에 저장
@@ -626,10 +630,7 @@ export class CollaborationService {
    * 호스트 권한 요청 거절
    * - 요청자에게 거절 알림
    */
-  async handleRejectHostClaim(
-    client: CollabSocket,
-    server: Server,
-  ): Promise<void> {
+  handleRejectHostClaim(client: CollabSocket, server: Server): void {
     const { roomId, roomCode } = client.data;
 
     const pendingClaim = this.pendingClaims.get(roomId);
@@ -658,7 +659,10 @@ export class CollaborationService {
    * 호스트 권한 요청 타임아웃 (10초)
    * - 자동 수락 처리
    */
-  private async handleClaimTimeout(server: Server, roomId: number): Promise<void> {
+  private async handleClaimTimeout(
+    server: Server,
+    roomId: number,
+  ): Promise<void> {
     const pendingClaim = this.pendingClaims.get(roomId);
     if (!pendingClaim) return;
 
