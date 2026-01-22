@@ -367,6 +367,48 @@ export class CollaborationService {
   }
 
   /**
+   * 호스트 자동 양도
+   * - 호스트가 퇴장할 때 남은 참가자 중 한 명에게 권한 양도
+   * - 1순위: 가장 먼저 입장한 EDITOR
+   * - 2순위: EDITOR 없으면 가장 먼저 입장한 VIEWER
+   */
+  async handleAutoTransferHost(
+    client: CollabSocket,
+    server: Server,
+  ): Promise<void> {
+    const { roomId, roomCode } = client.data;
+
+    // 1. 새 호스트 후보 찾기
+    const nextHost = await this.ptService.findNextHost(roomId);
+    if (!nextHost) {
+      this.logger.log(
+        `[AUTO_TRANSFER] No candidate for host in room ${roomCode}`,
+      );
+      return;
+    }
+
+    // 2. 새 호스트로 역할 변경
+    await this.ptService.updatePt(client, server, nextHost.ptId, {
+      role: PtRole.HOST,
+    });
+
+    // 3. 변경된 참가자 정보 브로드캐스트
+    const updatedPt = await this.ptService.getPt(roomId, nextHost.ptId);
+    if (updatedPt) {
+      server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt: updatedPt });
+    }
+
+    // 4. 호스트 변경 알림 전송
+    server.to(roomCode).emit(SOCKET_EVENTS.HOST_TRANSFERRED, {
+      newHostPtId: nextHost.ptId,
+    });
+
+    this.logger.log(
+      `[AUTO_TRANSFER] Host transferred to ${nextHost.ptId} in room ${roomCode}`,
+    );
+  }
+
+  /**
    * 방 폭파 처리
    * 1. 모든 클라이언트에게 알림
    * 2. 소켓 연결 종료
