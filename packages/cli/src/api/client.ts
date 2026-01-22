@@ -40,12 +40,20 @@ export class ApiClient {
   }
 
   async checkJoinable(roomCode: string): Promise<RoomJoinStatus> {
-    return this.request<RoomJoinStatus>(
-      `/api/rooms/${roomCode}/joinable`,
+    const response = await fetch(
+      `${this.baseUrl}/api/rooms/${roomCode}/joinable`,
       {
         method: 'GET',
       },
     );
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.statusText}`);
+    }
+
+    const text = await response.text();
+    // Remove quotes if the response is a quoted string like "JOINABLE"
+    return text.replace(/^"|"$/g, '') as RoomJoinStatus;
   }
 
   async checkHealth(): Promise<boolean> {
