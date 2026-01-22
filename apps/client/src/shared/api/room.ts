@@ -74,7 +74,7 @@ export async function checkHost(
 }
 
 export const createCustomRoom = async (data: CustomRoomData) => {
-  const response = await fetch('/api/rooms/custom', {
+  const response = await fetch(`${ROOM_API_PREFIX}/custom`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
