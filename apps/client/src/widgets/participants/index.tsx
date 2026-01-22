@@ -81,7 +81,7 @@ export function Participants() {
 
       {/* --- Content --- */}
       <div
-        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-[600px]'}`}
+        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-150'}`}
       >
         {/* 상단 툴바 (정렬 & 검색 버튼) */}
         <div className="mt-2 mb-1">

@@ -10,6 +10,7 @@ import {
   type FilenameCheckPayload,
   type FileRenamePayload,
   type FileDeletePayload,
+  type PtUpdateNamePayload,
 } from '@codejam/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
@@ -108,7 +109,7 @@ export class CollaborationService {
     // Y.Doc 준비
     await this.fileService.prepareDoc(client, server);
 
-    await this.notifyParticipantJoined(client, server, pt, newToken);
+    await this.notifyParticipantJoined(client, server, pt, newToken, room);
 
     this.logger.log(
       `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
@@ -198,12 +199,26 @@ export class CollaborationService {
     const { roomId } = client.data;
     const { ptId, role } = payload;
 
-    await this.ptService.updatePtRole(
-      client,
-      server,
-      ptId,
-      role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
-    );
+    await this.ptService.updatePt(client, server, ptId, {
+      role: role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
+    });
+
+    const pt = await this.ptService.getPt(roomId, ptId);
+    if (!pt) return;
+
+    this.notifyUpdatePt(client, server, pt);
+  }
+
+  /** 참가자 이름 업데이트 */
+  async handleUpdatePtName(
+    client: CollabSocket,
+    server: Server,
+    payload: PtUpdateNamePayload,
+  ): Promise<void> {
+    const { roomId } = client.data;
+    const { ptId, nickname } = payload;
+
+    await this.ptService.updatePt(client, server, ptId, { nickname });
 
     const pt = await this.ptService.getPt(roomId, ptId);
     if (!pt) return;
@@ -319,11 +334,17 @@ export class CollaborationService {
     server: Server,
     pt: Pt,
     token: RoomToken,
+    room: Room,
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
 
     // 본인에게: 내 ptId 및 토큰 전달
-    client.emit(SOCKET_EVENTS.WELCOME, { myPtId: pt.ptId, token });
+    client.emit(SOCKET_EVENTS.WELCOME, {
+      myPtId: pt.ptId,
+      token,
+      roomType: room.roomType,
+      whoCanDestroyRoom: room.whoCanDestroyRoom,
+    });
 
     // 다른 참가자들에게: 새 참가자 입장 알림
     client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });
@@ -337,6 +358,29 @@ export class CollaborationService {
   private notifyUpdatePt(client: CollabSocket, server: Server, pt: Pt): void {
     const { roomCode } = client.data;
     server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt });
+  }
+
+  /**
+   * 방 폭파 처리
+   * 1. 모든 클라이언트에게 알림
+   * 2. 소켓 연결 종료
+   * 3. 데이터 정리 (DB 삭제 + Y.Doc 메모리 해제)
+   */
+  async handleDestroyRoom(client: CollabSocket, server: Server): Promise<void> {
+    const { roomId, roomCode, docId } = client.data;
+
+    this.logger.log(`[DESTROY_ROOM] Destroying room: ${roomCode}`);
+
+    // 1. 모든 클라이언트에게 폭파 알림
+    server.to(roomCode).emit(SOCKET_EVENTS.ROOM_DESTROYED, {});
+
+    // 2. 소켓 연결 종료
+    server.in(roomCode).disconnectSockets(true);
+
+    // 3. 데이터 정리
+    await this.roomService.destroyRoom(roomId, docId);
+
+    this.logger.log(`[DESTROY_ROOM] Room ${roomCode} destroyed successfully`);
   }
 
   /**

@@ -11,12 +11,29 @@ import { Label } from '@/shared/ui/label';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Slider } from '@/shared/ui/slider';
-import { Settings, RotateCcw } from 'lucide-react';
+import { Switch } from '@/shared/ui/switch';
+import {
+  Settings,
+  RotateCcw,
+  MousePointer2,
+  UserCircle,
+  Type,
+} from 'lucide-react';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
 import { toast } from 'sonner';
 
 export function SettingsDialog() {
-  const { fontSize, setFontSize, resetSettings } = useSettings();
+  const {
+    fontSize,
+    setFontSize,
+    resetSettings,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
+    toggleRemoteCursor,
+    toggleGutterAvatars,
+    toggleCursorLabels,
+  } = useSettings();
   const [inputValue, setInputValue] = useState(fontSize.toString());
 
   // fontSize가 외부에서 변경되면 inputValue도 동기화
@@ -69,6 +86,9 @@ export function SettingsDialog() {
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
+          <h4 className="font-medium text-sm text-muted-foreground mb-1">
+            Editor & Theme
+          </h4>
           {/* 폰트 크기 설정 */}
           <div className="grid gap-3">
             <div className="flex items-center justify-between">
@@ -99,8 +119,59 @@ export function SettingsDialog() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* 추후 다른 설정들(테마, 탭 사이즈 등)이 여기 추가됨 */}
+        <div className="border-t border-border my-2" />
+
+        <div className="grid gap-4">
+          <h4 className="font-medium text-sm text-muted-foreground mb-1">
+            Cursor & Appearance
+          </h4>
+
+          {/* 원격 커서 보이기/숨기기 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MousePointer2 className="w-4 h-4 text-muted-foreground" />
+              <Label htmlFor="show-cursor" className="cursor-pointer">
+                Show Remote Cursors
+              </Label>
+            </div>
+            <Switch
+              id="show-cursor"
+              checked={showRemoteCursor}
+              onCheckedChange={toggleRemoteCursor}
+            />
+          </div>
+
+          {/* Gutter 아바타 보이기/숨기기 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UserCircle className="w-4 h-4 text-muted-foreground" />
+              <Label htmlFor="show-gutter" className="cursor-pointer">
+                Show Gutter Avatars
+              </Label>
+            </div>
+            <Switch
+              id="show-gutter"
+              checked={showGutterAvatars}
+              onCheckedChange={toggleGutterAvatars}
+            />
+          </div>
+
+          {/* 커서 이름 항상 보이기 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Type className="w-4 h-4 text-muted-foreground" />
+              <Label htmlFor="show-labels" className="cursor-pointer">
+                Always Show Labels
+              </Label>
+            </div>
+            <Switch
+              id="show-labels"
+              checked={alwaysShowCursorLabels}
+              onCheckedChange={toggleCursorLabels}
+            />
+          </div>
         </div>
 
         {/* 하단 초기화 버튼 */}

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomController } from './room.controller';
 import { RoomService } from './room.service';
+import { PtService } from '../pt/pt.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
 import { PtService } from '../pt/pt.service';
 
@@ -13,6 +14,10 @@ describe('RoomController', () => {
     findRoomByCode: jest.fn(),
     checkHost: jest.fn(),
     createCustomRoom: jest.fn(),
+  };
+
+  const mockPtService = {
+    roomCounter: jest.fn(),
   };
 
   const mockPtService = {
