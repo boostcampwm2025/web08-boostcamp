@@ -10,8 +10,8 @@ export default function MainPage() {
       <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-brand-blue/10 blur-[120px] mix-blend-multiply animate-pulse z-0 pointer-events-none" />
       <div className="fixed top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-brand-green/10 blur-[120px] mix-blend-multiply animate-pulse delay-1000 z-0 pointer-events-none" />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-24 space-y-24">
-        <div className="flex flex-col items-center space-y-12">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8 md:py-12 space-y-12">
+        <div className="flex flex-col items-center space-y-6">
           <div className="w-full max-w-3xl">
             <Hero />
           </div>
