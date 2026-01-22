@@ -1,15 +1,11 @@
 import { Button } from '@/shared/ui/button';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import {
-  Copy,
-  Share2,
   Sun,
   Moon,
   Bomb,
 } from 'lucide-react';
 import { DestroyRoomDialog } from '@/widgets/dialog/DestroyRoomDialog';
-import { ShareDialog } from '@/widgets/dialog/ShareDialog';
-import { toast } from 'sonner';
 import { SettingsDialog } from '@/widgets/dialog/SettingsDialog';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
@@ -19,6 +15,8 @@ import { LeaveRoomButton } from './buttons/LeaveRoomButton';
 import { FileUploadButton } from './buttons/FileUploadButton';
 import { FileDownloadButton } from './buttons/FileDownloadButton';
 import { NewFileButton } from './buttons/NewFileButton';
+import { FileCopyButton } from './buttons/FileCopyButton';
+import { ShareButton } from './buttons/ShareButton';
 
 type HeaderProps = {
   roomCode: string;
@@ -31,12 +29,6 @@ export default function Header({ roomCode }: HeaderProps) {
   const { myPtId, whoCanDestroyRoom } = useRoomStore();
   const myPt = usePt(myPtId);
   const canDestroyRoom = myPt?.role === whoCanDestroyRoom;
-
-  const handleNotImplemented = (feature: string) => {
-    toast.warning(`${feature} 기능은 아직 구현되지 않았습니다.`, {
-      description: '추후 업데이트될 예정입니다.',
-    });
-  };
 
   return (
     <header className="h-14 bg-background border-b border-border flex items-center px-4 gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
@@ -52,27 +44,9 @@ export default function Header({ roomCode }: HeaderProps) {
 
         <FileDownloadButton />
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-1.5 text-xs h-8 px-2 sm:px-3 hidden sm:flex"
-          onClick={() => handleNotImplemented('Copy')}
-        >
-          <Copy className="h-4 w-4" />
-          <span className="hidden lg:inline">Copy</span>
-        </Button>
+        <FileCopyButton />
 
-        {/* 공유 다이얼로그 */}
-        <ShareDialog>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-xs h-8 px-2 sm:px-3"
-          >
-            <Share2 className="h-4 w-4" />
-            <span className="hidden lg:inline">Share</span>
-          </Button>
-        </ShareDialog>
+        <ShareButton />
 
         {/* 방 폭파 다이얼로그 - 권한이 있는 경우에만 표시 */}
         {canDestroyRoom && (
