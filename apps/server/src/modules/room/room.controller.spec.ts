@@ -3,7 +3,6 @@ import { RoomController } from './room.controller';
 import { RoomService } from './room.service';
 import { PtService } from '../pt/pt.service';
 import { CreateRoomResponseDto } from './dto/create-room-response.dto';
-import { PtService } from '../pt/pt.service';
 
 describe('RoomController', () => {
   let controller: RoomController;
