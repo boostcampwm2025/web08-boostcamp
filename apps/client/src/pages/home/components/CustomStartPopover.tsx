@@ -21,123 +21,128 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
     setData({ ...data, maxPts: value[0] });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = Number(e.target.value);
-    if (val > 150) val = 150;
-    if (val < 2) val = 2;
-    setData({ ...data, maxPts: val });
-  };
-
   return (
-    <div className="p-1">
-      {/* Header: 단계 표시 */}
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+    <div className="flex flex-col">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
           {step === 1 ? (
             <>
-              <Users size={16} className="text-blue-500" />
-              <span>인원 설정</span>
+              <div className="p-1.5 bg-brand-blue-50 rounded-md text-brand-blue">
+                <Users size={14} />
+              </div>
+              참여 인원 설정
             </>
           ) : (
             <>
-              <Lock size={16} className="text-purple-500" />
-              <span>보안 설정</span>
+              <div className="p-1.5 bg-brand-green-50 rounded-md text-brand-green">
+                <Lock size={14} />
+              </div>
+              보안 설정
             </>
           )}
         </h4>
-        <span className="text-xs text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-full">
+        <span className="text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
           {step}/2
         </span>
       </div>
 
-      {/* Step 1: 인원 설정 */}
-      {step === 1 && (
-        <div className="space-y-3">
-          <p className="text-sm text-gray-500">
-            함께 작업할 최대 인원을 설정해주세요.
-          </p>
-          <div className="flex items-center gap-3">
-            <Slider
-              defaultValue={[6]}
-              value={[data.maxPts]}
-              min={2}
-              max={150}
-              step={1}
-              onValueChange={handleSliderChange}
-              className="flex-1 cursor-pointer"
-            />
-            <div className="flex items-center gap-2 shrink-0">
-              <Input
-                type="number"
+      {/* Body */}
+      <div className="p-5">
+        {step === 1 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="space-y-4">
+              <div className="flex justify-between items-baseline">
+                <span className="text-sm text-gray-600 font-medium">
+                  최대 인원
+                </span>
+                <span className="text-2xl font-bold text-brand-blue font-mono">
+                  {data.maxPts}
+                  <span className="text-sm text-gray-400 font-sans ml-1 font-normal">
+                    명
+                  </span>
+                </span>
+              </div>
+
+              <Slider
+                defaultValue={[6]}
+                value={[data.maxPts]}
                 min={2}
-                max={20}
-                value={data.maxPts}
-                onChange={handleInputChange}
-                className="w-16 text-center font-mono h-9"
+                max={150}
+                step={1}
+                onValueChange={handleSliderChange}
+                className="cursor-pointer py-2"
               />
-              <span className="text-sm text-gray-500 font-medium">명</span>
+
+              <p className="text-xs text-gray-400 text-center bg-gray-50 py-2 rounded">
+                최소 2명부터 최대 150명까지 설정 가능합니다.
+              </p>
+            </div>
+            <div>
+              <Button
+                className="w-full bg-brand-blue hover:bg-blue-600 text-white h-11 rounded-lg transition-all shadow-md shadow-brand-blue/20"
+                onClick={() => setStep(2)}
+              >
+                다음 단계
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
             </div>
           </div>
-          <Button
-            className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => setStep(2)}
-          >
-            다음
-            <ArrowRight />
-          </Button>
-        </div>
-      )}
+        )}
 
-      {step === 2 && (
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-600">
-              방 비밀번호 (선택)
-            </label>
-            <Input
-              type="password"
-              placeholder="참여자 입장용"
-              value={data.roomPassword}
-              onChange={(e) =>
-                setData({ ...data, roomPassword: e.target.value })
-              }
-              className="text-sm"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-600 ml-1">
-              호스트 비밀번호 (선택)
-            </label>
-            <Input
-              type="password"
-              placeholder="방장 관리용"
-              value={data.hostPassword}
-              onChange={(e) =>
-                setData({ ...data, hostPassword: e.target.value })
-              }
-              className="text-sm"
-            />
-          </div>
+        {step === 2 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-0.5">
+                  방 비밀번호 (선택)
+                </label>
+                <Input
+                  type="password"
+                  placeholder="비공개 방을 만들려면 입력하세요"
+                  value={data.roomPassword}
+                  onChange={(e) =>
+                    setData({ ...data, roomPassword: e.target.value })
+                  }
+                  className="h-11 border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-0.5">
+                  호스트 비밀번호 (선택)
+                </label>
+                <Input
+                  type="password"
+                  placeholder="방장 권한용 비밀번호"
+                  value={data.hostPassword}
+                  onChange={(e) =>
+                    setData({ ...data, hostPassword: e.target.value })
+                  }
+                  className="h-11 border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all"
+                />
+              </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setStep(1)}
-              className="px-3"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => onCreate(data)}
-              disabled={isLoading}
-            >
-              {isLoading ? '생성 중...' : '방 만들기'}
-              {!isLoading && <Check className="ml-2 w-4 h-4" />}
-            </Button>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                  className="px-3 border-gray-200 hover:bg-gray-50 text-gray-600"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                  className="flex-1 bg-brand-green hover:bg-green-600 text-white h-11 shadow-lg shadow-brand-green/20 rounded-lg transition-all hover:-translate-y-0.5"
+                  onClick={() => onCreate(data)}
+                  disabled={isLoading}
+                >
+                  {isLoading ? '생성 중...' : '방 생성하기'}
+                  {!isLoading && <Check className="ml-2 w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

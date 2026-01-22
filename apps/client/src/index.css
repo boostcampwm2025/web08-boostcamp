@@ -19,6 +19,20 @@
 
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  /* 브랜드 컬러 */
+  --color-brand-blue: #2f81f7;
+  --color-brand-green: #33bd7f;
+  --color-brand-blue-50: #eff6ff;
+  --color-brand-green-50: #f0fdf4;
+  --color-brand-orange: #f97316;
+  --color-brand-red: #ef4444;
+
+  --color-brand-blue-50: #eff6ff;
+  --color-brand-green-50: #f0fdf4;
+  --color-brand-purple-50: #f5f3ff;
+  --color-brand-orange-50: #fff7ed;
+  --color-brand-red-50: #fef2f2;
 }
 
 :root {
