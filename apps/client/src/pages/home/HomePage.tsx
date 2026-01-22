@@ -41,24 +41,12 @@ export default function MainPage() {
                 </div>
               </div>
 
-              <div className="aspect-[16/10] bg-gray-50 flex items-center justify-center relative overflow-hidden">
-                {/* 이미지가 없을 때 보이는 Placeholder */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-300 space-y-4">
-                  <div className="w-20 h-20 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center animate-pulse">
-                    <span className="font-mono text-2xl">IMG</span>
-                  </div>
-                  <p className="font-mono text-sm text-gray-400">
-                    TODO: 실제 작동화면 GIF / Video를 이곳에 배치
-                  </p>
-                </div>
-
-                {/* TODO: 주석 해제하고 이미지 경로 연결 */}
-                {/* <img 
-                     src="/assets/demo-preview.gif" 
-                     alt="CodeJam Demo" 
-                     className="object-cover w-full h-full" 
-                   /> 
-                */}
+              <div className="aspect-[16/9] bg-gray-50 flex items-center justify-center relative overflow-hidden">
+                <img
+                  src="/demo-preview.gif"
+                  alt="CodeJam Demo"
+                  className="object-cover w-full h-full"
+                />
               </div>
             </div>
           </div>
