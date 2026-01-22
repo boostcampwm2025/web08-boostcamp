@@ -1,0 +1,36 @@
+{
+  "name": "@codejam/cli",
+  "version": "1.0.0",
+  "description": "CodeJam CLI for creating and managing collaborative coding rooms",
+  "type": "module",
+  "bin": {
+    "codejam": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --shims",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "keywords": [
+    "codejam",
+    "cli",
+    "collaboration",
+    "code-editor"
+  ],
+  "author": "jam stack",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "chalk": "^5.4.1",
+    "ora": "^8.1.1",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3"
+  }
+}
