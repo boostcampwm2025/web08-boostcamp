@@ -12,6 +12,7 @@ import { FileList } from '@/widgets/files';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
+import { HostClaimRequestDialog } from '@/widgets/dialog/HostClaimRequestDialog';
 import type { RoomJoinStatus } from '@codejam/common';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
@@ -88,6 +89,7 @@ function RoomPage() {
         />
       )}
       <Toaster />
+      <HostClaimRequestDialog />
     </div>
   );
 }
