@@ -16,6 +16,7 @@ export const SOCKET_EVENTS = {
   UPDATE_PT: "pt:update",
   UPDATE_ROLE_PT: "pt:update_role",
   UPDATE_NICKNAME_PT: "pt:update_nickname",
+  HOST_TRANSFERRED: "host:transferred",
 
   UPDATE_FILE: "file:update",
   UPDATE_AWARENESS: "awareness:update",

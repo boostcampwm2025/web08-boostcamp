@@ -244,6 +244,34 @@ export class PtService {
     });
   }
 
+  /**
+   * 호스트 양도 대상 찾기
+   * 1순위: 가장 먼저 들어온 EDITOR (온라인)
+   * 2순위: 가장 먼저 들어온 VIEWER (온라인)
+   */
+  async findNextHost(roomId: number): Promise<PtEntity | null> {
+    // 1순위: 가장 먼저 들어온 EDITOR
+    const editor = await this.ptRepository.findOne({
+      where: {
+        roomId,
+        role: PtRole.EDITOR,
+        presence: PtPresence.ONLINE,
+      },
+      order: { createdAt: 'ASC' },
+    });
+    if (editor) return editor;
+
+    // 2순위: 가장 먼저 들어온 VIEWER
+    return this.ptRepository.findOne({
+      where: {
+        roomId,
+        role: PtRole.VIEWER,
+        presence: PtPresence.ONLINE,
+      },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
   /** 참가자 역할 변경 알림 */
   private async notifyPtRoleUpdate(
     client: CollabSocket,
