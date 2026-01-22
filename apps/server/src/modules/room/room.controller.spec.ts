@@ -11,7 +11,6 @@ describe('RoomController', () => {
   const mockRoomService = {
     createQuickRoom: jest.fn(),
     findRoomByCode: jest.fn(),
-    checkHost: jest.fn(),
     createCustomRoom: jest.fn(),
   };
 
