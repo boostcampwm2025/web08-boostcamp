@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { DoorOpen } from 'lucide-react';
+import { HeaderActionButton } from './HeaderActionButton';
 import { LeaveRoomDialog } from '@/widgets/dialog/LeaveRoomDialog';
 import { emitLeftRoom } from '@/stores/socket-events/room';
-import { HeaderActionButton } from './HeaderActionButton';
 
 export function LeaveRoomButton() {
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
-
-  const handleLeaveRoom = () => {
-    emitLeftRoom();
-  };
 
   return (
     <>
@@ -21,7 +17,7 @@ export function LeaveRoomButton() {
       <LeaveRoomDialog
         open={isLeaveDialogOpen}
         onOpenChange={setIsLeaveDialogOpen}
-        onConfirm={handleLeaveRoom}
+        onConfirm={emitLeftRoom}
       />
     </>
   );

@@ -34,7 +34,9 @@ export function LeaveRoomDialog({
             이 방을 나가시겠습니까?
             <br />
             <br />
-            퇴장 시 참가자의 모든 활동 정보가 삭제됩니다.
+            <span className="text-destructive font-medium">
+              퇴장 시 참가자의 모든 활동 정보가 삭제됩니다.
+            </span>
             <br />
             모든 참가자가 퇴장하면 방이 자동으로 삭제됩니다.
           </DialogDescription>
@@ -51,6 +53,7 @@ export function LeaveRoomDialog({
             variant="ghost"
             size="sm"
             className="text-destructive hover:text-red-500 hover:bg-destructive/10"
+            onClick={handleConfirm}
           >
             나가기
           </Button>
