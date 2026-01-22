@@ -143,13 +143,10 @@ export class CollaborationService {
       await this.handleAutoTransferHost(client, server);
     }
 
-    // TODO: Destroy Room
-    // 참가자가 없으면 방을 폭파
-
+    // 참가자가 없으면 방 폭파
     const hasParticipants = await this.ptService.hasParticipants(roomId);
-
     if (!hasParticipants) {
-      // await this.roomService.destroyRoom(roomId);
+      await this.handleDestroyRoom(client, server);
     }
   }
 
