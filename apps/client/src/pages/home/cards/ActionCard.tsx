@@ -53,8 +53,8 @@ export function ActionCard({
       <CardHeader className="pb-2 flex flex-col items-center text-center gap-6 pt-12 relative z-10">
         <div
           className={`
-            w-16 h-16 
-            rounded-[1.2rem] 
+            w-12 h-12 
+            rounded-[1rem] 
             flex items-center justify-center 
             transition-all duration-300 
             group-hover:scale-110 group-hover:rotate-3 
@@ -62,7 +62,7 @@ export function ActionCard({
             ring-1 ring-black/5 shadow-inner
           `}
         >
-          <Icon className={`h-8 w-8 ${colors.iconColor}`} />
+          <Icon className={`h-6 w-6 ${colors.iconColor}`} />
         </div>
 
         <div className="space-y-3 px-2">
