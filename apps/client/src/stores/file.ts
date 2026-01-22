@@ -76,6 +76,8 @@ export const useFileStore = create<FileState>((set, get) => ({
     const yDoc = new Doc();
     const awareness = new Awareness(yDoc);
 
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+
     // Setup YDoc update listener
 
     const onYDocUpdate = (update: Uint8Array, origin: unknown) => {
@@ -113,6 +115,20 @@ export const useFileStore = create<FileState>((set, get) => ({
     };
 
     awareness.on('update', onAwarenessUpdate);
+
+    // Detect file changes
+
+    const onFilesMapUpdate = () => {
+      const { activeFileId } = get();
+      if (!activeFileId) return;
+
+      // Check if active file still exists
+      if (!filesMap.has(activeFileId)) {
+        set({ activeFileId: null });
+      }
+    };
+
+    filesMap.observe(onFilesMapUpdate);
 
     // Save YDoc and awareness
 
