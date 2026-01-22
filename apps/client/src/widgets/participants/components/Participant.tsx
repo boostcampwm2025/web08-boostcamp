@@ -41,10 +41,12 @@ export const Participant = memo(
         return;
       }
 
+      const newRole = pt.role === 'editor' ? 'viewer' : 'editor';
+
       socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
         roomCode,
         ptId: pt.ptId,
-        role: pt.role === 'editor' ? 'viewer' : 'editor',
+        role: newRole,
       });
     };
 
