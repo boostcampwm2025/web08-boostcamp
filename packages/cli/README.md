@@ -10,9 +10,9 @@ npm install -g @codejam/cli
 
 ## 명령어
 
-### `codejam start` - 새 룸 생성
+### `codejam start` - 퀵 룸 생성
 
-빠른 시작 (참여자 6명):
+빠른 시작 (참여자 6명, 비밀번호 없음):
 
 ```bash
 codejam start
@@ -35,20 +35,56 @@ codejam start
 
 **옵션:**
 
-- `--custom` - 커스텀 룸 생성
-- `--max <숫자>` - 최대 참여자 수 (1-150, 기본값: 6)
-- `--password <비밀번호>` - 참여자용 룸 비밀번호
+- `--no-browser` - 브라우저 자동 열기 비활성화
+
+**예시:**
+
+```bash
+# 브라우저 열지 않고 URL만 출력
+codejam start --no-browser
+```
+
+### `codejam start --custom` - 커스텀 룸 생성
+
+참여자 수, 비밀번호 등을 설정한 커스텀 룸 생성:
+
+```bash
+codejam start --custom --max 30 --password secret123
+```
+
+출력 결과:
+
+```
+✔ Custom room created!
+
+┌───────────┬──────────────────┬───────────────┐
+│ Room Code │ Max Participants │ Room Password │
+├───────────┼──────────────────┼───────────────┤
+│ ABCDEF    │ 30               │ secret123     │
+└───────────┴──────────────────┴───────────────┘
+
+⠹ Opening https://lets-codejam.vercel.app/room/ABCDEF...
+✔ Browser opened!
+```
+
+**옵션:**
+
+- `-m, --max <숫자>` - 최대 참여자 수 (1-150, 기본값: 6)
+- `-p, --password <비밀번호>` - 참여자용 룸 비밀번호
 - `--host-password <비밀번호>` - 호스트 권한용 비밀번호
 - `--no-browser` - 브라우저 자동 열기 비활성화
 
 **예시:**
 
 ```bash
-# 커스텀 룸 (최대 30명, 룸 비밀번호)
+# 최대 30명, 룸 비밀번호 설정
 codejam start --custom --max 30 --password secret123
 
 # 대규모 강의용 (최대 150명, 호스트 비밀번호)
 codejam start --custom --max 150 --host-password teacher2026
+
+# 모든 옵션 사용
+codejam start --custom --max 50 --password room123 --host-password host456 --no-browser
 ```
 
 ### `codejam enter` - 기존 룸 입장

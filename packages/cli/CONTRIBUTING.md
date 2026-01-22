@@ -31,6 +31,16 @@ codejam enter ABC123 --env local
 codejam health --env local
 codejam update
 
+# 커스텀 룸 생성 테스트
+codejam start --custom --env local
+codejam start --custom --max 30 --env local
+codejam start --custom --max 10 --password mysecret123 --env local
+codejam start --custom --max 20 --host-password adminpass --env local
+codejam start --custom --max 15 --password guest123 --host-password admin456 --env local
+codejam start --custom --max 150 --host-password teacher2026 --env local
+codejam start --custom --max 4 --password study2026 --env local
+codejam start --custom --max 20 --no-browser --env local
+
 # 링크 해제
 pnpm unlink --global
 ```
