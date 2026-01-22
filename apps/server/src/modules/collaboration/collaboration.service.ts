@@ -52,7 +52,7 @@ export class CollaborationService {
     server: Server,
     payload: JoinRoomPayload,
   ): Promise<void> {
-    const { roomCode: rawRoomCode, token, nickname } = payload;
+    const { roomCode: rawRoomCode, token, nickname, password } = payload;
     const roomCode = rawRoomCode.toUpperCase(); // 대문자 변환
 
     // 방 유효성 검사
@@ -84,8 +84,14 @@ export class CollaborationService {
       pt = await this.ptService.restorePt(roomId, ptId);
     }
 
-    // 신규 유저는 닉네임 필수
+    // 신규 유저는 패스워드와 닉네임 필수
     if (!pt) {
+      if (room.roomPassword && !password) {
+        throw new Error('PASSWORD_REQUIRED');
+      }
+      if (room.roomPassword && room.roomPassword !== password) {
+        throw new Error('PASSWORD_UNCORRECT');
+      }
       if (!nickname) {
         throw new Error('NICKNAME_REQUIRED');
       }

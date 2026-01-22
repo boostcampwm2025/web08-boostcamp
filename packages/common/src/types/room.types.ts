@@ -11,6 +11,7 @@ export interface JoinRoomPayload {
   roomCode: string;
   token?: string;
   nickname?: string;
+  password?: string;
 }
 
 /** 입장 환영 메시지 (S -> C) */

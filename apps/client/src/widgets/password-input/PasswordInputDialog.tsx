@@ -1,0 +1,101 @@
+import { useState } from 'react';
+import { passwordSchema } from '@codejam/common';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { Label } from '@/shared/ui/label';
+
+interface PasswordDialogProps {
+  open: boolean;
+  passwordError?: string;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (password: string) => void;
+}
+
+export function PasswordDialogProps({
+  open,
+  passwordError,
+  onOpenChange,
+  onConfirm,
+}: PasswordDialogProps) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+
+    const input = password.trim();
+
+    // Zod 검증
+    const result = passwordSchema.safeParse(input);
+
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      setError(firstError?.message || '비밀번호를 확인해주세요.');
+      return;
+    }
+
+    setError('');
+    onConfirm(result.data);
+    setPassword('');
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 최대 16자로 제한
+    if (value.length <= 16) {
+      setPassword(value);
+      setError(''); // 입력 중에는 에러 메시지 제거
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false}>
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>비밀번호 입력</DialogTitle>
+            <DialogDescription>
+              방에 입장하기 위한 비밀번호를 입력해주세요.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="password">비밀번호</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={handleChange}
+                placeholder="비밀번호를 입력해주세요."
+                autoFocus
+                aria-invalid={!!error}
+                maxLength={16}
+              />
+              {error && (
+                <p className="text-sm text-destructive text-red-600">{error}</p>
+              )}
+              {passwordError && (
+                <p className="text-sm text-destructive text-red-600">
+                  {passwordError}
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={!password.trim()}>
+              입력
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
