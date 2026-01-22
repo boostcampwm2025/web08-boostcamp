@@ -123,49 +123,43 @@ export function ActionCards() {
           colorKey="blue"
         >
           <div className="flex flex-col items-center gap-4 w-full">
-            {/* Split Button 컨테이너 */}
-            <div className="flex w-full shadow-sm rounded-md">
-              {/* 왼쪽: Quick Start Button */}
-              <Button
-                onClick={handleQuickStart}
-                disabled={isQuickStartLoading}
-                className={`flex-1 rounded-r-none border-r ${
-                  quickStartError
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                } text-white font-medium text-lg py-6 transition-all duration-200 font-mono cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400`}
-              >
-                {isQuickStartLoading ? 'Loading...' : 'Quick Start'}
-              </Button>
+            {/* Quick Start 버튼 */}
+            <Button
+              onClick={handleQuickStart}
+              disabled={isQuickStartLoading}
+              className={`w-full ${
+                quickStartError
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              } text-white font-medium text-lg py-6 transition-all duration-200 rounded font-mono shadow-sm`}
+            >
+              {isQuickStartLoading ? 'Loading...' : 'Quick Start'}
+            </Button>
 
-              {/* 오른쪽: Custom Start Popover Trigger */}
-              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    disabled={isQuickStartLoading}
-                    className={`w-14 rounded-l-none ${
-                      quickStartError
-                        ? 'bg-red-600 hover:bg-red-700'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    } text-white py-6 flex items-center justify-center`}
-                  >
-                    <Settings2 className="w-5 h-5" />
-                  </Button>
-                </PopoverTrigger>
-
-                {/* Popover Content */}
-                <PopoverContent
-                  className="bg-white p-4 shadow-xl border border-gray-200"
-                  align="end"
-                  sideOffset={8}
+            {/* Custom Start Popover Trigger */}
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={isQuickStartLoading}
+                  className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 py-2 h-auto text-sm"
                 >
-                  <CustomStartPopover
-                    onCreate={handleCustomStart}
-                    isLoading={isQuickStartLoading}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+                  <Settings2 className="w-4 h-4 mr-2" />
+                  Custom Start
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className="bg-white p-4 shadow-xl border border-gray-200"
+                align="center"
+                sideOffset={8}
+              >
+                <CustomStartPopover
+                  onCreate={handleCustomStart}
+                  isLoading={isQuickStartLoading}
+                />
+              </PopoverContent>
+            </Popover>
 
             <ErrorMessage message={quickStartError} />
           </div>
