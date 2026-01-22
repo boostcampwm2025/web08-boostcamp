@@ -20,10 +20,6 @@ describe('RoomController', () => {
     roomCounter: jest.fn(),
   };
 
-  const mockPtService = {
-    roomCounter: jest.fn(),
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoomController],
