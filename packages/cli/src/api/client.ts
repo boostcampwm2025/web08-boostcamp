@@ -2,42 +2,50 @@ import type {
   CreateQuickRoomResponse,
   CreateCustomRoomRequest,
   CreateCustomRoomResponse,
+  RoomJoinStatus,
 } from './types.js';
 
 export class ApiClient {
   constructor(private baseUrl: string) {}
 
-  async createQuickRoom(): Promise<CreateQuickRoomResponse> {
-    const response = await fetch(`${this.baseUrl}/api/rooms/quick`, {
-      method: 'POST',
+  private async request<T>(path: string, options?: RequestInit): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...options?.headers,
       },
+      ...options,
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to create quick room: ${response.statusText}`);
+      throw new Error(`Request failed: ${response.statusText}`);
     }
 
     return response.json();
   }
 
+  async createQuickRoom(): Promise<CreateQuickRoomResponse> {
+    return this.request<CreateQuickRoomResponse>('/api/rooms/quick', {
+      method: 'POST',
+    });
+  }
+
   async createCustomRoom(
     request: CreateCustomRoomRequest,
   ): Promise<CreateCustomRoomResponse> {
-    const response = await fetch(`${this.baseUrl}/api/rooms/custom`, {
+    return this.request<CreateCustomRoomResponse>('/api/rooms/custom', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(request),
     });
+  }
 
-    if (!response.ok) {
-      throw new Error(`Failed to create custom room: ${response.statusText}`);
-    }
-
-    return response.json();
+  async checkJoinable(roomCode: string): Promise<RoomJoinStatus> {
+    return this.request<RoomJoinStatus>(
+      `/api/rooms/${roomCode}/joinable`,
+      {
+        method: 'GET',
+      },
+    );
   }
 
   async checkHealth(): Promise<boolean> {

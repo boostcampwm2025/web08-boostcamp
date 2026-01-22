@@ -13,3 +13,5 @@ export interface CreateCustomRoomResponse {
   roomCode: string;
   token: string;
 }
+
+export type RoomJoinStatus = 'JOINABLE' | 'FULL' | 'NOT_FOUND';
