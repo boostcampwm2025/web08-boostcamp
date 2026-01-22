@@ -54,6 +54,27 @@ export class CollaborationService {
 
   /** 클라이언트 연결 종료 시 정리 */
   async handleDisconnect(client: CollabSocket, server: Server): Promise<void> {
+    const { roomId, roomCode, ptId } = client.data;
+
+    // 호스트 권한 요청 중인 요청자가 disconnect되면 요청 취소
+    if (roomId && ptId) {
+      const pendingClaim = this.pendingClaims.get(roomId);
+      if (pendingClaim && pendingClaim.requesterId === ptId) {
+        clearTimeout(pendingClaim.timeoutId);
+        this.pendingClaims.delete(roomId);
+
+        // 호스트에게 요청 취소 알림
+        const hostSocket = await this.findHostSocket(server, roomCode);
+        if (hostSocket) {
+          hostSocket.emit(SOCKET_EVENTS.HOST_CLAIM_CANCELLED, {});
+        }
+
+        this.logger.log(
+          `[DISCONNECT] Host claim cancelled: requester ${ptId} disconnected from room ${roomCode}`,
+        );
+      }
+    }
+
     await this.ptService.handleDisconnect(client, server);
   }
 
