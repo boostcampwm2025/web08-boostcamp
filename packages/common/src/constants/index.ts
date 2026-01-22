@@ -1,6 +1,8 @@
 export const SOCKET_EVENTS = {
   JOIN_ROOM: "room:join",
+  LEFT_ROOM: "room:left",
   WELCOME: "room:welcome",
+  GOODBYE: "room:goodbye",
   ROOM_PTS: "room:pts",
   ROOM_DOC: "room:doc",
   ROOM_AWARENESS: "room:awareness",

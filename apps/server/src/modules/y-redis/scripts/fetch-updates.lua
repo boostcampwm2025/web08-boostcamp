@@ -28,8 +28,8 @@ end
 local updates = redis.call('LRANGE', updatesKey, index, -1)
 
 -- Set TTL
-if #updates > 0 then redis.call('EXPIRE', updatesKey, ttl, 'NX') end
-if offsetStr then redis.call('EXPIRE', offsetKey, ttl, 'NX') end
+if #updates > 0 then redis.call('EXPIRE', updatesKey, ttl) end
+if offsetStr then redis.call('EXPIRE', offsetKey, ttl) end
 
 -- Return updates and offset
 return { updates, offset }

@@ -83,6 +83,12 @@ export class PtService {
     return this.entityToPt(ptEntity);
   }
 
+  /** 참가자 삭제 */
+  async deletePt(roomId: number, ptId: string): Promise<void> {
+    await this.ptRepository.delete({ roomId, ptId });
+    this.logger.log(`[DELETE_PT] ptId: ${ptId} from room ${roomId}`);
+  }
+
   /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
   async restorePt(roomId: number, ptId: string): Promise<Pt | null> {
     const ptEntity = await this.ptRepository.findOne({
@@ -109,6 +115,12 @@ export class PtService {
     });
 
     return ptEntities.map((pt) => this.entityToPt(pt));
+  }
+
+  /** 방에 참가자가 존재하는지 확인 */
+  async hasParticipants(roomId: number): Promise<boolean> {
+    const pt = await this.ptRepository.findOne({ where: { roomId } });
+    return pt !== null;
   }
 
   /** 참가자 권한 조회 */
