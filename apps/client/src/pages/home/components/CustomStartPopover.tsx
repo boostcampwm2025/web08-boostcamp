@@ -9,6 +9,11 @@ interface Props {
   isLoading: boolean;
 }
 
+const validatePassword = (pwd: string) => {
+  if (!pwd) return true;
+  return /^[a-zA-Z0-9]{1,16}$/.test(pwd);
+};
+
 export function CustomStartPopover({ onCreate, isLoading }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [data, setData] = useState({
@@ -17,8 +22,42 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
     hostPassword: '',
   });
 
+  const [errors, setErrors] = useState({
+    room: false,
+    host: false,
+  });
+
   const handleSliderChange = (value: number[]) => {
     setData({ ...data, maxPts: value[0] });
+  };
+
+  const handleCreate = () => {
+    const isRoomValid = validatePassword(data.roomPassword);
+    const isHostValid = validatePassword(data.hostPassword);
+
+    if (!isRoomValid || !isHostValid) {
+      setErrors({
+        room: !isRoomValid,
+        host: !isHostValid,
+      });
+      return;
+    }
+
+    onCreate(data);
+  };
+
+  const handleChange = (
+    field: 'roomPassword' | 'hostPassword',
+    value: string,
+  ) => {
+    setData({ ...data, [field]: value });
+    // 사용자가 수정하기 시작하면 해당 필드의 에러 표시 제거
+    if (errors[field === 'roomPassword' ? 'room' : 'host']) {
+      setErrors((prev) => ({
+        ...prev,
+        [field === 'roomPassword' ? 'room' : 'host']: false,
+      }));
+    }
   };
 
   return (
@@ -99,13 +138,20 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
                 </label>
                 <Input
                   type="password"
-                  placeholder="비공개 방을 만들려면 입력하세요"
+                  placeholder="영문+숫자 1~16자리"
                   value={data.roomPassword}
-                  onChange={(e) =>
-                    setData({ ...data, roomPassword: e.target.value })
-                  }
-                  className="h-11 border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all"
+                  onChange={(e) => handleChange('roomPassword', e.target.value)}
+                  className={`h-11 transition-all ${
+                    errors.room
+                      ? 'border-red-500 focus:border-red-500 ring-red-100 focus:ring-red-100'
+                      : 'border-gray-200 focus:border-brand-blue focus:ring-brand-blue/10'
+                  }`}
                 />
+                {errors.room && (
+                  <span className="text-[10px] text-red-500 ml-1">
+                    영문+숫자 조합 1~16자리로 입력해주세요.
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-0.5">
@@ -113,13 +159,20 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
                 </label>
                 <Input
                   type="password"
-                  placeholder="방장 권한용 비밀번호"
+                  placeholder="영문+숫자 1~16자리"
                   value={data.hostPassword}
-                  onChange={(e) =>
-                    setData({ ...data, hostPassword: e.target.value })
-                  }
-                  className="h-11 border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all"
+                  onChange={(e) => handleChange('hostPassword', e.target.value)}
+                  className={`h-11 transition-all ${
+                    errors.host
+                      ? 'border-red-500 focus:border-red-500 ring-red-100 focus:ring-red-100'
+                      : 'border-gray-200 focus:border-brand-blue focus:ring-brand-blue/10'
+                  }`}
                 />
+                {errors.host && (
+                  <span className="text-[10px] text-red-500 ml-1">
+                    영문+숫자 조합 1~16자리로 입력해주세요.
+                  </span>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -132,7 +185,7 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
                 </Button>
                 <Button
                   className="flex-1 bg-brand-green hover:bg-green-600 text-white h-11 shadow-lg shadow-brand-green/20 rounded-lg transition-all hover:-translate-y-0.5"
-                  onClick={() => onCreate(data)}
+                  onClick={handleCreate}
                   disabled={isLoading}
                 >
                   {isLoading ? '생성 중...' : '방 생성하기'}
