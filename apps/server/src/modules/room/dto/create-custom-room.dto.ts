@@ -1,7 +1,4 @@
-// TODO: Validation
+import { createZodDto } from 'nestjs-zod';
+import { createCustomRoomSchema } from '@codejam/common';
 
-export class CreateCustomRoomDto {
-  roomPassword?: string;
-  hostPassword?: string;
-  maxPts: number;
-}
+export class CreateCustomRoomDto extends createZodDto(createCustomRoomSchema) {}
