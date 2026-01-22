@@ -44,3 +44,14 @@ export interface PtUpdateNamePayload {
 export interface HostTransferredPayload {
   newHostPtId: string;
 }
+
+/** 호스트 권한 요청 (C -> S) */
+export interface ClaimHostPayload {
+  hostPassword: string;
+}
+
+/** 호스트에게 권한 요청 알림 (S -> C) */
+export interface HostClaimRequestPayload {
+  requesterPtId: string;
+  requesterNickname: string;
+}
