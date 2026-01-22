@@ -46,6 +46,9 @@ interface FileState {
   getFileId: (name: string) => string | undefined;
   getFilesMap: () => YMap<YMap<unknown>> | null;
   getFileIdMap: () => YMap<string> | null;
+
+  getFileContent: (fileId: string) => string | null;
+  getActiveFileContent: () => string | null;
 }
 
 export const useFileStore = create<FileState>((set, get) => ({
@@ -309,5 +312,28 @@ export const useFileStore = create<FileState>((set, get) => ({
     });
 
     return total;
+  },
+
+  // 파일 내용 가져오기
+  getFileContent: (fileId: string) => {
+    const { yDoc } = get();
+    if (!yDoc) return null;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const fileMap = filesMap.get(fileId);
+    if (!fileMap) return null;
+
+    const content = fileMap.get('content') as YText;
+    if (!content) return '';
+
+    return content.toString();
+  },
+
+  // 현재 활성 파일 내용 가져오기
+  getActiveFileContent: () => {
+    const { activeFileId, getFileContent } = get();
+    if (!activeFileId) return null;
+
+    return getFileContent(activeFileId);
   },
 }));
