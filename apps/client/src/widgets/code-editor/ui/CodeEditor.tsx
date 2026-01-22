@@ -13,10 +13,12 @@ import { useCodeMirror } from '../hooks/useCodeMirror';
 import { AvatarGutterMenu } from './AvatarGutterMenu';
 
 export default function CodeEditor({
-  fileId = 'prototype',
+  fileId,
   language = 'javascript',
   readOnly = false,
 }: CodeEditorProps) {
+  if (!fileId) return null;
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { yText, awareness } = useYText(fileId);

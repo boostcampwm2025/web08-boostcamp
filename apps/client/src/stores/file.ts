@@ -24,6 +24,7 @@ interface FileState {
   awareness: Awareness | null;
   activeFileId: string | null;
   isInitialized: boolean;
+  isInitialDocLoaded: boolean;
 
   // Capacity State (용량 측정)
   capacityBytes: number;
@@ -34,6 +35,7 @@ interface FileState {
   initialize: (roomCode: string) => number;
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
+  initializeActiveFile: () => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
   measureCapacity: () => number;
@@ -56,6 +58,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   awareness: null,
   activeFileId: null,
   isInitialized: false,
+  isInitialDocLoaded: false,
 
   // Capacity State 초기값
   capacityBytes: 0,
@@ -146,7 +149,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   applyRemoteDocUpdate: (message: Uint8Array) => {
-    const { yDoc } = get();
+    const { yDoc, isInitialDocLoaded } = get();
     if (!yDoc) return;
 
     const update =
@@ -163,6 +166,22 @@ export const useFileStore = create<FileState>((set, get) => ({
       const { roomCode } = useSocketStore.getState();
       if (roomCode) emitFileUpdate(roomCode, reply);
     }
+
+    // Flag Y.Doc as initialized
+    if (!isInitialDocLoaded) {
+      set({ isInitialDocLoaded: true });
+    }
+  },
+
+  initializeActiveFile: () => {
+    const { yDoc, activeFileId, setActiveFile } = get();
+    if (!yDoc || activeFileId) return;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const firstFileId = Array.from(filesMap.keys())[0];
+    if (!firstFileId) return;
+
+    setActiveFile(firstFileId);
   },
 
   applyRemoteAwarenessUpdate: (message: Uint8Array) => {

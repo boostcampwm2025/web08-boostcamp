@@ -14,6 +14,7 @@ import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import type { RoomJoinStatus } from '@codejam/common';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
+import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
 
 function RoomPage() {
   const {
@@ -29,6 +30,7 @@ function RoomPage() {
   } = useRoomJoin();
 
   useAwarenessSync();
+  useInitialFileSelection();
 
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
@@ -62,7 +64,7 @@ function RoomPage() {
         </div>
         <div className="flex-1 h-full bg-background">
           <CodeEditor
-            fileId={activeFileId || 'prototype'}
+            fileId={activeFileId}
             language="javascript"
             readOnly={isViewer}
           />
