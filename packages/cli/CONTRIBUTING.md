@@ -87,11 +87,11 @@ packages/cli/
 
 ### 지원 환경
 
-| 환경       | 서버 URL               | 클라이언트 URL             | 용도           |
-| ---------- | ---------------------- | -------------------------- | -------------- |
-| local      | http://localhost:3000  | http://localhost:5173      | 로컬 개발 환경 |
-| staging    | http://localhost:3001  | https://staging.codejam.kr | 스테이징 서버  |
-| production | https://api.codejam.kr | https://codejam.kr         | 프로덕션 서버  |
+| 환경       | 서버 URL                         | 클라이언트 URL                   | 용도           |
+| ---------- | -------------------------------- | -------------------------------- | -------------- |
+| local      | http://localhost:3000            | http://localhost:5173            | 로컬 개발 환경 |
+| staging    | https://staging.codejam.kro.kr   | https://staging.codejam.kro.kr   | 스테이징 서버  |
+| production | https://production.codejam.kro.kr | https://production.codejam.kro.kr | 프로덕션 서버  |
 
 환경 설정은 [src/config/environments.ts](src/config/environments.ts)에서 관리됩니다.
 

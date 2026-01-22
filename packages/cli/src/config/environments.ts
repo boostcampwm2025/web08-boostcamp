@@ -9,12 +9,12 @@ export const environments: Record<string, EnvironmentConfig> = {
     clientUrl: 'http://localhost:5173',
   },
   staging: {
-    serverUrl: 'http://localhost:3001',
-    clientUrl: 'https://staging.codejam.kr',
+    serverUrl: 'https://staging.codejam.kro.kr',
+    clientUrl: 'https://staging.codejam.kro.kr',
   },
   production: {
-    serverUrl: 'https://api.codejam.kr',
-    clientUrl: 'https://codejam.kr',
+    serverUrl: 'https://production.codejam.kro.kr',
+    clientUrl: 'https://production.codejam.kro.kr',
   },
 };
 
