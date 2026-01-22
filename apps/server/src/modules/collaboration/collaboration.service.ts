@@ -511,23 +511,31 @@ export class CollaborationService {
     // 방 정보 조회
     const room = await this.roomService.findRoomById(roomId);
     if (!room) {
-      throw new WsException('방을 찾을 수 없습니다');
+      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, { reason: 'ROOM_NOT_FOUND' });
+      return;
     }
 
     // hostPassword 검증
     if (room.hostPassword !== hostPassword) {
-      throw new WsException('비밀번호가 일치하지 않습니다');
+      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
+        reason: 'INVALID_PASSWORD',
+      });
+      return;
     }
 
     // 동시 요청 체크
     if (this.pendingClaims.has(roomId)) {
-      throw new WsException('이미 진행 중인 호스트 권한 요청이 있습니다');
+      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
+        reason: 'CLAIM_ALREADY_PENDING',
+      });
+      return;
     }
 
     // 호스트 소켓 찾기
     const hostSocket = await this.findHostSocket(server, roomCode);
     if (!hostSocket) {
-      throw new WsException('호스트를 찾을 수 없습니다');
+      client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, { reason: 'HOST_NOT_FOUND' });
+      return;
     }
 
     // 타임아웃 설정 (10초)

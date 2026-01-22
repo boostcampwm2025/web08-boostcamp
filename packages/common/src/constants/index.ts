@@ -23,6 +23,7 @@ export const SOCKET_EVENTS = {
   REJECT_HOST_CLAIM: 'host:claim:reject',
   HOST_CLAIM_REJECTED: 'host:claim:rejected',
   HOST_CLAIM_CANCELLED: 'host:claim:cancelled',
+  HOST_CLAIM_FAILED: 'host:claim:failed',
 
   UPDATE_FILE: 'file:update',
   UPDATE_AWARENESS: 'awareness:update',

@@ -148,6 +148,23 @@ export const setupPtsEventHandlers = () => {
     toast.info('요청자가 퇴장했습니다.');
   };
 
+  // 요청자에게: 호스트 클레임 실패 알림
+  const CLAIM_FAIL_MESSAGES: Record<string, string> = {
+    INVALID_PASSWORD: '비밀번호가 일치하지 않습니다.',
+    CLAIM_ALREADY_PENDING: '이미 진행 중인 호스트 권한 요청이 있습니다.',
+    HOST_NOT_FOUND: '호스트를 찾을 수 없습니다.',
+    ROOM_NOT_FOUND: '방을 찾을 수 없습니다.',
+  };
+
+  const onHostClaimFailed = (data: { reason: string }) => {
+    console.log(`❌ [HOST_CLAIM_FAILED] ${data.reason}`);
+    toast.error(
+      CLAIM_FAIL_MESSAGES[data.reason] ||
+        '호스트 권한 요청에 실패했습니다.',
+    );
+  };
+
+  socket.on(SOCKET_EVENTS.HOST_CLAIM_FAILED, onHostClaimFailed);
   socket.on(SOCKET_EVENTS.PT_JOINED, onPtJoined);
   socket.on(SOCKET_EVENTS.PT_DISCONNECT, onPtDisconnect);
   socket.on(SOCKET_EVENTS.PT_LEFT, onPtLeft);
@@ -168,5 +185,6 @@ export const setupPtsEventHandlers = () => {
     socket.off(SOCKET_EVENTS.HOST_CLAIM_REQUEST, onHostClaimRequest);
     socket.off(SOCKET_EVENTS.HOST_CLAIM_REJECTED, onHostClaimRejected);
     socket.off(SOCKET_EVENTS.HOST_CLAIM_CANCELLED, onHostClaimCancelled);
+    socket.off(SOCKET_EVENTS.HOST_CLAIM_FAILED, onHostClaimFailed);
   };
 };
