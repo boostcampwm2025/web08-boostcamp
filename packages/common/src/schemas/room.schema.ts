@@ -24,3 +24,10 @@ export const whoCanDestroyRoomSchema = z.enum(['host', 'editor']);
 
 // 방 참가 가능 여부 상태 스키마
 export const roomJoinStatusSchema = z.enum(['JOINABLE', 'FULL', 'NOT_FOUND']);
+
+// 최대 참가자 수 스키마
+export const maxPtsSchema = z
+  .coerce.number()
+  .int('최대 참가자 수는 정수여야 합니다')
+  .min(1, '최대 참가자 수는 최소 1명 이상이어야 합니다')
+  .max(150, '최대 참가자 수는 150명을 초과할 수 없습니다');
