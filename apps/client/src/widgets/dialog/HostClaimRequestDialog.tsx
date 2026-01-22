@@ -22,7 +22,7 @@ export function HostClaimRequestDialog() {
   // 카운트다운 타이머
   useEffect(() => {
     if (!isRequestModalOpen) {
-      setCountdown(TIMEOUT_SECONDS);
+      queueMicrotask(() => setCountdown(TIMEOUT_SECONDS));
       return;
     }
 
