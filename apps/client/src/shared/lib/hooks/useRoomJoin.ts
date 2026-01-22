@@ -23,6 +23,10 @@ export function useRoomJoin() {
     shouldShowNicknameDialog,
   );
 
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [password, setPassword] = useState('');
+
   useEffect(() => {
     setIsNicknameDialogOpen(shouldShowNicknameDialog);
   }, [shouldShowNicknameDialog]);
@@ -39,11 +43,22 @@ export function useRoomJoin() {
       if (error.type === 'PERMISSION_DENIED') {
         return;
       }
-
       if (
+        error.type === 'PASSWORD_REQUIRED' ||
+        error.message === 'PASSWORD_REQUIRED'
+      ) {
+        setIsPasswordDialogOpen(true);
+      } else if (
+        error.type === 'PASSWORD_UNCORRECT' ||
+        error.message === 'PASSWORD_UNCORRECT'
+      ) {
+        setIsPasswordDialogOpen(true);
+        setPasswordError('패스워드가 틀렸습니다.');
+      } else if (
         error.type === 'NICKNAME_REQUIRED' ||
         error.message === 'NICKNAME_REQUIRED'
       ) {
+        setIsPasswordDialogOpen(false);
         setIsNicknameDialogOpen(true);
       } else if (
         error.type === 'ROOM_NOT_FOUND' ||
@@ -85,8 +100,19 @@ export function useRoomJoin() {
       if (!paramCode) return;
 
       setRoomError('');
-      emitJoinRoom(paramCode, nickname);
+      emitJoinRoom(paramCode, nickname, password);
       setIsNicknameDialogOpen(false);
+    },
+    [paramCode, password],
+  );
+
+  const handlePasswordConfirm = useCallback(
+    (password: string) => {
+      if (!paramCode) return;
+
+      setPasswordError('');
+      setPassword(password);
+      emitJoinRoom(paramCode, undefined, password);
     },
     [paramCode],
   );
@@ -95,8 +121,12 @@ export function useRoomJoin() {
     paramCode: paramCode || undefined,
     roomCode,
     isNicknameDialogOpen,
+    isPasswordDialogOpen,
     setIsNicknameDialogOpen,
+    setIsPasswordDialogOpen,
+    passwordError,
     roomError,
     handleNicknameConfirm,
+    handlePasswordConfirm,
   };
 }

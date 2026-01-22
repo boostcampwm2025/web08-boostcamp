@@ -245,4 +245,19 @@ export class RoomService {
 
     return result.affected ?? 0;
   }
+
+  /**
+   * 방 폭파 (단일 방 삭제)
+   * - DB에서 방 삭제
+   * - Y.Doc 메모리 해제
+   */
+  async destroyRoom(roomId: number, docId: string): Promise<void> {
+    // 1. DB 삭제
+    await this.deleteRooms([roomId]);
+
+    // 2. Y.Doc 메모리 해제 (Redis는 TTL로 자동 만료)
+    await this.fileService.removeDoc(docId);
+
+    this.logger.log(`🔥 Room destroyed: roomId=${roomId}, docId=${docId}`);
+  }
 }

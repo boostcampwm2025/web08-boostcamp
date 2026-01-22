@@ -1,15 +1,21 @@
 export const SOCKET_EVENTS = {
   JOIN_ROOM: "room:join",
+  LEFT_ROOM: "room:left",
   WELCOME: "room:welcome",
+  GOODBYE: "room:goodbye",
   ROOM_PTS: "room:pts",
   ROOM_DOC: "room:doc",
   ROOM_AWARENESS: "room:awareness",
   ROOM_EXPIRED: "room:expired",
+  DESTROY_ROOM: "room:destroy",
+  ROOM_DESTROYED: "room:destroyed",
 
   PT_JOINED: "room:pt_joined",
   PT_DISCONNECT: "room:pt_disconnect",
   PT_LEFT: "room:pt_left",
   UPDATE_PT: "pt:update",
+  UPDATE_ROLE_PT: "pt:update_role",
+  UPDATE_NICKNAME_PT: "pt:update_nickname",
 
   UPDATE_FILE: "file:update",
   UPDATE_AWARENESS: "awareness:update",

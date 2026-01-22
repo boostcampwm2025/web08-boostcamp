@@ -186,10 +186,10 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async destroy(): Promise<void> {
-    const docsToDestroy = Array.from(this.docs.values());
+    const values = Array.from(this.docs.values());
     this.docs.clear();
 
-    await Promise.all(docsToDestroy.map((doc) => doc.destroy()));
+    await Promise.all(values.map((doc) => doc.destroy()));
 
     if (this.redis) await this.redis.quit();
     if (this.sub) await this.sub.quit();

@@ -8,13 +8,7 @@ import {
   removeAwarenessStates,
 } from 'y-protocols/awareness';
 import { writeUpdate, readSyncMessage } from 'y-protocols/sync';
-import {
-  Doc,
-  encodeStateAsUpdate,
-  applyUpdate,
-  Map as YMap,
-  Text as YText,
-} from 'yjs';
+import { Doc, encodeStateAsUpdate, Map as YMap, Text as YText } from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { createDecoder } from 'lib0/decoding';
 import {
@@ -42,6 +36,9 @@ export type RoomDoc = {
   doc: Doc;
   awareness: Awareness;
   files: Set<string>;
+
+  docListener: (update: Uint8Array, origin: unknown) => void;
+  awarenessListener: (changes: AwarenessUpdate, origin: unknown) => void;
 };
 
 export type OriginServer = {
@@ -93,16 +90,22 @@ export class FileService {
     // Bind to Redis for persistence
     await this.hydrateDoc(docId, doc);
 
+    // Create listener instances
+    const docListener = this.docListener();
+    const awarenessListener = this.awarenessListener(awareness);
+
     // Set up listeners
     // Do after hydration to avoid pushing existing data
-    doc.on('update', this.docListener());
-    awareness.on('update', this.awarenessListener(awareness));
+    doc.on('update', docListener);
+    awareness.on('update', awarenessListener);
 
     const roomDoc: RoomDoc = {
       docId,
       doc,
       awareness,
       files: new Set<string>(),
+      docListener,
+      awarenessListener,
     };
 
     this.docs.set(docId, roomDoc);
@@ -137,23 +140,50 @@ export class FileService {
   }
 
   /**
-   * Remove Y.Doc for a document
-   * Y.Doc is removed when room is closed or expired
-   * TODO: Call this when last participant leaves
+   * Close Y.Doc for a document
+   * Unloads Y.Doc from memory but keeps Redis data intact
+   * Use this when all participants are offline to save memory
+   * Redis keys remain so the doc can be restored when participants rejoin
    */
-  async removeDoc(docId: string): Promise<boolean> {
+  async closeDoc(docId: string): Promise<boolean> {
     const roomDoc = this.docs.get(docId);
-
     if (!roomDoc) return false;
 
-    const { doc, awareness } = roomDoc;
+    const { doc, awareness, docListener, awarenessListener } = roomDoc;
 
-    // Clean up YRedisService first
+    // Close Y.Doc in Redis
+    // Unload from memory, keep Redis keys
     await this.yRedis.closeDoc(docId);
 
     // Clean up listeners
-    doc.off('update', this.docListener());
-    awareness.off('update', this.awarenessListener(awareness));
+    doc.off('update', docListener);
+    awareness.off('update', awarenessListener);
+
+    // Remove from map
+    this.docs.delete(docId);
+    this.logger.log(`💤 Closed Y.Doc for document: ${docId}`);
+
+    return true;
+  }
+
+  /**
+   * Remove Y.Doc for a document
+   * Permanently removes Y.Doc from memory and clears Redis keys
+   * Use this when room is closed or expired and data is no longer needed
+   */
+  async removeDoc(docId: string): Promise<boolean> {
+    const roomDoc = this.docs.get(docId);
+    if (!roomDoc) return false;
+
+    const { doc, awareness, docListener, awarenessListener } = roomDoc;
+
+    // Clear Y.Doc from Redis
+    // Remove from memory and delete Redis keys
+    await this.yRedis.clearDoc(docId);
+
+    // Clean up listeners using stored references
+    doc.off('update', docListener);
+    awareness.off('update', awarenessListener);
 
     // Remove from map
     this.docs.delete(docId);

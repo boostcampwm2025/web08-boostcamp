@@ -2,19 +2,7 @@ import { PROJECT_NAME } from '@codejam/common';
 import { useRef, useState, type ChangeEvent } from 'react';
 import LogoAnimation from '@/assets/logo_animation.svg';
 import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from '@/shared/ui/dialog';
 import {
   Check,
   Copy,
@@ -24,7 +12,10 @@ import {
   Sun,
   Moon,
   Plus,
+  Bomb,
 } from 'lucide-react';
+import { DestroyRoomDialog } from '@/widgets/dialog/DestroyRoomDialog';
+import { ShareDialog } from '@/widgets/dialog/ShareDialog';
 import { toast } from 'sonner';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { extname } from '@/shared/lib/file';
@@ -32,6 +23,9 @@ import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { useFileStore } from '@/stores/file';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { SettingsDialog } from '@/widgets/dialog/SettingsDialog';
+import { useRoomStore } from '@/stores/room';
+import { usePt } from '@/stores/pts';
+import { LeaveRoomButton } from './buttons/LeaveRoomButton';
 
 type HeaderProps = {
   roomCode: string;
@@ -45,6 +39,11 @@ export default function Header({ roomCode }: HeaderProps) {
   const { getFileId, createFile } = useFileStore();
   const [uploadFile, setUploadFile] = useState<File | undefined>(undefined);
   const [filename, setFilename] = useState('');
+
+  // 방 폭파 버튼 조건부 렌더링을 위한 상태
+  const { myPtId, whoCanDestroyRoom } = useRoomStore();
+  const myPt = usePt(myPtId);
+  const canDestroyRoom = myPt?.role === whoCanDestroyRoom;
 
   const uploadRef = useRef<HTMLInputElement>(null);
 
@@ -155,10 +154,10 @@ export default function Header({ roomCode }: HeaderProps) {
         </div>
       </a>
 
-      {/* Room ID - 화면 작을 땐 ID만 표시 */}
+      {/* Room CODE - 화면 작을 땐 CODE만 표시 */}
       <div className="flex items-center gap-2 ml-2 sm:ml-6 shrink-0">
         <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider hidden md:block">
-          ROOM ID
+          ROOM CODE
         </span>
         <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 border border-border rounded-md bg-secondary/50">
           <span className="font-mono text-xs sm:text-sm font-semibold max-w-[80px] sm:max-w-none truncate">
@@ -239,46 +238,30 @@ export default function Header({ roomCode }: HeaderProps) {
         </Button>
 
         {/* 공유 다이얼로그 */}
-        <Dialog>
-          <DialogTrigger asChild>
+        <ShareDialog>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+          >
+            <Share2 className="h-4 w-4" />
+            <span className="hidden lg:inline">Share</span>
+          </Button>
+        </ShareDialog>
+
+        {/* 방 폭파 다이얼로그 - 권한이 있는 경우에만 표시 */}
+        {canDestroyRoom && (
+          <DestroyRoomDialog>
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+              className="gap-1.5 text-xs h-8 px-2 sm:px-3 text-destructive hover:text-destructive"
             >
-              <Share2 className="h-4 w-4" />
-              <span className="hidden lg:inline">Share</span>
+              <Bomb className="h-4 w-4" />
+              <span className="hidden lg:inline">Destroy</span>
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Share Link</DialogTitle>
-              <DialogDescription>
-                현재 페이지의 링크를 복사하여 다른 사람에게 공유해보세요.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center space-x-2">
-              <div className="grid flex-1 gap-2">
-                <Label htmlFor="link" className="sr-only">
-                  Link
-                </Label>
-                <Input
-                  id="link"
-                  defaultValue={window.location.href}
-                  readOnly
-                  className="h-9"
-                />
-              </div>
-            </div>
-            <DialogFooter className="sm:justify-start">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary" size="sm">
-                  Close
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </DestroyRoomDialog>
+        )}
 
         <SettingsDialog />
 
@@ -301,6 +284,8 @@ export default function Header({ roomCode }: HeaderProps) {
             </>
           )}
         </Button>
+
+        <LeaveRoomButton />
       </div>
     </header>
   );

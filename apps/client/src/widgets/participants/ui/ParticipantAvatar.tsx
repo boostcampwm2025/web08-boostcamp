@@ -1,7 +1,7 @@
-import { Avatar, AVATAR_ICONS } from '@/shared/ui';
+import { Avatar } from '@/shared/ui';
 import { usePt } from '@/stores/pts';
 import type { ParticipantProps } from '../lib/types';
-import { useMemo } from 'react';
+import { getAvatarIcon } from '@/shared/ui/avatar-shared';
 
 /**
  * 참가자의 아바타를 표시하는 컴포넌트
@@ -11,17 +11,9 @@ import { useMemo } from 'react';
 export function ParticipantAvatar({ ptId }: ParticipantProps) {
   const pt = usePt(ptId);
 
-  const SelectedIcon = useMemo(() => {
-    if (!pt?.ptHash) return AVATAR_ICONS[0];
-    let hash = 0;
-    for (let i = 0; i < pt.ptHash.length; i++) {
-      hash = (hash * 31 + pt.ptHash.charCodeAt(i)) >>> 0;
-    }
-
-    return AVATAR_ICONS[hash % AVATAR_ICONS.length];
-  }, [pt?.ptHash]);
-
   if (!pt) return null;
+
+  const SelectedIcon = getAvatarIcon(pt.ptHash);
 
   const { color, role } = pt;
   const badge =

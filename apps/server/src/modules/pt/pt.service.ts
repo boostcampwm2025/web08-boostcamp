@@ -83,6 +83,12 @@ export class PtService {
     return this.entityToPt(ptEntity);
   }
 
+  /** 참가자 삭제 */
+  async deletePt(roomId: number, ptId: string): Promise<void> {
+    await this.ptRepository.delete({ roomId, ptId });
+    this.logger.log(`[DELETE_PT] ptId: ${ptId} from room ${roomId}`);
+  }
+
   /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
   async restorePt(roomId: number, ptId: string): Promise<Pt | null> {
     const ptEntity = await this.ptRepository.findOne({
@@ -109,6 +115,12 @@ export class PtService {
     });
 
     return ptEntities.map((pt) => this.entityToPt(pt));
+  }
+
+  /** 방에 참가자가 존재하는지 확인 */
+  async hasParticipants(roomId: number): Promise<boolean> {
+    const pt = await this.ptRepository.findOne({ where: { roomId } });
+    return pt !== null;
   }
 
   /** 참가자 권한 조회 */
@@ -144,14 +156,15 @@ export class PtService {
     return PtRole.VIEWER;
   }
 
-  /** 참가자 역할 업데이트 (소켓 + DB) */
-  async updatePtRole(
+  /** 참가자 업데이트 (소켓 + DB) */
+  async updatePt(
     client: CollabSocket,
     server: Server,
     ptId: string,
-    role: PtRole,
+    option: { role?: PtRole; nickname?: string },
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
+    const { role, nickname } = option;
 
     // 소켓 데이터 업데이트
     const sockets = await server.in(roomCode).fetchSockets();
@@ -162,11 +175,20 @@ export class PtService {
 
     if (socketToUpdate) {
       const data = socketToUpdate.data as CollabSocket['data'];
-      data.role = role;
-    }
+      data.role = role ?? data.role;
+      data.nickname = nickname ?? data.nickname;
 
-    // DB 업데이트
-    await this.ptRepository.update({ roomId, ptId }, { role });
+      // DB 업데이트
+      await this.ptRepository.update(
+        { roomId, ptId },
+        { role: data.role, nickname: data.nickname },
+      );
+    }
+  }
+
+  /** 현재 방에 있는 인원 수 */
+  async roomCounter(roomId: number): Promise<number> {
+    return await this.ptRepository.count({ where: { roomId } });
   }
 
   /** 참가자 상태 업데이트 */
@@ -204,7 +226,7 @@ export class PtService {
 
     const { ptId: targetPtId } = oldestViewer;
 
-    await this.updatePtRole(client, server, targetPtId, PtRole.EDITOR);
+    await this.updatePt(client, server, targetPtId, { role: PtRole.EDITOR });
     await this.notifyPtRoleUpdate(client, server, targetPtId);
 
     this.logger.log(`[PROMOTE] ${targetPtId} → EDITOR in room ${roomId}`);

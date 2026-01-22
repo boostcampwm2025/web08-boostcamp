@@ -8,6 +8,7 @@ import {
   type FilenameCheckResultPayload,
   type FileRenamePayload,
   type FileDeletePayload,
+  type PtUpdateNamePayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -24,6 +25,7 @@ import { CollaborationService } from './collaboration.service';
 import type { CollabSocket } from './collaboration.types';
 import { PermissionGuard } from './guards/permission.guard';
 import { HostGuard } from './guards/host.guard';
+import { DestroyRoomGuard } from './guards/destroy-room.guard';
 
 @WebSocketGateway({
   cors: {
@@ -70,6 +72,12 @@ export class CollaborationGateway
     }
   }
 
+  /** C -> S: 방 나가기 요청 */
+  @SubscribeMessage(SOCKET_EVENTS.LEFT_ROOM)
+  async handleLeftRoom(@ConnectedSocket() client: CollabSocket) {
+    await this.collaborationService.handleLeftRoom(client, this.server);
+  }
+
   /** C -> S: 문서 동기화 요청 */
   @SubscribeMessage(SOCKET_EVENTS.REQUEST_DOC)
   handleRequestDoc(@ConnectedSocket() client: CollabSocket) {
@@ -108,12 +116,25 @@ export class CollaborationGateway
 
   /** C -> S PtRole 업데이트 */
   @UseGuards(HostGuard)
-  @SubscribeMessage(SOCKET_EVENTS.UPDATE_PT)
-  async handlePtUpdate(
+  @SubscribeMessage(SOCKET_EVENTS.UPDATE_ROLE_PT)
+  async handlePtRoleUpdate(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: PtUpdateRolePayload,
   ) {
     await this.collaborationService.handleUpdatePtRole(
+      client,
+      this.server,
+      payload,
+    );
+  }
+
+  /** C -> S Pt 이름 업데이트 */
+  @SubscribeMessage(SOCKET_EVENTS.UPDATE_NICKNAME_PT)
+  async handlePtNameUpdate(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: PtUpdateNamePayload,
+  ) {
+    await this.collaborationService.handleUpdatePtName(
       client,
       this.server,
       payload,
@@ -148,6 +169,13 @@ export class CollaborationGateway
     @MessageBody() payload: FileDeletePayload,
   ) {
     this.collaborationService.handleFileDelete(this.server, client, payload);
+  }
+
+  /** C -> S 방 폭파 요청 */
+  @UseGuards(DestroyRoomGuard)
+  @SubscribeMessage(SOCKET_EVENTS.DESTROY_ROOM)
+  async handleDestroyRoom(@ConnectedSocket() client: CollabSocket) {
+    await this.collaborationService.handleDestroyRoom(client, this.server);
   }
 
   /**
