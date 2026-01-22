@@ -1,7 +1,7 @@
 export type Language = 'javascript' | 'html' | 'css';
 
 export interface CodeEditorProps {
-  fileId: string | null;
+  fileId: string;
   language?: Language;
   readOnly?: boolean;
 }

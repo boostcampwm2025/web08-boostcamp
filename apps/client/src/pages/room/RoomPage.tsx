@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
+import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
 import { Participants } from '@/widgets/participants';
 import { useSocket } from '@/shared/lib/hooks/useSocket';
@@ -63,11 +64,7 @@ function RoomPage() {
           <FileList />
         </div>
         <div className="flex-1 h-full bg-background">
-          <CodeEditor
-            fileId={activeFileId}
-            language="javascript"
-            readOnly={isViewer}
-          />
+          <FileViewer fileId={activeFileId} readOnly={isViewer} />
         </div>
       </main>
       {loader === 'FULL' ? (
@@ -93,6 +90,17 @@ function RoomPage() {
       <Toaster />
     </div>
   );
+}
+
+interface FileViewerProps {
+  fileId: string | null;
+  readOnly: boolean;
+}
+
+function FileViewer({ fileId, readOnly }: FileViewerProps) {
+  if (!fileId) return <EmptyView />;
+
+  return <CodeEditor fileId={fileId} readOnly={readOnly} />;
 }
 
 export default RoomPage;
