@@ -11,7 +11,9 @@ import {
   type FileRenamePayload,
   type FileDeletePayload,
   type PtUpdateNamePayload,
+  type ClaimHostPayload,
 } from '@codejam/common';
+import { WsException } from '@nestjs/websockets';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { CollabSocket } from './collaboration.types';
@@ -24,9 +26,18 @@ import { PtRole } from '../pt/pt.entity';
 import { Room } from '../room/room.entity';
 import { Document } from '../document/document.entity';
 
+/** 호스트 권한 요청 대기 상태 (Service 내부용) */
+interface PendingClaim {
+  requesterId: string;
+  requesterSocketId: string;
+  requesterRole: PtRole;
+  timeoutId: NodeJS.Timeout;
+}
+
 @Injectable()
 export class CollaborationService {
   private readonly logger = new Logger(CollaborationService.name);
+  private readonly pendingClaims: Map<number, PendingClaim> = new Map();
 
   constructor(
     private readonly ptService: PtService,
@@ -442,5 +453,203 @@ export class CollaborationService {
     this.logger.log(
       `Room [${roomCode}] expired notification sent & sockets disconnected.`,
     );
+  }
+
+  /**
+   * 호스트 권한 요청 처리
+   * - hostPassword 검증
+   * - 동시 요청 체크
+   * - 10초 타임아웃 설정
+   * - 호스트에게 요청 알림
+   */
+  async handleClaimHost(
+    client: CollabSocket,
+    server: Server,
+    payload: ClaimHostPayload,
+  ): Promise<void> {
+    const { roomId, roomCode, ptId, role, nickname } = client.data;
+    const { hostPassword } = payload;
+
+    // 방 정보 조회
+    const room = await this.roomService.findRoomById(roomId);
+    if (!room) {
+      throw new WsException('방을 찾을 수 없습니다');
+    }
+
+    // hostPassword 검증
+    if (room.hostPassword !== hostPassword) {
+      throw new WsException('비밀번호가 일치하지 않습니다');
+    }
+
+    // 동시 요청 체크
+    if (this.pendingClaims.has(roomId)) {
+      throw new WsException('이미 진행 중인 호스트 권한 요청이 있습니다');
+    }
+
+    // 호스트 소켓 찾기
+    const hostSocket = await this.findHostSocket(server, roomCode);
+    if (!hostSocket) {
+      throw new WsException('호스트를 찾을 수 없습니다');
+    }
+
+    // 타임아웃 설정 (10초)
+    const timeoutId = setTimeout(() => {
+      this.handleClaimTimeout(server, roomId);
+    }, 10000);
+
+    // pendingClaims에 저장
+    this.pendingClaims.set(roomId, {
+      requesterId: ptId,
+      requesterSocketId: client.id,
+      requesterRole: role,
+      timeoutId,
+    });
+
+    // 호스트에게 요청 알림
+    hostSocket.emit(SOCKET_EVENTS.HOST_CLAIM_REQUEST, {
+      requesterPtId: ptId,
+      requesterNickname: nickname || '익명',
+    });
+
+    this.logger.log(
+      `[CLAIM_HOST] ${ptId} requested host claim in room ${roomCode}`,
+    );
+  }
+
+  /**
+   * 호스트 권한 요청 수락
+   * - 기존 호스트 → 요청자의 원래 role
+   * - 요청자 → HOST
+   */
+  async handleAcceptHostClaim(
+    client: CollabSocket,
+    server: Server,
+  ): Promise<void> {
+    const { roomId, roomCode, ptId } = client.data;
+
+    const pendingClaim = this.pendingClaims.get(roomId);
+    if (!pendingClaim) {
+      throw new WsException('진행 중인 호스트 권한 요청이 없습니다');
+    }
+
+    // 타임아웃 해제
+    clearTimeout(pendingClaim.timeoutId);
+    this.pendingClaims.delete(roomId);
+
+    const { requesterId, requesterSocketId, requesterRole } = pendingClaim;
+
+    // 1. 기존 호스트 → 요청자의 원래 role (먼저)
+    await this.ptService.updatePt(client, server, ptId, {
+      role: requesterRole,
+    });
+    client.data.role = requesterRole;
+
+    const oldHostPt = await this.ptService.getPt(roomId, ptId);
+    if (oldHostPt) {
+      server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt: oldHostPt });
+    }
+
+    // 2. 요청자 → HOST (나중에)
+    const requesterSocket = server.sockets.sockets.get(requesterSocketId);
+    if (requesterSocket) {
+      await this.ptService.updatePt(
+        requesterSocket as CollabSocket,
+        server,
+        requesterId,
+        { role: PtRole.HOST },
+      );
+      (requesterSocket as CollabSocket).data.role = PtRole.HOST;
+    }
+
+    const newHostPt = await this.ptService.getPt(roomId, requesterId);
+    if (newHostPt) {
+      server.to(roomCode).emit(SOCKET_EVENTS.UPDATE_PT, { pt: newHostPt });
+    }
+
+    // 3. HOST_TRANSFERRED 전송
+    server.to(roomCode).emit(SOCKET_EVENTS.HOST_TRANSFERRED, {
+      newHostPtId: requesterId,
+    });
+
+    this.logger.log(
+      `[ACCEPT_HOST_CLAIM] Host transferred from ${ptId} to ${requesterId} in room ${roomCode}`,
+    );
+  }
+
+  /**
+   * 호스트 권한 요청 거절
+   * - 요청자에게 거절 알림
+   */
+  async handleRejectHostClaim(
+    client: CollabSocket,
+    server: Server,
+  ): Promise<void> {
+    const { roomId, roomCode } = client.data;
+
+    const pendingClaim = this.pendingClaims.get(roomId);
+    if (!pendingClaim) {
+      throw new WsException('진행 중인 호스트 권한 요청이 없습니다');
+    }
+
+    // 타임아웃 해제
+    clearTimeout(pendingClaim.timeoutId);
+    this.pendingClaims.delete(roomId);
+
+    const { requesterId, requesterSocketId } = pendingClaim;
+
+    // 요청자에게 거절 알림
+    const requesterSocket = server.sockets.sockets.get(requesterSocketId);
+    if (requesterSocket) {
+      requesterSocket.emit(SOCKET_EVENTS.HOST_CLAIM_REJECTED, {});
+    }
+
+    this.logger.log(
+      `[REJECT_HOST_CLAIM] Host claim from ${requesterId} rejected in room ${roomCode}`,
+    );
+  }
+
+  /**
+   * 호스트 권한 요청 타임아웃 (10초)
+   * - 자동 수락 처리
+   */
+  private async handleClaimTimeout(server: Server, roomId: number): Promise<void> {
+    const pendingClaim = this.pendingClaims.get(roomId);
+    if (!pendingClaim) return;
+
+    // 호스트 소켓 찾기
+    const room = await this.roomService.findRoomById(roomId);
+    if (!room) {
+      this.pendingClaims.delete(roomId);
+      return;
+    }
+
+    const hostSocket = await this.findHostSocket(server, room.roomCode);
+    if (!hostSocket) {
+      this.pendingClaims.delete(roomId);
+      return;
+    }
+
+    this.logger.log(
+      `[CLAIM_TIMEOUT] Auto-accepting host claim in room ${room.roomCode}`,
+    );
+
+    // 자동 수락 처리
+    await this.handleAcceptHostClaim(hostSocket, server);
+  }
+
+  /**
+   * 호스트 소켓 찾기
+   */
+  private async findHostSocket(
+    server: Server,
+    roomCode: string,
+  ): Promise<CollabSocket | null> {
+    const sockets = await server.in(roomCode).fetchSockets();
+    for (const socket of sockets) {
+      if ((socket as unknown as CollabSocket).data.role === PtRole.HOST) {
+        return socket as unknown as CollabSocket;
+      }
+    }
+    return null;
   }
 }
