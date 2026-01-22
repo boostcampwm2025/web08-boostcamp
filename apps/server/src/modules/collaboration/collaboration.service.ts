@@ -320,6 +320,7 @@ export class CollaborationService {
   ): void {
     client.data.roomId = room.roomId;
     client.data.roomCode = room.roomCode;
+    client.data.roomType = room.roomType;
     client.data.docId = doc.docId;
     client.data.ptId = pt.ptId;
     client.data.role = pt.role as PtRole;
@@ -344,6 +345,7 @@ export class CollaborationService {
       token,
       roomType: room.roomType,
       whoCanDestroyRoom: room.whoCanDestroyRoom,
+      hasHostPassword: !!room.hostPassword,
     });
 
     // 다른 참가자들에게: 새 참가자 입장 알림

@@ -1,5 +1,6 @@
 import { DefaultEventsMap, Socket } from 'socket.io';
 import { PtRole } from '../pt/pt.entity';
+import { RoomType } from '../room/room.entity';
 import {
   SOCKET_EVENTS,
   type JoinRoomPayload,
@@ -18,6 +19,7 @@ import {
 export interface SocketData {
   roomId: number;
   roomCode: string;
+  roomType: RoomType;
   docId: string;
   ptId: string;
   role: PtRole;
