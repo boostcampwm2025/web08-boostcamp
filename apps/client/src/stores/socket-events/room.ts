@@ -18,8 +18,8 @@ export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {
     console.log(`🎉 [WELCOME] My PtId: ${data.myPtId}`);
 
-    const { myPtId, token, roomType, whoCanDestroyRoom } = data;
-    const { roomCode, setMyPtId, setRoomType, setWhoCanDestroyRoom } =
+    const { myPtId, token, roomType, whoCanDestroyRoom, hasHostPassword } = data;
+    const { roomCode, setMyPtId, setRoomType, setWhoCanDestroyRoom, setHasHostPassword } =
       useRoomStore.getState();
     const { setTempRoomPassword } = useTempStore.getState();
 
@@ -28,6 +28,7 @@ export const setupRoomEventHandlers = () => {
     setMyPtId(myPtId);
     setRoomType(roomType);
     setWhoCanDestroyRoom(whoCanDestroyRoom);
+    setHasHostPassword(hasHostPassword);
     setRoomToken(roomCode, token);
     setTempRoomPassword(undefined);
 
