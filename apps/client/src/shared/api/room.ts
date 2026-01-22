@@ -8,6 +8,12 @@ interface CreateQuickRoomResponse {
   token: RoomToken;
 }
 
+export interface CustomRoomData {
+  roomPassword?: string;
+  hostPassword?: string;
+  maxPts: number;
+}
+
 export async function checkRoomExists(
   roomCode: string,
 ): Promise<RoomJoinStatus> {
@@ -66,3 +72,20 @@ export async function checkHost(
     throw error;
   }
 }
+
+export const createCustomRoom = async (data: CustomRoomData) => {
+  const response = await fetch('/api/rooms/custom', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to create custom room');
+  }
+
+  return response.json();
+};
