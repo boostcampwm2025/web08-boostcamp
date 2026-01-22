@@ -39,3 +39,8 @@ export interface PtUpdateNamePayload {
   ptId: string;
   nickname: string;
 }
+
+/** 호스트 변경 알림 (S -> C) */
+export interface HostTransferredPayload {
+  newHostPtId: string;
+}
