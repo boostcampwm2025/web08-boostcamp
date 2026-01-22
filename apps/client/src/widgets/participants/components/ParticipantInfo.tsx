@@ -13,6 +13,7 @@ export function ParticipantInfo({
   ptId,
   editable,
   onEditable,
+  roomType,
   canToggle,
   onToggleRole,
 }: ParticipantProps & EditableProps) {
@@ -37,14 +38,15 @@ export function ParticipantInfo({
         ptId={ptId}
         isMe={isMe}
       />
-
-      <div className="flex items-center h-6">
-        <RoleSwitcher
-          role={role}
-          isInteractive={isInteractive}
-          onToggle={onToggleRole}
-        />
-      </div>
+      {roomType === 'custom' && (
+        <div className="flex items-center h-6">
+          <RoleSwitcher
+            role={role}
+            isInteractive={isInteractive}
+            onToggle={onToggleRole}
+          />
+        </div>
+      )}
     </div>
   );
 }

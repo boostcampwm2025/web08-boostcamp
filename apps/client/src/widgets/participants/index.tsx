@@ -19,6 +19,7 @@ import type { SortKey, SortState } from './lib/types';
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
   const myPtId = useRoomStore((state) => state.myPtId);
+  const roomType = useRoomStore((state) => state.roomType);
 
   // 내 정보와 권한 확인
   const meData = usePt(myPtId);
@@ -102,14 +103,25 @@ export function Participants() {
         )}
 
         <div className="flex-1 overflow-y-auto min-h-0 max-h-[30vh]">
-          {me && <Participant ptId={me.ptId} hasPermission={false} />}
+          {me && (
+            <Participant
+              ptId={me.ptId}
+              roomType={roomType}
+              hasPermission={false}
+            />
+          )}
 
           {me && others.length > 0 && (
             <div className="mx-3 my-1 border-t border-gray-300 dark:border-gray-600 opacity-50" />
           )}
 
           {others.map((p) => (
-            <Participant key={p.ptId} ptId={p.ptId} hasPermission={iAmHost} />
+            <Participant
+              key={p.ptId}
+              roomType={roomType}
+              ptId={p.ptId}
+              hasPermission={iAmHost}
+            />
           ))}
         </div>
       </div>
