@@ -30,9 +30,9 @@ export function ParticipantInfo({
   // 호스트 배지는 절대 클릭 불가
   const isInteractive = !!(canToggle && role !== 'host');
 
-  // 본인 + Custom Room + 비호스트 → 호스트 권한 요청 UI 표시
+  // 본인 + Custom Room + 비호스트 + hostPassword 있음 → 호스트 권한 요청 UI 표시
   const showHostClaimSwitcher =
-    isMe && roomType === 'custom' && role !== 'host';
+    isMe && roomType === 'custom' && role !== 'host' && hasHostPassword;
 
   return (
     <div className="flex flex-col min-w-0 gap-1">
