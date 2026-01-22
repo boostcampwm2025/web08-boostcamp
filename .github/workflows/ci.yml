@@ -128,6 +128,36 @@ jobs:
         if: steps.format.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.build.outcome == 'failure'
         run: exit 1
 
+  cli-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check CLI
+        run: pnpm --filter @codejam/cli check-types
+
+      - name: Build CLI
+        run: pnpm --filter @codejam/cli build
+
+      - name: Test CLI binary
+        run: |
+          cd packages/cli
+          node dist/index.js --version
+          node dist/index.js --help
+
   vercel-preview:
     needs: ci
     if: needs.ci.outputs.client-changed == 'true'
