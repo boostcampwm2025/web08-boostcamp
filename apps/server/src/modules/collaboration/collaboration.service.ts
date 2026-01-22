@@ -138,6 +138,23 @@ export class CollaborationService {
     const { roomId, roomCode, ptId, role } = client.data;
     if (!roomId || !roomCode || !ptId) return;
 
+    // 호스트 권한 요청 중인 요청자가 퇴장하면 요청 취소
+    const pendingClaim = this.pendingClaims.get(roomId);
+    if (pendingClaim && pendingClaim.requesterId === ptId) {
+      clearTimeout(pendingClaim.timeoutId);
+      this.pendingClaims.delete(roomId);
+
+      // 호스트에게 요청 취소 알림
+      const hostSocket = await this.findHostSocket(server, roomCode);
+      if (hostSocket) {
+        hostSocket.emit(SOCKET_EVENTS.HOST_CLAIM_CANCELLED, {});
+      }
+
+      this.logger.log(
+        `[LEFT_ROOM] Host claim cancelled: requester ${ptId} left room ${roomCode}`,
+      );
+    }
+
     // 참가자 삭제 및 다른 참가자들에게 알림
 
     await this.ptService.deletePt(roomId, ptId);
