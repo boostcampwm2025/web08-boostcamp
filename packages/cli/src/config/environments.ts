@@ -10,11 +10,12 @@ export const environments: Record<string, EnvironmentConfig> = {
   },
   staging: {
     serverUrl: 'https://staging.codejam.kro.kr',
-    clientUrl: 'https://staging.codejam.kro.kr',
+    clientUrl:
+      'https://codejam-web08jamstack-6306-jamstacks-projects.vercel.app',
   },
   production: {
     serverUrl: 'https://production.codejam.kro.kr',
-    clientUrl: 'https://production.codejam.kro.kr',
+    clientUrl: 'https://lets-codejam.vercel.app',
   },
 };
 
@@ -24,7 +25,7 @@ export function getConfig(env?: string): EnvironmentConfig {
 
   if (!config) {
     throw new Error(
-      `Unknown environment: ${environment}. Available: ${Object.keys(environments).join(', ')}`
+      `Unknown environment: ${environment}. Available: ${Object.keys(environments).join(', ')}`,
     );
   }
 
