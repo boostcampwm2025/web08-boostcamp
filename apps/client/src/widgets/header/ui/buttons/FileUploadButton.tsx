@@ -13,7 +13,7 @@ interface FileUploadButtonProps {
 
 export function FileUploadButton({ roomCode }: FileUploadButtonProps) {
   const uploadRef = useRef<HTMLInputElement>(null);
-  const { getFileId, createFile } = useFileStore();
+  const { getFileId, createFile, setActiveFile } = useFileStore();
   const { setIsDuplicated, isDuplicated, handleCheckRename } =
     useFileRename(roomCode);
   const [uploadFile, setUploadFile] = useState<File | undefined>(undefined);
@@ -68,7 +68,8 @@ export function FileUploadButton({ roomCode }: FileUploadButtonProps) {
       const result = await handleCheckRename(file.name);
       if (result) {
         const content = await file.text();
-        createFile(file.name, content);
+        const fileId = createFile(file.name, content);
+        setActiveFile(fileId);
         setUploadFile(undefined);
       }
     }
