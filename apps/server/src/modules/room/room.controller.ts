@@ -26,10 +26,8 @@ export class RoomController {
   }
 
   @Post('quick')
-  async createQuickRoom(
-    @Body('password') password?: string,
-  ): Promise<CreateRoomResponseDto> {
-    return await this.roomService.createQuickRoom(password);
+  async createQuickRoom(): Promise<CreateRoomResponseDto> {
+    return await this.roomService.createQuickRoom();
   }
 
   @Post('custom')

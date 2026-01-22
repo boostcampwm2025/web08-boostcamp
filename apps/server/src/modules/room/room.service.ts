@@ -62,14 +62,13 @@ export class RoomService {
     });
   }
 
-  async createQuickRoom(password?: string): Promise<CreateRoomResponseDto> {
+  async createQuickRoom(): Promise<CreateRoomResponseDto> {
     const options: RoomCreationOptions = {
       roomType: RoomType.QUICK,
       maxPts: this.QUICK_ROOM_MAX_PTS,
       defaultRolePolicy: DefaultRolePolicy.EDITOR,
       whoCanDestroyRoom: WhoCanDestroyRoom.EDITOR,
       roomCreatorRole: PtRole.EDITOR,
-      roomPassword: password,
     };
 
     return this.createRoom(options);
