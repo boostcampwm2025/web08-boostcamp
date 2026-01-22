@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Hash, Settings2 } from 'lucide-react';
 import { ActionCard } from '../cards/ActionCard';
@@ -14,6 +14,10 @@ import { getRoomUrl } from '@/shared/lib/routes';
 import { setRoomToken } from '@/shared/lib/storage';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { CustomStartPopover } from '../components/CustomStartPopover';
+import { Input } from '@/shared/ui';
+import { Label } from '@radix-ui/react-label';
+import { Checkbox } from '@/shared/ui/checkbox';
+import { useTempValue } from '@/stores/temp';
 
 interface ErrorMessageProps {
   message: string;
@@ -45,6 +49,18 @@ export function ActionCards() {
   );
   const [joinRoomError, setJoinRoomError] = useState<string>('');
   const [isJoining, setIsJoining] = useState<boolean>(false);
+  const [isPassword, setIsPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const { setTempRoomPassword } = useTempValue();
+
+  useEffect(() => {
+    setPassword('');
+  }, [isPassword]);
+
+  const handlePasswordChange = (e: ChangeEvent) => {
+    const target = e.target as HTMLInputElement;
+    setPassword(target.value.trim());
+  };
 
   const handleQuickStart = async () => {
     if (isCreating) return;
@@ -53,10 +69,8 @@ export function ActionCards() {
     setCreateRoomError('');
 
     try {
-      const { roomCode, token } = await createQuickRoom();
-
-      // Save PT ID first
-      setRoomToken(roomCode, token);
+      const { roomCode } = await createQuickRoom(password);
+      setTempRoomPassword(password);
 
       // Then join the room
       const url = getRoomUrl(roomCode);
@@ -123,6 +137,31 @@ export function ActionCards() {
         >
           <div className="flex flex-col items-center gap-4 w-full">
             {/* Quick Start 버튼 */}
+            <div className="flex flex-col w-full gap-2">
+              <div className="flex w-full gap-2 items-center">
+                <Label htmlFor="password" className="text-sm">
+                  비밀번호 설정
+                </Label>
+                <Checkbox
+                  id="password"
+                  name="password"
+                  checked={isPassword}
+                  className="border-gray-400"
+                  onCheckedChange={(e) => setIsPassword(e.valueOf() as boolean)}
+                />
+              </div>
+              <Input
+                type="password"
+                minLength={1}
+                maxLength={16}
+                className="flex-1 border-gray-400 pt-4 pb-4"
+                placeholder="비밀번호를 입력할 수 있습니다."
+                value={password}
+                disabled={!isPassword}
+                aria-disabled={!isPassword}
+                onChange={handlePasswordChange}
+              />
+            </div>
             <Button
               onClick={handleQuickStart}
               disabled={isCreating}
