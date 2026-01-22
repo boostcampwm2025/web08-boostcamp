@@ -57,7 +57,7 @@ export class RoomController {
 
   @Post('custom')
   async createCustomRoom(
-    dto: CreateCustomRoomDto,
+    @Body() dto: CreateCustomRoomDto,
   ): Promise<CreateRoomResponseDto> {
     return await this.roomService.createCustomRoom(dto);
   }

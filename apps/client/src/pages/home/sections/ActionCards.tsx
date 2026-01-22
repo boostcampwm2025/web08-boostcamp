@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Hash } from 'lucide-react';
+import { Users, Hash, Settings } from 'lucide-react';
 import { ActionCard } from '../cards/ActionCard';
 import { RoomCodeInput, ROOM_CODE_LENGTH } from '../components/RoomCodeInput';
 import { Button } from '@/shared/ui/button';
-import { createQuickRoom, checkRoomExists } from '@/shared/api/room';
+import {
+  createQuickRoom,
+  checkRoomExists,
+  createCustomRoom,
+} from '@/shared/api/room';
 import { getRoomUrl } from '@/shared/lib/routes';
 import { setRoomToken } from '@/shared/lib/storage';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Input } from '@/shared/ui';
 
 interface ErrorMessageProps {
   message: string;
@@ -36,6 +42,13 @@ export function ActionCards() {
     useState<boolean>(false);
   const [isJoinRoomLoading, setIsJoinRoomLoading] = useState<boolean>(false);
 
+  const [customRoomData, setCustomRoomData] = useState({
+    maxPts: 6,
+    roomPassword: '',
+    hostPassword: '',
+  });
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
   const handleQuickStart = async () => {
     if (isQuickStartLoading) return;
 
@@ -56,6 +69,33 @@ export function ActionCards() {
       setQuickStartError(error.message);
     } finally {
       setIsQuickStartLoading(false);
+    }
+  };
+
+  const handleCustomStart = async () => {
+    if (isQuickStartLoading) return; // 로딩 상태 공유 (또는 별도 분리 가능)
+
+    setIsQuickStartLoading(true);
+    setQuickStartError('');
+
+    try {
+      // 숫자 형변환 확인
+      const payload = {
+        ...customRoomData,
+        maxPts: Number(customRoomData.maxPts),
+      };
+
+      const { roomCode, token } = await createCustomRoom(payload);
+
+      setRoomToken(roomCode, token);
+      const url = getRoomUrl(roomCode);
+      navigate(url);
+    } catch (e) {
+      const error = e as Error;
+      setQuickStartError(error.message);
+    } finally {
+      setIsQuickStartLoading(false);
+      setIsPopoverOpen(false);
     }
   };
 
@@ -104,6 +144,88 @@ export function ActionCards() {
             >
               {isQuickStartLoading ? 'Loading...' : 'Quick Start'}
             </Button>
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 py-2"
+                >
+                  <Settings className="w-4 h-4 mr-2" /> Custom Start
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4 bg-white" align="center">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 leading-none">
+                    방 옵션 설정
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    원하는 설정을 입력하고 방을 생성하세요.
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-gray-600">
+                        최대 인원 (Max Pts)
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="6"
+                        value={customRoomData.maxPts}
+                        onChange={(e) =>
+                          setCustomRoomData({
+                            ...customRoomData,
+                            maxPts: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-gray-600">
+                        방 비밀번호 (Optional)
+                      </label>
+                      <Input
+                        type="password"
+                        placeholder="입장 시 필요한 비밀번호"
+                        value={customRoomData.roomPassword}
+                        onChange={(e) =>
+                          setCustomRoomData({
+                            ...customRoomData,
+                            roomPassword: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-gray-600">
+                        호스트 비밀번호 (Optional)
+                      </label>
+                      <Input
+                        type="password"
+                        placeholder="방장 전용 비밀번호"
+                        value={customRoomData.hostPassword}
+                        onChange={(e) =>
+                          setCustomRoomData({
+                            ...customRoomData,
+                            hostPassword: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleCustomStart}
+                    disabled={isQuickStartLoading}
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white mt-2"
+                  >
+                    {isQuickStartLoading ? '생성 중...' : '만들기'}
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <ErrorMessage message={quickStartError} />
           </div>
         </ActionCard>
@@ -121,6 +243,7 @@ export function ActionCards() {
               hasError={!!joinRoomError}
               onSubmit={handleJoinRoom}
             />
+
             <ErrorMessage message={joinRoomError} />
             <Button
               onClick={handleJoinRoom}
