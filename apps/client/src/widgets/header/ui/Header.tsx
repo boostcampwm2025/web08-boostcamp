@@ -1,10 +1,6 @@
-import { PROJECT_NAME } from '@codejam/common';
-import { useState } from 'react';
-import LogoAnimation from '@/assets/logo_animation.svg';
 import { Button } from '@/shared/ui/button';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import {
-  Check,
   Copy,
   Share2,
   Sun,
@@ -17,6 +13,8 @@ import { toast } from 'sonner';
 import { SettingsDialog } from '@/widgets/dialog/SettingsDialog';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
+import { Logo } from './Logo';
+import { RoomCode } from './RoomCode';
 import { LeaveRoomButton } from './buttons/LeaveRoomButton';
 import { FileUploadButton } from './buttons/FileUploadButton';
 import { FileDownloadButton } from './buttons/FileDownloadButton';
@@ -28,24 +26,11 @@ type HeaderProps = {
 
 export default function Header({ roomCode }: HeaderProps) {
   const { isDark, toggleTheme } = useDarkMode();
-  const [isCopied, setIsCopied] = useState(false);
 
   // 방 폭파 버튼 조건부 렌더링을 위한 상태
   const { myPtId, whoCanDestroyRoom } = useRoomStore();
   const myPt = usePt(myPtId);
   const canDestroyRoom = myPt?.role === whoCanDestroyRoom;
-
-  const copyRoomCode = async () => {
-    try {
-      await navigator.clipboard.writeText(roomCode || '');
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-      toast.success('방 코드가 복사되었습니다.');
-    } catch (err) {
-      const error = err as Error;
-      toast.error(`복사에 실패했습니다: ${error.message}`);
-    }
-  };
 
   const handleNotImplemented = (feature: string) => {
     toast.warning(`${feature} 기능은 아직 구현되지 않았습니다.`, {
@@ -55,43 +40,9 @@ export default function Header({ roomCode }: HeaderProps) {
 
   return (
     <header className="h-14 bg-background border-b border-border flex items-center px-4 gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
-      {/* 로고 및 서비스명 */}
-      <a href="/" className="shrink-0">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <img
-            src={LogoAnimation}
-            alt="CodeJam Logo"
-            className="h-8 w-8 sm:h-10 sm:w-10"
-          />
-          <h1 className="text-xl sm:text-2xl font-semibold text-foreground hidden sm:block">
-            {PROJECT_NAME}
-          </h1>
-        </div>
-      </a>
+      <Logo />
 
-      {/* Room CODE - 화면 작을 땐 CODE만 표시 */}
-      <div className="flex items-center gap-2 ml-2 sm:ml-6 shrink-0">
-        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider hidden md:block">
-          ROOM CODE
-        </span>
-        <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 border border-border rounded-md bg-secondary/50">
-          <span className="font-mono text-xs sm:text-sm font-semibold max-w-[80px] sm:max-w-none truncate">
-            {roomCode}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-4 w-4 p-0 hover:bg-transparent"
-            onClick={copyRoomCode}
-          >
-            {isCopied ? (
-              <Check className="h-3 w-3 text-green-500" />
-            ) : (
-              <Copy className="h-3 w-3" />
-            )}
-          </Button>
-        </div>
-      </div>
+      <RoomCode roomCode={roomCode} />
 
       {/* 우측 액션 버튼들 */}
       <div className="ml-auto flex items-center gap-1 shrink-0">
