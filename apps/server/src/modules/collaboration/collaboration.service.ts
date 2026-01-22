@@ -138,12 +138,9 @@ export class CollaborationService {
 
     this.logger.log(`[LEFT_ROOM] ptId: ${ptId} left room ${roomCode}`);
 
-    // TODO: Host Transfer
-    // Host 가 나갔다면 다른 참가자를 찾아서 Promote
-
-    if (role == PtRole.HOST) {
-      // const newHostPtId = ...;
-      // updatePtRole(newHostPtId, PtRole.HOST)
+    // Host가 나갔다면 다른 참가자에게 호스트 권한 양도
+    if (role === PtRole.HOST) {
+      await this.handleAutoTransferHost(client, server);
     }
 
     // TODO: Destroy Room
