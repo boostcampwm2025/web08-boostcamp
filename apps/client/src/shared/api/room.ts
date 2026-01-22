@@ -31,10 +31,14 @@ export async function checkRoomExists(
   }
 }
 
-export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
+export async function createQuickRoom(
+  password?: string,
+): Promise<CreateQuickRoomResponse> {
   try {
     const response = await fetch(`${ROOM_API_PREFIX}/quick`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
     });
 
     if (!response.ok) {
