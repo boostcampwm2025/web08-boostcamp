@@ -8,7 +8,7 @@ import type { RoomJoinStatus } from '../api/types.js';
 
 interface EnterOptions {
   env?: string;
-  noBrowser?: boolean;
+  browser?: boolean;
 }
 
 function validateRoomCode(roomCode: string): void {
@@ -66,8 +66,8 @@ export const enterCommand = new Command('enter')
 
       console.log(chalk.blue.bold(`\nRoom Code: ${roomCode}`));
 
-      const roomUrl = `${config.clientUrl}/room/${roomCode}`;
-      await openRoomInBrowser(roomUrl, options.noBrowser === false);
+      const roomUrl = `${config.clientUrl}/rooms/${roomCode}`;
+      await openRoomInBrowser(roomUrl, options.browser !== false);
     } catch (error) {
       handleError('Failed to enter room', error);
     }

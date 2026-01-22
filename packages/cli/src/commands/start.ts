@@ -12,7 +12,7 @@ interface StartOptions {
   password?: string;
   hostPassword?: string;
   max?: string;
-  noBrowser?: boolean;
+  browser?: boolean;
 }
 
 function validateMaxParticipants(maxStr: string): number {
@@ -29,7 +29,7 @@ function validateMaxParticipants(maxStr: string): number {
 async function createRoom(
   client: ApiClient,
   options: StartOptions,
-): Promise<string> {
+): Promise<{ roomCode: string; token: string }> {
   const spinner = ora('Creating room...').start();
 
   if (options.custom) {
@@ -42,11 +42,11 @@ async function createRoom(
     });
 
     spinner.succeed(chalk.green('Custom room created!'));
-    return response.roomCode;
+    return { roomCode: response.roomCode, token: response.token };
   } else {
     const response = await client.createQuickRoom();
     spinner.succeed(chalk.green('Quick room created!'));
-    return response.roomCode;
+    return { roomCode: response.roomCode, token: response.token };
   }
 }
 
@@ -87,17 +87,34 @@ export const startCommand = new Command('start')
   )
   .option('-c, --custom', 'Create custom room instead of quick room')
   .option('-p, --password <password>', 'Room password (custom room only)')
-  .option('-h, --host-password <password>', 'Host password (custom room only)')
-  .option('-m, --max <number>', 'Max participants (custom room only)', '6')
+  .option('--host-password <password>', 'Host password (custom room only)')
+  .option('-m, --max <number>', 'Max participants (custom room only)')
   .option('--no-browser', 'Do not open browser automatically')
   .action(async (options: StartOptions) => {
     try {
+      // Validate that custom options are only used with --custom flag
+      if (!options.custom) {
+        if (options.password || options.hostPassword || options.max) {
+          console.error(
+            chalk.red(
+              'Error: --password, --host-password, and --max options require --custom flag',
+            ),
+          );
+          console.log(
+            chalk.yellow(
+              '\nTo create a custom room, use: codejam start --custom [options]',
+            ),
+          );
+          process.exit(1);
+        }
+      }
+
       const config = getConfig(options.env);
       const client = new ApiClient(config.serverUrl);
-      const roomCode = await createRoom(client, options);
+      const { roomCode, token } = await createRoom(client, options);
       displayRoomInfo(roomCode, options);
-      const roomUrl = `${config.clientUrl}/room/${roomCode}`;
-      await openRoomInBrowser(roomUrl, options.noBrowser === false);
+      const roomUrl = `${config.clientUrl}/join/${roomCode}?token=${token}`;
+      await openRoomInBrowser(roomUrl, options.browser !== false);
     } catch (error) {
       handleError('Failed to create room', error);
     }
