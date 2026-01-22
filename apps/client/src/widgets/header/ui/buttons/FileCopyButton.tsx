@@ -10,10 +10,7 @@ export function FileCopyButton() {
   };
 
   return (
-    <HeaderActionButton
-      onClick={handleCopy}
-      className="hidden sm:flex"
-    >
+    <HeaderActionButton onClick={handleCopy} className="hidden sm:flex">
       <Copy className="h-4 w-4" />
       <span className="hidden lg:inline">Copy</span>
     </HeaderActionButton>
