@@ -70,7 +70,6 @@ export const Participant = memo(
             editable={isEditable}
             onEditable={setIsEditable}
             ptId={ptId}
-            roomType={roomType}
             canToggle={canToggle}
             onToggleRole={handleToggleRole}
           />

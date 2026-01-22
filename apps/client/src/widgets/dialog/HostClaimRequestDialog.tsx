@@ -63,7 +63,7 @@ export function HostClaimRequestDialog() {
         <DialogHeader>
           <DialogTitle>호스트 권한 요청</DialogTitle>
           <DialogDescription className="mt-2">
-            <span className="font-medium text-foreground">
+            <span className="font-semibold text-blue-600 dark:text-blue-400">
               {requesterNickname}
             </span>
             님이 호스트 권한을 요청했습니다.
@@ -83,7 +83,13 @@ export function HostClaimRequestDialog() {
           >
             거절
           </Button>
-          <Button type="button" size="sm" onClick={handleAccept}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleAccept}
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
+          >
             수락
           </Button>
         </DialogFooter>
