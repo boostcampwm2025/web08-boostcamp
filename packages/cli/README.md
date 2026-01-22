@@ -8,11 +8,11 @@
 npm install -g @codejam/cli
 ```
 
-## 사용법
+## 명령어
 
-### 빠른 시작
+### `codejam start` - 새 룸 생성
 
-빠른 시작 (참여자 6명, 모두 에디터):
+빠른 시작 (참여자 6명):
 
 ```bash
 codejam start
@@ -23,48 +23,97 @@ codejam start
 ```
 ✔ Quick room created!
 
-Room Code: ABCDEF
-Environment: production
+┌───────────┐
+│ Room Code │
+├───────────┤
+│ ABCDEF    │
+└───────────┘
 
-Opening https://codejam.kr/room/ABCDEF...
+⠹ Opening https://lets-codejam.vercel.app/room/ABCDEF...
+✔ Browser opened!
 ```
 
-### 커스텀 룸
+**옵션:**
 
-특정 설정으로 룸 생성:
-
-```bash
-codejam start --custom --max 50 --password mypass --host-password admin123
-```
-
-## 주요 옵션
-
-### 커스텀 룸 옵션
-
-- `--custom` - 빠른 시작 대신 커스텀 룸 생성
+- `--custom` - 커스텀 룸 생성
 - `--max <숫자>` - 최대 참여자 수 (1-150, 기본값: 6)
 - `--password <비밀번호>` - 참여자용 룸 비밀번호
 - `--host-password <비밀번호>` - 호스트 권한용 비밀번호
-- `--no-browser` - 룸 생성 후 브라우저 자동 열기 비활성화
+- `--no-browser` - 브라우저 자동 열기 비활성화
 
-## 사용 예시
-
-### 비밀번호가 있는 커스텀 룸
+**예시:**
 
 ```bash
+# 커스텀 룸 (최대 30명, 룸 비밀번호)
 codejam start --custom --max 30 --password secret123
-```
 
-### 대규모 강의용 커스텀 룸
-
-```bash
+# 대규모 강의용 (최대 150명, 호스트 비밀번호)
 codejam start --custom --max 150 --host-password teacher2026
 ```
 
-## 서버 상태 확인
+### `codejam enter` - 기존 룸 입장
+
+룸 코드로 기존 룸에 입장:
+
+```bash
+codejam enter ABCDEF
+```
+
+출력 결과:
+
+```
+⠹ Checking room status...
+✔ Room is available!
+
+Room Code: ABCDEF
+
+⠹ Opening https://lets-codejam.vercel.app/room/ABCDEF...
+✔ Browser opened!
+```
+
+**옵션:**
+
+- `--no-browser` - 브라우저 자동 열기 비활성화
+
+**예시:**
+
+```bash
+# 브라우저 열지 않고 URL만 출력
+codejam enter ABCDEF --no-browser
+```
+
+### `codejam health` - 서버 상태 확인
+
+서버 상태 확인:
 
 ```bash
 codejam health
+```
+
+출력 결과:
+
+```
+⠹ Checking server health...
+✔ All Systems Operational
+We're fully operational and ready to code together!
+```
+
+### `codejam update` - CLI 업데이트
+
+최신 버전으로 업데이트:
+
+```bash
+codejam update
+```
+
+출력 결과:
+
+```
+⠹ Checking for updates...
+⠹ Updating from 1.0.0 to 1.0.1...
+✔ Successfully updated to version 1.0.1!
+
+Update complete. If the command does not work, try opening a new terminal tab.
 ```
 
 ## 문제 해결
