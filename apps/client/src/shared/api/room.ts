@@ -49,30 +49,6 @@ export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
   }
 }
 
-export async function checkHost(
-  roomCode: string,
-  ptId: string,
-): Promise<boolean> {
-  try {
-    const response = await fetch(`${ROOM_API_PREFIX}/${roomCode}/checkHost`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ptId }),
-    });
-
-    if (!response.ok) {
-      const message = 'Failed to check host permission';
-      throw new Error(message);
-    }
-
-    const { ok } = await response.json();
-    return ok;
-  } catch (e) {
-    const error = e as Error;
-    throw error;
-  }
-}
-
 export const createCustomRoom = async (data: CustomRoomData) => {
   const response = await fetch(`${ROOM_API_PREFIX}/custom`, {
     method: 'POST',
