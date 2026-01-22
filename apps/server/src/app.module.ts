@@ -10,6 +10,7 @@ import { validationSchema } from './config/env.validation';
 import { config as databaseConfig } from './config/database.config';
 import { CleanupModule } from './modules/cleanup/cleanup.module';
 import { YRedisModule } from './modules/y-redis/y-redis.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { YRedisModule } from './modules/y-redis/y-redis.module';
     CollaborationModule,
     FileModule,
     CleanupModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
