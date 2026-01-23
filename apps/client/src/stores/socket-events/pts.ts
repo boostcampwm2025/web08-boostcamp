@@ -46,11 +46,10 @@ export const setupPtsEventHandlers = () => {
   };
 
   const onUpdatePt = (data: PtUpdatePayload) => {
-    console.log(
-      `🔄 [UPDATE_PT] PtId: ${data.pt.ptId} Nickname: ${data.pt.nickname}`,
-    );
     const pt = usePtsStore.getState().pts[data.pt.ptId];
-    if (!pt) return;
+    if (!pt) {
+      return;
+    }
 
     const myPtId = useRoomStore.getState().myPtId;
     const isMe = data.pt.ptId === myPtId;
