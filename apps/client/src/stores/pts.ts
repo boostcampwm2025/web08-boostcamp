@@ -39,3 +39,12 @@ export const usePts = () => {
 export const usePt = (ptId: string | null | undefined) => {
   return usePtsStore((state) => (ptId ? state.pts[ptId] : undefined));
 };
+
+export const useCanEditCount = () => {
+  return usePtsStore(
+    (state) =>
+      Object.values(state.pts).filter(
+        (pt) => pt.role === 'editor' || pt.role === 'host',
+      ).length,
+  );
+};

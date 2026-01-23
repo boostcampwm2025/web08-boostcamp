@@ -37,5 +37,5 @@ export function useAwarenessSync() {
         hash: myPt.ptHash,
       });
     }
-  }, [myPt?.nickname, myPt?.color, awareness, myPtId]);
+  }, [myPt, awareness, myPtId]);
 }
