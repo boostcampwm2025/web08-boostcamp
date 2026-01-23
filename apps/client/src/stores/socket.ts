@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { socket } from '@/shared/api/socket';
 import { setupDomainEventHandlers, emitJoinRoom } from './socket-events';
+import { useTempStore } from './temp';
 
 interface SocketState {
   socket: typeof socket;
@@ -37,9 +38,9 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     const onConnect = () => {
       console.log('🟢 Connected to Socket Server');
+      const { tempRoomPassword } = useTempStore.getState();
       set({ isConnected: true });
-
-      emitJoinRoom(roomCode);
+      emitJoinRoom(roomCode, undefined, tempRoomPassword);
     };
 
     const onDisconnect = () => {

@@ -124,17 +124,26 @@ export class RoomService {
       });
 
       const savedRoom = await queryRunner.manager.save(newRoom);
+      const token = await (async () => {
+        if (roomType === RoomType.QUICK) return undefined;
+        const hostPt = queryRunner.manager.create(Pt, {
+          room: savedRoom,
+          ptHash: this.ptService.generatePtHash(),
+          role: roomCreatorRole,
+          nickname: 'Host',
+          color: '#E0E0E0',
+          presence: PtPresence.ONLINE,
+        });
 
-      const hostPt = queryRunner.manager.create(Pt, {
-        room: savedRoom,
-        ptHash: this.ptService.generatePtHash(),
-        role: roomCreatorRole,
-        nickname: 'Host',
-        color: '#E0E0E0',
-        presence: PtPresence.ONLINE,
-      });
+        const savedPt = await queryRunner.manager.save(hostPt);
 
-      const savedPt = await queryRunner.manager.save(hostPt);
+        const token = this.roomTokenService.sign({
+          roomCode: savedRoom.roomCode,
+          ptId: savedPt.ptId,
+        });
+
+        return token;
+      })();
 
       const document = queryRunner.manager.create(Document, {
         room: savedRoom,
@@ -146,13 +155,8 @@ export class RoomService {
 
       await queryRunner.commitTransaction();
 
-      const token = this.roomTokenService.sign({
-        roomCode: savedRoom.roomCode,
-        ptId: savedPt.ptId,
-      });
-
       this.logger.log(
-        `✅ ${roomType === RoomType.QUICK ? 'Quick' : 'Custom'} Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}], Doc Id: [${document.docId}]`,
+        `✅ ${roomType === RoomType.QUICK ? 'Quick' : 'Custom'} Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})], Doc Id: [${document.docId}]`,
       );
 
       return {

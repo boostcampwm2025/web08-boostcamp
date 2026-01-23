@@ -53,10 +53,7 @@ export function ActionCards() {
     setCreateRoomError('');
 
     try {
-      const { roomCode, token } = await createQuickRoom();
-
-      // Save PT ID first
-      setRoomToken(roomCode, token);
+      const { roomCode } = await createQuickRoom();
 
       // Then join the room
       const url = getRoomUrl(roomCode);

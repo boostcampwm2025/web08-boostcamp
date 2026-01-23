@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
+import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
 import { Participants } from '@/widgets/participants';
 import { useSocket } from '@/shared/lib/hooks/useSocket';
@@ -11,9 +12,11 @@ import { FileList } from '@/widgets/files';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
+import { HostClaimRequestDialog } from '@/widgets/dialog/HostClaimRequestDialog';
 import type { RoomJoinStatus } from '@codejam/common';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
+import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
 
 function RoomPage() {
   const {
@@ -29,6 +32,7 @@ function RoomPage() {
   } = useRoomJoin();
 
   useAwarenessSync();
+  useInitialFileSelection();
 
   const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
@@ -61,11 +65,7 @@ function RoomPage() {
           <FileList />
         </div>
         <div className="flex-1 h-full bg-background">
-          <CodeEditor
-            fileId={activeFileId || 'prototype'}
-            language="javascript"
-            readOnly={isViewer}
-          />
+          <FileViewer fileId={activeFileId} readOnly={isViewer} />
         </div>
       </main>
       {loader === 'FULL' ? (
@@ -89,8 +89,20 @@ function RoomPage() {
         />
       )}
       <Toaster />
+      <HostClaimRequestDialog />
     </div>
   );
+}
+
+interface FileViewerProps {
+  fileId: string | null;
+  readOnly: boolean;
+}
+
+function FileViewer({ fileId, readOnly }: FileViewerProps) {
+  if (!fileId) return <EmptyView />;
+
+  return <CodeEditor fileId={fileId} readOnly={readOnly} />;
 }
 
 export default RoomPage;

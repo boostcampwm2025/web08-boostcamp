@@ -24,6 +24,7 @@ interface FileState {
   awareness: Awareness | null;
   activeFileId: string | null;
   isInitialized: boolean;
+  isInitialDocLoaded: boolean;
 
   // Capacity State (용량 측정)
   capacityBytes: number;
@@ -34,6 +35,7 @@ interface FileState {
   initialize: (roomCode: string) => number;
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
+  initializeActiveFile: () => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
   measureCapacity: () => number;
@@ -46,6 +48,9 @@ interface FileState {
   getFileId: (name: string) => string | undefined;
   getFilesMap: () => YMap<YMap<unknown>> | null;
   getFileIdMap: () => YMap<string> | null;
+
+  getFileContent: (fileId: string) => string | null;
+  getActiveFileContent: () => string | null;
 }
 
 export const useFileStore = create<FileState>((set, get) => ({
@@ -53,6 +58,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   awareness: null,
   activeFileId: null,
   isInitialized: false,
+  isInitialDocLoaded: false,
 
   // Capacity State 초기값
   capacityBytes: 0,
@@ -69,6 +75,8 @@ export const useFileStore = create<FileState>((set, get) => ({
 
     const yDoc = new Doc();
     const awareness = new Awareness(yDoc);
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
 
     // Setup YDoc update listener
 
@@ -108,6 +116,20 @@ export const useFileStore = create<FileState>((set, get) => ({
 
     awareness.on('update', onAwarenessUpdate);
 
+    // Detect file changes
+
+    const onFilesMapUpdate = () => {
+      const { activeFileId } = get();
+      if (!activeFileId) return;
+
+      // Check if active file still exists
+      if (!filesMap.has(activeFileId)) {
+        set({ activeFileId: null });
+      }
+    };
+
+    filesMap.observe(onFilesMapUpdate);
+
     // Save YDoc and awareness
 
     set({
@@ -143,7 +165,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   applyRemoteDocUpdate: (message: Uint8Array) => {
-    const { yDoc } = get();
+    const { yDoc, isInitialDocLoaded } = get();
     if (!yDoc) return;
 
     const update =
@@ -160,6 +182,22 @@ export const useFileStore = create<FileState>((set, get) => ({
       const { roomCode } = useSocketStore.getState();
       if (roomCode) emitFileUpdate(roomCode, reply);
     }
+
+    // Flag Y.Doc as initialized
+    if (!isInitialDocLoaded) {
+      set({ isInitialDocLoaded: true });
+    }
+  },
+
+  initializeActiveFile: () => {
+    const { yDoc, activeFileId, setActiveFile } = get();
+    if (!yDoc || activeFileId) return;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const firstFileId = Array.from(filesMap.keys())[0];
+    if (!firstFileId) return;
+
+    setActiveFile(firstFileId);
   },
 
   applyRemoteAwarenessUpdate: (message: Uint8Array) => {
@@ -309,5 +347,28 @@ export const useFileStore = create<FileState>((set, get) => ({
     });
 
     return total;
+  },
+
+  // 파일 내용 가져오기
+  getFileContent: (fileId: string) => {
+    const { yDoc } = get();
+    if (!yDoc) return null;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const fileMap = filesMap.get(fileId);
+    if (!fileMap) return null;
+
+    const content = fileMap.get('content') as YText;
+    if (!content) return '';
+
+    return content.toString();
+  },
+
+  // 현재 활성 파일 내용 가져오기
+  getActiveFileContent: () => {
+    const { activeFileId, getFileContent } = get();
+    if (!activeFileId) return null;
+
+    return getFileContent(activeFileId);
   },
 }));

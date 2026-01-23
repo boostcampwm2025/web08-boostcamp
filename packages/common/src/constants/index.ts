@@ -17,6 +17,13 @@ export const SOCKET_EVENTS = {
   UPDATE_ROLE_PT: 'pt:update_role',
   UPDATE_NICKNAME_PT: 'pt:update_nickname',
   HOST_TRANSFERRED: 'host:transferred',
+  CLAIM_HOST: 'host:claim',
+  HOST_CLAIM_REQUEST: 'host:claim:request',
+  ACCEPT_HOST_CLAIM: 'host:claim:accept',
+  REJECT_HOST_CLAIM: 'host:claim:reject',
+  HOST_CLAIM_REJECTED: 'host:claim:rejected',
+  HOST_CLAIM_CANCELLED: 'host:claim:cancelled',
+  HOST_CLAIM_FAILED: 'host:claim:failed',
 
   UPDATE_FILE: 'file:update',
   UPDATE_AWARENESS: 'awareness:update',

@@ -5,7 +5,6 @@ import { RoomService } from './room.service';
 import { Room } from './room.entity';
 import { PtModule } from '../pt/pt.module';
 import { Pt } from '../pt/pt.entity';
-import { PtService } from '../pt/pt.service';
 import { AuthModule } from '../auth/auth.module';
 import { FileModule } from '../file/file.module';
 

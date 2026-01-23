@@ -13,7 +13,7 @@ import { useCodeMirror } from '../hooks/useCodeMirror';
 import { AvatarGutterMenu } from './AvatarGutterMenu';
 
 export default function CodeEditor({
-  fileId = 'prototype',
+  fileId,
   language = 'javascript',
   readOnly = false,
 }: CodeEditorProps) {

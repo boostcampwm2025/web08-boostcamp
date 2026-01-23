@@ -20,6 +20,7 @@ export interface WelcomePayload {
   token: string;
   roomType: RoomType;
   whoCanDestroyRoom: WhoCanDestroyRoom;
+  hasHostPassword: boolean;
 }
 
 /** 방 참가자 목록 (S -> C) */
