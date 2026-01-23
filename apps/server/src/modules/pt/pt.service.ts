@@ -167,7 +167,9 @@ export class PtService {
     const { role, nickname } = option;
 
     // DB에서 현재 참가자 정보 조회
-    const currentPt = await this.ptRepository.findOne({ where: { roomId, ptId } });
+    const currentPt = await this.ptRepository.findOne({
+      where: { roomId, ptId },
+    });
     if (!currentPt) return;
 
     // 업데이트할 값 결정
