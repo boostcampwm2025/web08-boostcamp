@@ -3,6 +3,7 @@ import { useRoomStore } from '@/stores/room';
 import type { EditableProps, ParticipantProps } from '../lib/types';
 import { ParticipantName } from './ParticipantName';
 import { RoleSwitcher } from './RoleSwitcher';
+import { HostClaimSwitcher } from './HostClaimSwitcher';
 
 /**
  * 참가자의 상세 정보를 표시하는 컴포넌트
@@ -13,12 +14,13 @@ export function ParticipantInfo({
   ptId,
   editable,
   onEditable,
-  roomType,
   canToggle,
   onToggleRole,
 }: ParticipantProps & EditableProps) {
   const pt = usePt(ptId);
   const myPtId = useRoomStore((state) => state.myPtId);
+  const roomType = useRoomStore((state) => state.roomType);
+  const hasHostPassword = useRoomStore((state) => state.hasHostPassword);
 
   if (!pt) return null;
 
@@ -27,6 +29,10 @@ export function ParticipantInfo({
 
   // 호스트 배지는 절대 클릭 불가
   const isInteractive = !!(canToggle && role !== 'host');
+
+  // 본인 + Custom Room + 비호스트 + hostPassword 있음 → 호스트 권한 요청 UI 표시
+  const showHostClaimSwitcher =
+    isMe && roomType === 'custom' && role !== 'host' && hasHostPassword;
 
   return (
     <div className="flex flex-col min-w-0 gap-1">
@@ -38,15 +44,18 @@ export function ParticipantInfo({
         ptId={ptId}
         isMe={isMe}
       />
-      {roomType === 'custom' && (
-        <div className="flex items-center h-6">
+
+      <div className="flex items-center h-6">
+        {showHostClaimSwitcher ? (
+          <HostClaimSwitcher role={role} hasHostPassword={hasHostPassword} />
+        ) : (
           <RoleSwitcher
             role={role}
             isInteractive={isInteractive}
             onToggle={onToggleRole}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

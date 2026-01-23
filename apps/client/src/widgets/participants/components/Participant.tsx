@@ -20,11 +20,7 @@ import { ThreeDot } from '@/shared/ui/three-dot';
  * - 온라인/오프라인 상태에 따라 불투명도 조절
  */
 export const Participant = memo(
-  ({
-    ptId,
-    roomType,
-    hasPermission = false,
-  }: ParticipantProps & PermissionPtProps) => {
+  ({ ptId, hasPermission = false }: ParticipantProps & PermissionPtProps) => {
     const pt = usePt(ptId);
     const { myPtId, roomCode } = useRoomStore();
     const { socket } = useSocketStore();
@@ -70,7 +66,6 @@ export const Participant = memo(
             editable={isEditable}
             onEditable={setIsEditable}
             ptId={ptId}
-            roomType={roomType}
             canToggle={canToggle}
             onToggleRole={handleToggleRole}
           />

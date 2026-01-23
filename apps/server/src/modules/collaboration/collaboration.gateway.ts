@@ -9,6 +9,7 @@ import {
   type FileRenamePayload,
   type FileDeletePayload,
   type PtUpdateNamePayload,
+  type ClaimHostPayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -26,6 +27,8 @@ import type { CollabSocket } from './collaboration.types';
 import { PermissionGuard } from './guards/permission.guard';
 import { HostGuard } from './guards/host.guard';
 import { DestroyRoomGuard } from './guards/destroy-room.guard';
+import { CustomRoomGuard } from './guards/custom-room.guard';
+import { NotHostGuard } from './guards/not-host.guard';
 
 @WebSocketGateway({
   cors: {
@@ -176,6 +179,34 @@ export class CollaborationGateway
   @SubscribeMessage(SOCKET_EVENTS.DESTROY_ROOM)
   async handleDestroyRoom(@ConnectedSocket() client: CollabSocket) {
     await this.collaborationService.handleDestroyRoom(client, this.server);
+  }
+
+  /** C -> S 호스트 권한 요청 */
+  @UseGuards(CustomRoomGuard, NotHostGuard)
+  @SubscribeMessage(SOCKET_EVENTS.CLAIM_HOST)
+  async handleClaimHost(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: ClaimHostPayload,
+  ) {
+    await this.collaborationService.handleClaimHost(
+      client,
+      this.server,
+      payload,
+    );
+  }
+
+  /** C -> S 호스트 권한 요청 수락 */
+  @UseGuards(HostGuard)
+  @SubscribeMessage(SOCKET_EVENTS.ACCEPT_HOST_CLAIM)
+  async handleAcceptHostClaim(@ConnectedSocket() client: CollabSocket) {
+    await this.collaborationService.handleAcceptHostClaim(client, this.server);
+  }
+
+  /** C -> S 호스트 권한 요청 거절 */
+  @UseGuards(HostGuard)
+  @SubscribeMessage(SOCKET_EVENTS.REJECT_HOST_CLAIM)
+  handleRejectHostClaim(@ConnectedSocket() client: CollabSocket) {
+    this.collaborationService.handleRejectHostClaim(client, this.server);
   }
 
   /**
