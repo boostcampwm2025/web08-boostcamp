@@ -11,7 +11,7 @@ interface NewFileButtonProps {
 }
 
 export function NewFileButton({ roomCode }: NewFileButtonProps) {
-  const { getFileId, createFile } = useFileStore();
+  const { getFileId, createFile, setActiveFile } = useFileStore();
   const { setIsDuplicated, isDuplicated, handleCheckRename } =
     useFileRename(roomCode);
   const [filename, setFilename] = useState('');
@@ -24,7 +24,8 @@ export function NewFileButton({ roomCode }: NewFileButtonProps) {
     } else {
       const result = await handleCheckRename(newFilename);
       if (result) {
-        createFile(newFilename, '');
+        const fileId = createFile(newFilename, '');
+        setActiveFile(fileId);
       }
     }
   };
