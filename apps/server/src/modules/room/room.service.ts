@@ -5,7 +5,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, LessThan, Repository } from 'typeorm';
-import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
+import { CreateCustomRoomDto } from './dto/create-custom-room.dto';
+
+import {
+  Room,
+  RoomType,
+  DefaultRolePolicy,
+  WhoCanDestroyRoom,
+} from './room.entity';
 import { customAlphabet } from 'nanoid';
 import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
 import { Document } from '../document/document.entity';
@@ -20,6 +27,8 @@ import { RoomCreationOptions } from './room.interface';
 @Injectable()
 export class RoomService {
   private readonly logger = new Logger(RoomService.name);
+
+  private readonly QUICK_ROOM_MAX_PTS = 6;
 
   constructor(
     @InjectRepository(Room)
@@ -40,18 +49,6 @@ export class RoomService {
     return count > 0;
   }
 
-  /**
-   * 해당 방의 호스트인지 확인
-   */
-  async checkHost(roomId: number, ptId: string): Promise<boolean> {
-    const role = await this.ptService.checkRole(roomId, ptId);
-    if (!role || role !== PtRole.HOST) {
-      return false;
-    }
-
-    return true;
-  }
-
   async findRoomById(roomId: number): Promise<Room | null> {
     return this.roomRepository.findOne({ where: { roomId } });
   }
@@ -67,8 +64,29 @@ export class RoomService {
 
   async createQuickRoom(): Promise<CreateRoomResponseDto> {
     const options: RoomCreationOptions = {
-      hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
+      roomType: RoomType.QUICK,
+      maxPts: this.QUICK_ROOM_MAX_PTS,
+      defaultRolePolicy: DefaultRolePolicy.EDITOR,
+      whoCanDestroyRoom: WhoCanDestroyRoom.EDITOR,
+      roomCreatorRole: PtRole.EDITOR,
+    };
+
+    return this.createRoom(options);
+  }
+
+  async createCustomRoom(
+    dto: CreateCustomRoomDto,
+  ): Promise<CreateRoomResponseDto> {
+    const { roomPassword, hostPassword, maxPts } = dto;
+
+    const options: RoomCreationOptions = {
+      roomType: RoomType.CUSTOM,
+      roomPassword,
+      hostPassword,
+      maxPts,
       defaultRolePolicy: DefaultRolePolicy.VIEWER,
+      whoCanDestroyRoom: WhoCanDestroyRoom.HOST,
+      roomCreatorRole: PtRole.HOST,
     };
 
     return this.createRoom(options);
@@ -79,6 +97,16 @@ export class RoomService {
   ): Promise<CreateRoomResponseDto> {
     const roomCode = await this.generateUniqueRoomCode();
 
+    const {
+      roomType,
+      roomPassword,
+      hostPassword,
+      maxPts,
+      defaultRolePolicy,
+      whoCanDestroyRoom,
+      roomCreatorRole,
+    } = options;
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -86,25 +114,36 @@ export class RoomService {
     try {
       const newRoom = queryRunner.manager.create(Room, {
         roomCode,
-        hostTransferPolicy: options.hostTransferPolicy,
-        defaultRolePolicy: options.defaultRolePolicy,
-        roomPassword: options.roomPassword,
-        hostPassword: options.hostPassword,
+        roomType,
+        roomPassword,
+        hostPassword,
+        maxPts,
+        defaultRolePolicy,
+        whoCanDestroyRoom,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
       const savedRoom = await queryRunner.manager.save(newRoom);
+      const token = await (async () => {
+        if (roomType === RoomType.QUICK) return undefined;
+        const hostPt = queryRunner.manager.create(Pt, {
+          room: savedRoom,
+          ptHash: this.ptService.generatePtHash(),
+          role: roomCreatorRole,
+          nickname: 'Host',
+          color: '#E0E0E0',
+          presence: PtPresence.ONLINE,
+        });
 
-      const hostPt = queryRunner.manager.create(Pt, {
-        room: savedRoom,
-        ptHash: this.ptService.generatePtHash(),
-        role: PtRole.HOST,
-        nickname: 'Host',
-        color: '#E0E0E0',
-        presence: PtPresence.ONLINE,
-      });
+        const savedPt = await queryRunner.manager.save(hostPt);
 
-      const savedPt = await queryRunner.manager.save(hostPt);
+        const token = this.roomTokenService.sign({
+          roomCode: savedRoom.roomCode,
+          ptId: savedPt.ptId,
+        });
+
+        return token;
+      })();
 
       const document = queryRunner.manager.create(Document, {
         room: savedRoom,
@@ -116,13 +155,8 @@ export class RoomService {
 
       await queryRunner.commitTransaction();
 
-      const token = this.roomTokenService.sign({
-        roomCode: savedRoom.roomCode,
-        ptId: savedPt.ptId,
-      });
-
       this.logger.log(
-        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}], Doc Id: [${document.docId}]`,
+        `✅ ${roomType === RoomType.QUICK ? 'Quick' : 'Custom'} Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})], Doc Id: [${document.docId}]`,
       );
 
       return {
@@ -202,5 +236,20 @@ export class RoomService {
     });
 
     return result.affected ?? 0;
+  }
+
+  /**
+   * 방 폭파 (단일 방 삭제)
+   * - DB에서 방 삭제
+   * - Y.Doc 메모리 해제
+   */
+  async destroyRoom(roomId: number, docId: string): Promise<void> {
+    // 1. DB 삭제
+    await this.deleteRooms([roomId]);
+
+    // 2. Y.Doc 메모리 해제 (Redis는 TTL로 자동 만료)
+    await this.fileService.removeDoc(docId);
+
+    this.logger.log(`🔥 Room destroyed: roomId=${roomId}, docId=${docId}`);
   }
 }

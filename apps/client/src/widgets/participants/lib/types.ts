@@ -1,4 +1,4 @@
-import type { Pt } from '@codejam/common';
+import type { Pt, RoomType } from '@codejam/common';
 
 /**
  * 정렬 모드 키
@@ -26,9 +26,17 @@ export interface ParticipantProps {
    * 참가자 고유 ID
    */
   ptId: string;
-
+  roomType?: RoomType | null;
   canToggle?: boolean;
   onToggleRole?: () => void;
+}
+
+/**
+ * 닉네임 수정 Props 타입
+ */
+export interface EditableProps {
+  editable: boolean;
+  onEditable: (value: boolean) => void;
 }
 
 /**

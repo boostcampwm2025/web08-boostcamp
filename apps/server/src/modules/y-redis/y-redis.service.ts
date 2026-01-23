@@ -7,9 +7,19 @@ import {
 } from '@nestjs/common';
 import * as Y from 'yjs';
 import { Redis } from 'ioredis';
-import { YRedis } from './y-redis.types';
-import { getDocKey } from './y-redis.utils';
+import {
+  YRedis,
+  CompactionResult,
+  GetLatestDocStateCallback,
+  UpdateDocStateCallback,
+} from './y-redis.types';
+import { getUpdatesKey, getOffsetKey } from './y-redis.utils';
 import { PersistenceDoc } from './persistence-doc';
+import {
+  COMPACT_SCRIPT,
+  PUSH_UPDATE_SCRIPT,
+  FETCH_UPDATES_SCRIPT,
+} from './y-redis.constants';
 
 @Injectable()
 export class YRedisService implements OnModuleInit, OnModuleDestroy {
@@ -23,6 +33,8 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     this.redis = this._redis.duplicate() as YRedis;
     this.sub = this._redis.duplicate();
+
+    this.defineCommands(this.redis);
 
     this.sub.on('message', (channel: string, sclock: string) => {
       const pdoc = this.docs.get(channel);
@@ -61,13 +73,49 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     await this.destroy();
   }
 
-  bind(name: string, ydoc: Y.Doc): PersistenceDoc {
+  /**
+   * Define custom Lua commands
+   */
+  private defineCommands(redis: YRedis): void {
+    redis.defineCommand('compactUpdates', {
+      numberOfKeys: 2,
+      lua: COMPACT_SCRIPT,
+    });
+
+    redis.defineCommand('pushUpdate', {
+      numberOfKeys: 2,
+      lua: PUSH_UPDATE_SCRIPT,
+    });
+
+    redis.defineCommand('fetchUpdates', {
+      numberOfKeys: 2,
+      lua: FETCH_UPDATES_SCRIPT,
+    });
+  }
+
+  bind(
+    name: string,
+    ydoc: Y.Doc,
+    snapshot: Uint8Array | null,
+    clock: number,
+    getLatestDocState: GetLatestDocStateCallback,
+    updateDocState: UpdateDocStateCallback,
+  ): PersistenceDoc {
     if (this.docs.has(name)) {
       const message = `"${name}" is already bound to this YRedis instance`;
       throw new Error(message);
     }
 
-    const pd = new PersistenceDoc(this.redis, this.sub, this.docs, name, ydoc);
+    const pd = new PersistenceDoc(
+      this.redis,
+      this.sub,
+      name,
+      ydoc,
+      snapshot,
+      clock,
+      getLatestDocState,
+      updateDocState,
+    );
     this.docs.set(name, pd);
 
     const message = `Bound state for document: ${name}`;
@@ -83,28 +131,39 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
     return this.docs.has(name);
   }
 
-  async hasDocInRedis(name: string): Promise<boolean> {
-    const key = getDocKey(name);
-    const result = await this.redis.exists(key);
-    return result === 1;
+  async compactDoc(
+    name: string,
+    onCompactComplete?: (snapshot: Uint8Array, clock: number) => Promise<void>,
+  ): Promise<CompactionResult> {
+    const doc = this.docs.get(name);
+
+    if (!doc) {
+      const message = `DOCUMENT_NOT_FOUND: ${name}`;
+      throw new Error(message);
+    }
+
+    return doc.compact(onCompactComplete);
   }
 
   async closeDoc(name: string): Promise<void> {
     const doc = this.docs.get(name);
-    if (doc) {
-      await doc.destroy();
+    if (!doc) return;
 
-      const message = `Closed document: ${name}`;
-      this.logger.debug(message);
-    }
+    await doc.destroy();
+    this.docs.delete(name);
+
+    const message = `Closed document: ${name}`;
+    this.logger.debug(message);
   }
 
   async clearDoc(name: string): Promise<number> {
     const doc = this.docs.get(name);
     if (doc) await doc.destroy();
+    this.docs.delete(name);
 
-    const key = getDocKey(name);
-    const result = await this.redis.del(key);
+    const updatesKey = getUpdatesKey(name);
+    const offsetKey = getOffsetKey(name);
+    const result = await this.redis.del(updatesKey, offsetKey);
 
     const message = `Cleared document: ${name}`;
     this.logger.debug(message);
@@ -114,8 +173,9 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
 
   async clearAllDocs(): Promise<void> {
     const deletePromises = Array.from(this.docs.keys()).map((name) => {
-      const key = getDocKey(name);
-      return this.redis.del(key);
+      const updatesKey = getUpdatesKey(name);
+      const offsetKey = getOffsetKey(name);
+      return this.redis.del(updatesKey, offsetKey);
     });
 
     await Promise.all(deletePromises);
@@ -126,10 +186,10 @@ export class YRedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async destroy(): Promise<void> {
-    const docsToDestroy = Array.from(this.docs.values());
+    const values = Array.from(this.docs.values());
     this.docs.clear();
 
-    await Promise.all(docsToDestroy.map((doc) => doc.destroy()));
+    await Promise.all(values.map((doc) => doc.destroy()));
 
     if (this.redis) await this.redis.quit();
     if (this.sub) await this.sub.quit();

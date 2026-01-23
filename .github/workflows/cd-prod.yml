@@ -119,7 +119,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "🚀 *Production 배포가 완료되었습니다!*\n\n*배포 항목:*\n✅ Client\n✅ Server\n\n*커밋:* ${{ github.event.head_commit.message }}\n*URL:* ${{ steps.vercel-deploy.outputs.production-url }}\n*작성자:* ${{ github.actor }}"
+                    "text": "🚀 *Production 배포가 완료되었습니다!*\n\n*배포 항목:*\n✅ Client\n✅ Server\n\n*커밋:* ${{ github.event.head_commit.message }}\n*URL:* https://lets-codejam.vercel.app\n*작성자:* ${{ github.actor }}"
                   }
                 }
               ]

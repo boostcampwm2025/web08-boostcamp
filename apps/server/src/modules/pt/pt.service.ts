@@ -83,6 +83,12 @@ export class PtService {
     return this.entityToPt(ptEntity);
   }
 
+  /** 참가자 삭제 */
+  async deletePt(roomId: number, ptId: string): Promise<void> {
+    await this.ptRepository.delete({ roomId, ptId });
+    this.logger.log(`[DELETE_PT] ptId: ${ptId} from room ${roomId}`);
+  }
+
   /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
   async restorePt(roomId: number, ptId: string): Promise<Pt | null> {
     const ptEntity = await this.ptRepository.findOne({
@@ -109,6 +115,12 @@ export class PtService {
     });
 
     return ptEntities.map((pt) => this.entityToPt(pt));
+  }
+
+  /** 방에 참가자가 존재하는지 확인 */
+  async hasParticipants(roomId: number): Promise<boolean> {
+    const pt = await this.ptRepository.findOne({ where: { roomId } });
+    return pt !== null;
   }
 
   /** 참가자 권한 조회 */
@@ -144,16 +156,33 @@ export class PtService {
     return PtRole.VIEWER;
   }
 
-  /** 참가자 역할 업데이트 (소켓 + DB) */
-  async updatePtRole(
+  /** 참가자 업데이트 (소켓 + DB) */
+  async updatePt(
     client: CollabSocket,
     server: Server,
     ptId: string,
-    role: PtRole,
+    option: { role?: PtRole; nickname?: string },
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
+    const { role, nickname } = option;
 
-    // 소켓 데이터 업데이트
+    // DB에서 현재 참가자 정보 조회
+    const currentPt = await this.ptRepository.findOne({
+      where: { roomId, ptId },
+    });
+    if (!currentPt) return;
+
+    // 업데이트할 값 결정
+    const updatedRole = role ?? currentPt.role;
+    const updatedNickname = nickname ?? currentPt.nickname;
+
+    // DB 업데이트 (소켓 연결 여부와 관계없이)
+    await this.ptRepository.update(
+      { roomId, ptId },
+      { role: updatedRole, nickname: updatedNickname },
+    );
+
+    // 소켓이 연결되어 있다면 소켓 데이터도 업데이트
     const sockets = await server.in(roomCode).fetchSockets();
     const socketToUpdate = sockets.find((socket) => {
       const data = socket.data as CollabSocket['data'];
@@ -162,11 +191,14 @@ export class PtService {
 
     if (socketToUpdate) {
       const data = socketToUpdate.data as CollabSocket['data'];
-      data.role = role;
+      data.role = updatedRole;
+      data.nickname = updatedNickname;
     }
+  }
 
-    // DB 업데이트
-    await this.ptRepository.update({ roomId, ptId }, { role });
+  /** 현재 방에 있는 인원 수 */
+  async roomCounter(roomId: number): Promise<number> {
+    return await this.ptRepository.count({ where: { roomId } });
   }
 
   /** 참가자 상태 업데이트 */
@@ -204,7 +236,7 @@ export class PtService {
 
     const { ptId: targetPtId } = oldestViewer;
 
-    await this.updatePtRole(client, server, targetPtId, PtRole.EDITOR);
+    await this.updatePt(client, server, targetPtId, { role: PtRole.EDITOR });
     await this.notifyPtRoleUpdate(client, server, targetPtId);
 
     this.logger.log(`[PROMOTE] ${targetPtId} → EDITOR in room ${roomId}`);
@@ -212,6 +244,34 @@ export class PtService {
 
   /** 가장 먼저 들어온 VIEWER 조회 */
   private async findOldestViewer(roomId: number): Promise<PtEntity | null> {
+    return this.ptRepository.findOne({
+      where: {
+        roomId,
+        role: PtRole.VIEWER,
+        presence: PtPresence.ONLINE,
+      },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  /**
+   * 호스트 양도 대상 찾기
+   * 1순위: 가장 먼저 들어온 EDITOR (온라인)
+   * 2순위: 가장 먼저 들어온 VIEWER (온라인)
+   */
+  async findNextHost(roomId: number): Promise<PtEntity | null> {
+    // 1순위: 가장 먼저 들어온 EDITOR
+    const editor = await this.ptRepository.findOne({
+      where: {
+        roomId,
+        role: PtRole.EDITOR,
+        presence: PtPresence.ONLINE,
+      },
+      order: { createdAt: 'ASC' },
+    });
+    if (editor) return editor;
+
+    // 2순위: 가장 먼저 들어온 VIEWER
     return this.ptRepository.findOne({
       where: {
         roomId,

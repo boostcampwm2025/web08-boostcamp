@@ -19,6 +19,9 @@ type FileProps = {
   hasPermission: boolean;
 };
 
+const ACTIVE_FILE_BG = 'bg-blue-100 dark:bg-blue-900';
+const INACTIVE_FILE_HOVER = 'hover:bg-gray-100 dark:hover:bg-gray-700';
+
 export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const setActiveFile = useFileStore((state) => state.setActiveFile);
   const activeFileId = useFileStore((state) => state.activeFileId);
@@ -27,7 +30,6 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const [dialogType, setDialogType] = useState<DialogType>(undefined);
 
   const isActive = activeFileId === fileId;
-  const opacity = isActive ? 'opacity-40' : 'opacity-100';
 
   const filePureName = purename(fileName);
   const fileExt = extname(fileName);
@@ -46,11 +48,11 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
       <ContextMenu>
         <ContextMenuTrigger disabled={!hasPermission}>
           <div
-            className="flex items-center justify-between p-2 transition-colors
-              select-none hover:bg-gray-100 dark:hover:bg-gray-700"
+            className={`flex items-center justify-between p-2 transition-all duration-200
+              select-none ${isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER}`}
             onClick={handleClick}
           >
-            <div className={`flex items-center space-x-3 ${opacity}`}>
+            <div className="flex items-center space-x-3">
               <div>
                 <div className="flex items-center text-sm font-semibold text-gray-800 dark:text-gray-100">
                   <p className="w-50 truncate" title={fileName}>

@@ -1,5 +1,6 @@
 import { DefaultEventsMap, Socket } from 'socket.io';
 import { PtRole } from '../pt/pt.entity';
+import { RoomType } from '../room/room.entity';
 import {
   SOCKET_EVENTS,
   type JoinRoomPayload,
@@ -18,6 +19,7 @@ import {
 export interface SocketData {
   roomId: number;
   roomCode: string;
+  roomType: RoomType;
   docId: string;
   ptId: string;
   role: PtRole;
@@ -29,6 +31,7 @@ export interface SocketData {
 // Client -> Server 이벤트
 export interface ClientToServerEvents {
   [SOCKET_EVENTS.JOIN_ROOM]: (payload: JoinRoomPayload) => void;
+  [SOCKET_EVENTS.LEFT_ROOM]: () => void;
   [SOCKET_EVENTS.REQUEST_DOC]: () => void;
   [SOCKET_EVENTS.REQUEST_AWARENESS]: () => void;
   [SOCKET_EVENTS.UPDATE_FILE]: (payload: FileUpdatePayload) => void;
@@ -38,6 +41,7 @@ export interface ClientToServerEvents {
 // Server -> Client 이벤트
 export interface ServerToClientEvents {
   [SOCKET_EVENTS.WELCOME]: (payload: WelcomePayload) => void;
+  [SOCKET_EVENTS.GOODBYE]: () => void;
   [SOCKET_EVENTS.ROOM_PTS]: (payload: RoomPtsPayload) => void;
   [SOCKET_EVENTS.ROOM_DOC]: (payload: RoomDocPayload) => void;
   [SOCKET_EVENTS.ROOM_AWARENESS]: (payload: RoomAwarenessPayload) => void;

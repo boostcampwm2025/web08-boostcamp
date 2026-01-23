@@ -8,13 +8,7 @@ import {
   removeAwarenessStates,
 } from 'y-protocols/awareness';
 import { writeUpdate, readSyncMessage } from 'y-protocols/sync';
-import {
-  Doc,
-  encodeStateAsUpdate,
-  applyUpdate,
-  Map as YMap,
-  Text as YText,
-} from 'yjs';
+import { Doc, encodeStateAsUpdate, Map as YMap, Text as YText } from 'yjs';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { createDecoder } from 'lib0/decoding';
 import {
@@ -42,6 +36,9 @@ export type RoomDoc = {
   doc: Doc;
   awareness: Awareness;
   files: Set<string>;
+
+  docListener: (update: Uint8Array, origin: unknown) => void;
+  awarenessListener: (changes: AwarenessUpdate, origin: unknown) => void;
 };
 
 export type OriginServer = {
@@ -56,17 +53,8 @@ export type OriginType = 'server' | 'client' | undefined;
 export class FileService {
   private readonly logger = new Logger(FileService.name);
 
-  /**
-   * Doc size limit
-   *
-   * TODO: Redis 에 있는 편집 이력을 주기적으로 압축하는 로직 필요
-   * 현재 상태 - 모든 편집 작업이 개별 업데이트로 저장됨
-   * 단일 문자 크기는 20~30 bytes
-   * 모든 업데이트 이력을 저장하면 메모리 사용량이 빠르게 증가함
-   * 최적화를 하지 않으면 클라이언트에서 1MB 를 사용하기 전에 Redis 에서 10배 이상을 사용하게 됨
-   */
-
-  private readonly MAX_DOC_SIZE = 30 * 1024 * 1024; // 30MB
+  // Doc size limit
+  private readonly MAX_DOC_SIZE = 5 * 1024 * 1024; // 5MB
 
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();
@@ -102,16 +90,22 @@ export class FileService {
     // Bind to Redis for persistence
     await this.hydrateDoc(docId, doc);
 
+    // Create listener instances
+    const docListener = this.docListener();
+    const awarenessListener = this.awarenessListener(awareness);
+
     // Set up listeners
     // Do after hydration to avoid pushing existing data
-    doc.on('update', this.docListener());
-    awareness.on('update', this.awarenessListener(awareness));
+    doc.on('update', docListener);
+    awareness.on('update', awarenessListener);
 
     const roomDoc: RoomDoc = {
       docId,
       doc,
       awareness,
       files: new Set<string>(),
+      docListener,
+      awarenessListener,
     };
 
     this.docs.set(docId, roomDoc);
@@ -146,23 +140,50 @@ export class FileService {
   }
 
   /**
-   * Remove Y.Doc for a document
-   * Y.Doc is removed when room is closed or expired
-   * TODO: Call this when last participant leaves
+   * Close Y.Doc for a document
+   * Unloads Y.Doc from memory but keeps Redis data intact
+   * Use this when all participants are offline to save memory
+   * Redis keys remain so the doc can be restored when participants rejoin
    */
-  async removeDoc(docId: string): Promise<boolean> {
+  async closeDoc(docId: string): Promise<boolean> {
     const roomDoc = this.docs.get(docId);
-
     if (!roomDoc) return false;
 
-    const { doc, awareness } = roomDoc;
+    const { doc, awareness, docListener, awarenessListener } = roomDoc;
 
-    // Clean up YRedisService first
+    // Close Y.Doc in Redis
+    // Unload from memory, keep Redis keys
     await this.yRedis.closeDoc(docId);
 
     // Clean up listeners
-    doc.off('update', this.docListener());
-    awareness.off('update', this.awarenessListener(awareness));
+    doc.off('update', docListener);
+    awareness.off('update', awarenessListener);
+
+    // Remove from map
+    this.docs.delete(docId);
+    this.logger.log(`💤 Closed Y.Doc for document: ${docId}`);
+
+    return true;
+  }
+
+  /**
+   * Remove Y.Doc for a document
+   * Permanently removes Y.Doc from memory and clears Redis keys
+   * Use this when room is closed or expired and data is no longer needed
+   */
+  async removeDoc(docId: string): Promise<boolean> {
+    const roomDoc = this.docs.get(docId);
+    if (!roomDoc) return false;
+
+    const { doc, awareness, docListener, awarenessListener } = roomDoc;
+
+    // Clear Y.Doc from Redis
+    // Remove from memory and delete Redis keys
+    await this.yRedis.clearDoc(docId);
+
+    // Clean up listeners using stored references
+    doc.off('update', docListener);
+    awareness.off('update', awarenessListener);
 
     // Remove from map
     this.docs.delete(docId);
@@ -457,7 +478,13 @@ export class FileService {
     const pdoc = this.yRedis.getDoc(docId);
     if (!pdoc) return 0;
 
-    return pdoc.totalByteLength + message.byteLength;
+    const docByteLength = pdoc.snapshotByteLength + pdoc.updatesByteLength;
+
+    this.logger
+      .debug(`[Expected Doc size] Snapshot: ${pdoc.snapshotByteLength}bytes, 
+      Updates: ${pdoc.updatesByteLength}bytes`);
+
+    return docByteLength + message.byteLength;
   }
 
   /**
@@ -473,27 +500,51 @@ export class FileService {
   /**
    * Hydrate Y.Doc
    *
-   * 1. Check if doc exists in Redis (lookahead)
-   * 2. Bind to Redis for persistence
-   * 3. If not in Redis, restore snapshot from DB
+   * Load snapshot and clock from DB
+   * Bind to Redis for persistence with initial snapshot and clock
+   * Wait for synchronization with Redis
    */
   private async hydrateDoc(docId: string, doc: Doc): Promise<void> {
-    // Lookahead - Check if doc exists in Redis
-    const existsInRedis = await this.yRedis.hasDocInRedis(docId);
+    // Load snapshot from DB
 
-    // Bind to Redis for persistence and hydration
-    // It can be empty
-    const pdoc = this.yRedis.bind(docId, doc);
-    await pdoc.synced; // Wait for hydration from Redis
+    const document = await this.documentService.getLatestDocState(docId);
+    if (!document) throw new Error(`DOCUMENT_NOT_FOUND: ${docId}`);
 
-    // If not in Redis, restore snapshot from DB
-    if (!existsInRedis) {
-      const content = await this.documentService.getDocContentById(docId);
-      if (content) {
-        applyUpdate(doc, new Uint8Array(content));
-        this.logger.log(`📄 Restored Y.Doc from DB for document: ${docId}`);
-      }
-    }
+    const snapshot = document.content;
+    const clock = document.clock;
+
+    // Define getSnapshot callback for resilience
+
+    const getLatestDocState = async () => {
+      const document = await this.documentService.getLatestDocState(docId);
+      if (!document) throw new Error(`DOCUMENT_NOT_FOUND: ${docId}`);
+
+      const { content, clock } = document;
+      return { snapshot: content, clock };
+    };
+
+    // Define updateDocState callback for compaction
+
+    const updateDocState = async (snapshot: Uint8Array, clock: number) => {
+      await this.documentService.updateDocState(
+        docId,
+        Buffer.from(snapshot),
+        clock,
+      );
+    };
+
+    // Bind to Redis
+
+    const pdoc = this.yRedis.bind(
+      docId,
+      doc,
+      snapshot,
+      clock,
+      getLatestDocState,
+      updateDocState,
+    );
+
+    await pdoc.synced; // Wait for hydration from DB + Redis
   }
 
   /** Generate File ID - UUID v7 */

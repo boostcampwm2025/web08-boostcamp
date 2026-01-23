@@ -33,3 +33,25 @@ export interface PtUpdateRolePayload {
   ptId: string;
   role: "editor" | "viewer";
 }
+
+/** 참가자 닉네임 업데이트 (C <-> S) */
+export interface PtUpdateNamePayload {
+  ptId: string;
+  nickname: string;
+}
+
+/** 호스트 변경 알림 (S -> C) */
+export interface HostTransferredPayload {
+  newHostPtId: string;
+}
+
+/** 호스트 권한 요청 (C -> S) */
+export interface ClaimHostPayload {
+  hostPassword: string;
+}
+
+/** 호스트에게 권한 요청 알림 (S -> C) */
+export interface HostClaimRequestPayload {
+  requesterPtId: string;
+  requesterNickname: string;
+}

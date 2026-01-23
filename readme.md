@@ -7,8 +7,8 @@
 </p>
 
 <p align="center">
-  <a href="http://49.50.138.93/room/prototype"> 
-    <img src="https://img.shields.io/badge/Service-Prototype-2F81F7?style=for-the-badge&logo=rocket" alt="Live Demo" />
+  <a href="https://lets-codejam.vercel.app/"> 
+    <img src="https://img.shields.io/badge/Service-v0.3.0-2F81F7?style=for-the-badge&logo=rocket" alt="Live Demo" />
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
@@ -114,3 +114,9 @@
 - [**Client README**](./apps/client/README.md) - 프론트엔드 애플리케이션 문서
 - [**Server README**](./apps/server/README.md) - 백엔드 서버 문서
 - [**Common README**](./packages/common/README.md) - 공유 패키지 문서
+
+---
+
+## 아키텍처 다이어그램
+
+![infra-architecture](https://github.com/user-attachments/assets/98408aa5-556e-4969-8024-54875913e885)

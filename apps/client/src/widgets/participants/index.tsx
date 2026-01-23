@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import {
-  Participant,
-  ParticipantsHeader,
-  ParticipantsToolbar,
-  SearchBar,
-} from './components';
-import { useParticipantsFilter } from './hooks';
+import { useState, useMemo } from 'react';
+import { Participant, ParticipantsHeader } from './components';
+import { ParticipantsFilterBar } from './components/ParticipantsFilterBar';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
-import type { SortKey, SortState } from './lib/types';
+import { useSocketStore } from '@/stores/socket';
+import { SOCKET_EVENTS } from '@codejam/common';
+import { toast } from 'sonner';
+import type { SortKey } from './lib/types';
+import type { FilterOption } from './types';
+import { filterParticipants, sortParticipants } from './types';
 
 /**
  * 참가자 목록 위젯 메인 컴포넌트
@@ -19,56 +19,79 @@ import type { SortKey, SortState } from './lib/types';
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
   const myPtId = useRoomStore((state) => state.myPtId);
+  const roomCode = useRoomStore((state) => state.roomCode);
+  const socket = useSocketStore((state) => state.socket);
 
   // 내 정보와 권한 확인
   const meData = usePt(myPtId);
   const iAmHost = meData?.role === 'host';
 
   // 상태 관리
-  const [isCollapsed, setIsCollapsed] = useState(false); // 리스트 접기/펼치기
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<FilterOption[]>([]);
+  const [sortKey, setSortKey] = useState<SortKey>('time');
 
-  // 정렬 상태 관리 (기본값: 입장시간 내림차순 - 최신순)
-  const [sortState, setSortState] = useState<SortState>({
-    key: 'time',
-    order: 'asc',
-  });
+  // 필터링 및 정렬된 참가자 목록
+  const { me, others, totalCount } = useMemo(() => {
+    // 1. 필터 적용
+    const filtered = filterParticipants(pts, selectedFilters);
 
-  // 참가자 필터링 및 정렬
-  const { me, others, totalCount } = useParticipantsFilter({
-    pts,
-    myPtId: myPtId ?? undefined,
-    searchQuery,
-    sortState,
-  });
+    // 2. 정렬 적용
+    const sorted = sortParticipants(filtered, sortKey);
 
-  // 검색창 토글
-  const toggleSearch = () => {
-    setIsSearchVisible((prev) => {
-      const next = !prev;
-      if (!next) setSearchQuery('');
-      return next;
-    });
-  };
+    // 3. me와 others 분리
+    const me = myPtId ? sorted.find((pt) => pt.ptId === myPtId) : undefined;
+    const others = sorted.filter((pt) => pt.ptId !== myPtId);
 
-  // 검색어 초기화 (X 버튼)
-  const clearSearch = () => {
-    setSearchQuery('');
-  };
+    return { me, others, totalCount: sorted.length };
+  }, [pts, selectedFilters, sortKey, myPtId]);
 
   // 정렬 핸들러
-  // 같은 키를 누르면 순서 반전, 다른 키면 해당 키의 asc로 시작
   const handleSortChange = (key: SortKey) => {
-    setSortState((prev) => {
-      if (prev.key === key) {
-        return {
-          key,
-          order: prev.order === 'asc' ? 'desc' : 'asc',
-        };
-      }
-      return { key, order: 'asc' };
+    setSortKey(key);
+  };
+
+  // 일괄 권한 변경 핸들러
+  const handleBulkEdit = () => {
+    if (!socket || !roomCode || !iAmHost) return;
+
+    const targetPtIds = others.map((pt) => pt.ptId);
+    if (targetPtIds.length === 0) {
+      toast.info('편집 권한을 부여할 참가자가 없습니다.');
+      return;
+    }
+
+    // 각 참가자에게 Editor 권한 부여
+    targetPtIds.forEach((ptId) => {
+      socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
+        roomCode,
+        ptId,
+        role: 'editor',
+      });
     });
+
+    toast.success(`${targetPtIds.length}명에게 편집 권한을 부여했습니다.`);
+  };
+
+  const handleBulkView = () => {
+    if (!socket || !roomCode || !iAmHost) return;
+
+    const targetPtIds = others.map((pt) => pt.ptId);
+    if (targetPtIds.length === 0) {
+      toast.info('읽기 권한으로 변경할 참가자가 없습니다.');
+      return;
+    }
+
+    // 각 참가자에게 Viewer 권한 부여
+    targetPtIds.forEach((ptId) => {
+      socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
+        roomCode,
+        ptId,
+        role: 'viewer',
+      });
+    });
+
+    toast.success(`${targetPtIds.length}명을 읽기 권한으로 변경했습니다.`);
   };
 
   return (
@@ -78,28 +101,22 @@ export function Participants() {
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
       />
-
-      {/* --- Content --- */}
       <div
-        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-[600px]'}`}
+        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-150'}`}
       >
-        {/* 상단 툴바 (정렬 & 검색 버튼) */}
+        {/* 필터 바 */}
         <div className="mt-2 mb-1">
-          <ParticipantsToolbar
-            isSearchOpen={isSearchVisible}
-            sortState={sortState}
-            onToggleSearch={toggleSearch}
-            onChangeSort={handleSortChange}
+          <ParticipantsFilterBar
+            selectedFilters={selectedFilters}
+            onFiltersChange={setSelectedFilters}
+            sortKey={sortKey}
+            onSortChange={handleSortChange}
+            filteredCount={others.length}
+            onBulkEdit={handleBulkEdit}
+            onBulkView={handleBulkView}
+            isHost={iAmHost}
           />
         </div>
-
-        {isSearchVisible && (
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onClear={clearSearch}
-          />
-        )}
 
         <div className="flex-1 overflow-y-auto min-h-0 max-h-[30vh]">
           {me && <Participant ptId={me.ptId} hasPermission={false} />}

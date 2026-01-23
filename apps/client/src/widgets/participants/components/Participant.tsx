@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { usePt } from '@/stores/pts';
 import { ParticipantAvatar } from '../ui';
 import { ParticipantInfo } from './ParticipantInfo';
@@ -6,6 +6,12 @@ import type { ParticipantProps, PermissionPtProps } from '../lib/types';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
 import { SOCKET_EVENTS } from '@codejam/common';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@radix-ui/react-popover';
+import { ThreeDot } from '@/shared/ui/three-dot';
 
 /**
  * 참가자 정보를 표시하는 컴포넌트
@@ -18,6 +24,8 @@ export const Participant = memo(
     const pt = usePt(ptId);
     const { myPtId, roomCode } = useRoomStore();
     const { socket } = useSocketStore();
+    const [popoverOpen, setPopoverOpen] = useState(false);
+    const [isEditable, setIsEditable] = useState(false);
 
     if (!pt) return null;
 
@@ -33,11 +41,18 @@ export const Participant = memo(
         return;
       }
 
-      socket.emit(SOCKET_EVENTS.UPDATE_PT, {
+      const newRole = pt.role === 'editor' ? 'viewer' : 'editor';
+
+      socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
         roomCode,
         ptId: pt.ptId,
-        role: pt.role === 'editor' ? 'viewer' : 'editor',
+        role: newRole,
       });
+    };
+
+    const handleRenamePopover = () => {
+      setIsEditable(true);
+      setPopoverOpen(false);
     };
 
     return (
@@ -45,14 +60,31 @@ export const Participant = memo(
         className="flex items-center justify-between p-2 transition-colors
         select-none group hover:bg-gray-100 dark:hover:bg-gray-700"
       >
-        <div className={`flex items-center space-x-3 ${opacity}`}>
+        <div className={`flex items-center space-x-5 ${opacity}`}>
           <ParticipantAvatar ptId={ptId} />
           <ParticipantInfo
+            editable={isEditable}
+            onEditable={setIsEditable}
             ptId={ptId}
             canToggle={canToggle}
             onToggleRole={handleToggleRole}
           />
         </div>
+        {isMe && (
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger>
+              <ThreeDot />
+            </PopoverTrigger>
+            <PopoverContent className="z-9999">
+              <div
+                onClick={handleRenamePopover}
+                className="absolute border w-45 p-4 rounded-md bg-white text-black dark:bg-black dark:hover:bg-gray-800 dark:text-white hover:bg-gray-50 hover:cursor-pointer"
+              >
+                <span>이름 변경</span>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
     );
   },

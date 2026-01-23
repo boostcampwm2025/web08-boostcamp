@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomService } from './room.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DefaultRolePolicy, HostTransferPolicy, Room } from './room.entity';
+import { DefaultRolePolicy, Room } from './room.entity';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
 import { PtRole } from '../pt/pt.entity';
@@ -15,6 +15,7 @@ const MOCK_ROOM_ID = 100;
 const MOCK_PT_ID = 'uuid-host-1';
 const MOCK_PT_HASH = '1234';
 const MOCK_TOKEN = 'mock-jwt-token';
+const MOCK_DOC_ID = 'mock-doc-id';
 
 const createMockQueryRunner = () => ({
   connect: jest.fn(),
@@ -34,6 +35,7 @@ describe('RoomService', () => {
   let dataSource: jest.Mocked<DataSource>;
   let queryRunner: jest.Mocked<QueryRunner>;
   let roomTokenService: jest.Mocked<RoomTokenService>;
+  let fileService: jest.Mocked<FileService>;
 
   beforeEach(async () => {
     // 각 테스트마다 새로운 QueryRunner Mock 생성
@@ -46,6 +48,7 @@ describe('RoomService', () => {
           provide: getRepositoryToken(Room),
           useValue: {
             findOne: jest.fn(),
+            delete: jest.fn(),
           },
         },
         {
@@ -74,6 +77,7 @@ describe('RoomService', () => {
           provide: FileService,
           useValue: {
             generateInitialSnapshot: jest.fn().mockReturnValue(Buffer.from([])),
+            removeDoc: jest.fn().mockResolvedValue(true),
           },
         },
       ],
@@ -83,6 +87,7 @@ describe('RoomService', () => {
     repository = module.get(getRepositoryToken(Room));
     dataSource = module.get(DataSource);
     roomTokenService = module.get(RoomTokenService);
+    fileService = module.get(FileService);
     queryRunner = dataSource.createQueryRunner() as jest.Mocked<QueryRunner>;
 
     // 셋업 과정에서 생긴 호출 기록 초기화
@@ -99,7 +104,7 @@ describe('RoomService', () => {
   });
 
   describe('createQuickRoom', () => {
-    it('성공 시: 트랜잭션 내에서 Room과 방장(Pt)을 저장하고 결과를 반환한다', async () => {
+    it('성공 시: 트랜잭션 내에서 Room과 Pt를 저장하고 결과를 반환한다', async () => {
       // Arrange
       jest
         .spyOn(service as any, 'generateRoomCode')
@@ -110,7 +115,7 @@ describe('RoomService', () => {
       const savedPt = {
         ptId: MOCK_PT_ID,
         room: savedRoom,
-        role: PtRole.HOST,
+        role: PtRole.EDITOR,
       };
       const savedDocument = {
         docId: 'mock-doc-id',
@@ -140,8 +145,7 @@ describe('RoomService', () => {
         1,
         expect.objectContaining({
           roomCode: MOCK_ROOM_CODE,
-          hostTransferPolicy: HostTransferPolicy.AUTO_TRANSFER,
-          defaultRolePolicy: DefaultRolePolicy.VIEWER,
+          defaultRolePolicy: DefaultRolePolicy.EDITOR,
         }),
       );
 
@@ -149,7 +153,7 @@ describe('RoomService', () => {
         2,
         expect.objectContaining({
           room: savedRoom,
-          role: PtRole.HOST,
+          role: PtRole.EDITOR,
           ptHash: MOCK_PT_HASH,
         }),
       );
@@ -234,6 +238,57 @@ describe('RoomService', () => {
       expect(queryRunner.startTransaction).toHaveBeenCalled();
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled(); // 롤백 확인
       expect(queryRunner.release).toHaveBeenCalled(); // 리소스 해제 확인
+    });
+  });
+
+  describe('destroyRoom', () => {
+    it('성공 시: DB에서 방을 삭제하고 Y.Doc을 메모리에서 해제한다', async () => {
+      // Arrange
+      repository.delete.mockResolvedValue({ affected: 1, raw: [] });
+
+      // Act
+      await service.destroyRoom(MOCK_ROOM_ID, MOCK_DOC_ID);
+
+      // Assert
+      // 1. DB 삭제 확인
+      expect(repository.delete).toHaveBeenCalledWith({
+        roomId: expect.objectContaining({ _value: [MOCK_ROOM_ID] }),
+      });
+
+      // 2. Y.Doc 메모리 해제 확인
+      expect(fileService.removeDoc).toHaveBeenCalledWith(MOCK_DOC_ID);
+    });
+
+    it('DB 삭제 후 Y.Doc 해제가 순차적으로 실행된다', async () => {
+      // Arrange
+      const callOrder: string[] = [];
+      repository.delete.mockImplementation(() => {
+        callOrder.push('deleteRooms');
+        return Promise.resolve({ affected: 1, raw: [] });
+      });
+      fileService.removeDoc.mockImplementation(() => {
+        callOrder.push('removeDoc');
+        return Promise.resolve(true);
+      });
+
+      // Act
+      await service.destroyRoom(MOCK_ROOM_ID, MOCK_DOC_ID);
+
+      // Assert - 순서 확인
+      expect(callOrder).toEqual(['deleteRooms', 'removeDoc']);
+    });
+
+    it('DB 삭제 실패 시 예외를 던진다', async () => {
+      // Arrange
+      repository.delete.mockRejectedValue(new Error('DB Delete Error'));
+
+      // Act & Assert
+      await expect(
+        service.destroyRoom(MOCK_ROOM_ID, MOCK_DOC_ID),
+      ).rejects.toThrow('DB Delete Error');
+
+      // Y.Doc 해제는 호출되지 않아야 함
+      expect(fileService.removeDoc).not.toHaveBeenCalled();
     });
   });
 });

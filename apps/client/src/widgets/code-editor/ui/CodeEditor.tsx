@@ -1,124 +1,76 @@
-import { useEffect, useRef, useMemo } from 'react';
-import { EditorView, basicSetup } from 'codemirror';
-import { Compartment, EditorState } from '@codemirror/state';
-import { javascript } from '@codemirror/lang-javascript';
-import { html } from '@codemirror/lang-html';
-import { css } from '@codemirror/lang-css';
-import { oneDark } from '@codemirror/theme-one-dark';
+import { useRef } from 'react'; // useState, useEffect 불필요
+// Hooks
 import { useYText } from '@/shared/lib/hooks/useYText';
-import { yCollab } from 'y-codemirror.next';
-import { safeInput } from '../plugin/SafeInput';
-import { readOnlyToast } from '../plugin/ReadOnlyToast';
-import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
+import type { CodeEditorProps } from '../lib/types';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
+import { useAvatarMenu } from '../hooks/useAvatarMenu';
+import { useLineAvatars } from '../hooks/useLineAvatars';
+import { useEditorExtensions } from '../hooks/useEditorExtensions';
+import { useCodeMirror } from '../hooks/useCodeMirror';
 
-type Language = 'javascript' | 'html' | 'css';
-
-interface CodeEditorProps {
-  fileId?: string;
-  language?: Language;
-  readOnly?: boolean;
-}
-
-const getLanguageExtension = (language: Language) => {
-  switch (language) {
-    case 'javascript':
-      return javascript({ jsx: true, typescript: true });
-    case 'html':
-      return html();
-    case 'css':
-      return css();
-    default:
-      return javascript({ jsx: true, typescript: true });
-  }
-};
+// Components
+import { AvatarGutterMenu } from './AvatarGutterMenu';
 
 export default function CodeEditor({
-  fileId = 'prototype',
+  fileId,
   language = 'javascript',
   readOnly = false,
 }: CodeEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
-
-  const themeCompartment = useMemo(() => new Compartment(), []);
-  const fontSizeCompartment = useMemo(() => new Compartment(), []);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { yText, awareness } = useYText(fileId);
   const { isDark } = useDarkMode();
-  const { fontSize } = useSettings();
+  const {
+    fontSize,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
+  } = useSettings();
 
-  useEffect(() => {
-    if (!editorRef.current || !yText || !awareness) return;
+  const { menuState, handleGutterClick, closeMenu } = useAvatarMenu();
 
-    const view = new EditorView({
-      doc: yText.toString(),
-      extensions: [
-        basicSetup,
-        yCollab(yText, awareness),
-        getLanguageExtension(language),
-        safeInput({ allowAscii: true }),
-        EditorState.readOnly.of(readOnly), // viewer일 때만 완전 읽기 전용
-        themeCompartment.of(isDark ? oneDark : []),
-        fontSizeCompartment.of(
-          EditorView.theme({
-            '&': { fontSize: `${fontSize}px` },
-          }),
-        ),
-        EditorState.readOnly.of(readOnly),
-        ...(readOnly ? [readOnlyToast()] : []),
-        capacityLimitInputBlocker(), // 용량 제한 체크 (항상 활성화)
-        EditorView.theme({
-          '&': { height: '100%' },
-          '.cm-scroller': { overflow: 'auto' },
-          ...(readOnly && {
-            '.cm-cursor, .cm-dropCursor': { display: 'none !important' },
-          }),
-        }),
-      ],
-      parent: editorRef.current,
-    });
+  const users = useLineAvatars(awareness ?? undefined, fileId);
 
-    viewRef.current = view;
-
-    return () => {
-      view.destroy();
-    };
-  }, [
-    yText,
-    awareness,
+  const { extensions, compartments } = useEditorExtensions({
+    yText: yText ?? null,
+    awareness: awareness ?? null,
     language,
     readOnly,
-    themeCompartment,
-    fontSizeCompartment,
-    fontSize,
     isDark,
-  ]);
+    fontSize,
+    users,
+    handleGutterClick,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
+  });
 
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
+  useCodeMirror({
+    containerRef,
+    docString: yText?.toString() ?? '',
+    extensions,
+    autoFocus: false,
+    compartments,
+    isDark,
+    fontSize,
+    yText: yText ?? null,
+    users,
+    handleGutterClick,
+    showRemoteCursor,
+    showGutterAvatars,
+    alwaysShowCursorLabels,
+  });
 
-    const themeExtension = isDark ? oneDark : [];
-
-    view.dispatch({
-      effects: themeCompartment.reconfigure(themeExtension),
-    });
-  }, [isDark, themeCompartment]);
-
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
-
-    view.dispatch({
-      effects: fontSizeCompartment.reconfigure(
-        EditorView.theme({
-          '&': { fontSize: `${fontSize}px` },
-        }),
-      ),
-    });
-  }, [fontSize, fontSizeCompartment]);
-
-  return <div ref={editorRef} className="h-full" />;
+  return (
+    <>
+      <div ref={containerRef} className="h-full" />
+      <AvatarGutterMenu
+        isOpen={menuState.isOpen}
+        position={menuState.position}
+        users={menuState.users}
+        onClose={closeMenu}
+      />
+    </>
+  );
 }
