@@ -152,7 +152,7 @@ export class RoomService {
       });
 
       this.logger.log(
-        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}], Doc Id: [${document.docId}]`,
+        `✅ ${roomType === RoomType.QUICK ? 'Quick' : 'Custom'} Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), Host Pt: [${savedPt.ptId}], Doc Id: [${document.docId}]`,
       );
 
       return {
