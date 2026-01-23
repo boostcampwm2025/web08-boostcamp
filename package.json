@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:cli": "pnpm --filter @codejam/cli build",
     "check-types": "turbo run check-types",
     "format": "turbo run format",
     "format:check": "turbo run format:check",

@@ -13,8 +13,22 @@ services:
     networks:
       - codejam-network
 
+  # Production Redis
+  redis-production:
+    image: redis:alpine
+    container_name: codejam-redis-production
+    restart: always
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis_production_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - codejam-network
+
 volumes:
   redis_data:
+  redis_production_data:
 
 networks:
   codejam-network:
