@@ -8,6 +8,7 @@ import {
   removeRoomToken,
 } from '@/shared/lib/storage';
 import { toast } from 'sonner';
+import { useTempStore } from '../temp';
 
 const redirectToHome = () => {
   window.location.href = '/';
@@ -20,6 +21,7 @@ export const setupRoomEventHandlers = () => {
     const { myPtId, token, roomType, whoCanDestroyRoom } = data;
     const { roomCode, setMyPtId, setRoomType, setWhoCanDestroyRoom } =
       useRoomStore.getState();
+    const { setTempRoomPassword } = useTempStore.getState();
 
     if (!roomCode) return;
 
@@ -27,6 +29,7 @@ export const setupRoomEventHandlers = () => {
     setRoomType(roomType);
     setWhoCanDestroyRoom(whoCanDestroyRoom);
     setRoomToken(roomCode, token);
+    setTempRoomPassword(undefined);
 
     // Initialize filestore after joining room
     const { initialize } = useFileStore.getState();
