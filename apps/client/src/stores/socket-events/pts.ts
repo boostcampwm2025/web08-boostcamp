@@ -1,6 +1,7 @@
 import { socket } from '@/shared/api/socket';
 import {
   SOCKET_EVENTS,
+  MAX_CAN_EDIT_COUNT,
   type Pt,
   type PtJoinedPayload,
   type PtDisconnectPayload,
@@ -56,9 +57,44 @@ export const setupPtsEventHandlers = () => {
 
     if (isMe && pt.role !== data.pt.role) {
       if (data.pt.role === 'editor') {
-        toast.success('편집 권한이 부여되었습니다.');
+        const canEditCount = Object.values(usePtsStore.getState().pts).filter(
+          (p) => p.role === 'editor' || p.role === 'host',
+        ).length;
+
+        if (canEditCount >= MAX_CAN_EDIT_COUNT) {
+          toast.success('편집 권한이 부여되었습니다.', {
+            description: `현재 에디터가 ${canEditCount}명입니다. ${MAX_CAN_EDIT_COUNT}명 이상 동시 편집 시 작성 내역이 소실되거나 충돌이 발생할 수 있습니다.`,
+            duration: 5000,
+          });
+        } else {
+          toast.success('편집 권한이 부여되었습니다.');
+        }
       } else if (data.pt.role === 'viewer') {
         toast.info('뷰어로 변경되었습니다.');
+      }
+    }
+
+    // 호스트와 에디터에게 다른 사람이 에디터로 승격될 때 경고 표시
+    if (
+      !isMe &&
+      pt.role !== data.pt.role &&
+      data.pt.role === 'editor' &&
+      myPtId
+    ) {
+      const myPt = usePtsStore.getState().pts[myPtId];
+      const canEdit = myPt && (myPt.role === 'host' || myPt.role === 'editor');
+
+      if (canEdit) {
+        const canEditCount = Object.values(usePtsStore.getState().pts).filter(
+          (p) => p.role === 'editor' || p.role === 'host',
+        ).length;
+
+        if (canEditCount >= MAX_CAN_EDIT_COUNT) {
+          toast.warning(`현재 에디터가 ${canEditCount}명입니다.`, {
+            description: `${MAX_CAN_EDIT_COUNT}명 이상 동시 편집 시 작성 내역이 소실되거나 충돌이 발생할 수 있습니다.`,
+            duration: 5000,
+          });
+        }
       }
     }
 
