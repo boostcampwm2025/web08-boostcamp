@@ -156,7 +156,7 @@ export class RoomService {
       await queryRunner.commitTransaction();
 
       this.logger.log(
-        `✅ Quick Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId}), RoomType: [${roomType}], Doc Id: [${document.docId}]`,
+        `✅ ${roomType === RoomType.QUICK ? 'Quick' : 'Custom'} Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})], Doc Id: [${document.docId}]`,
       );
 
       return {

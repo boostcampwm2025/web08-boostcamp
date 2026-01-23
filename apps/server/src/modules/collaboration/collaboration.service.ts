@@ -248,14 +248,16 @@ export class CollaborationService {
     const { roomId } = client.data;
     const { ptId, role } = payload;
 
-    await this.ptService.updatePt(client, server, ptId, {
-      role: role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
-    });
+    if (client.data.role === PtRole.HOST) {
+      await this.ptService.updatePt(client, server, ptId, {
+        role: role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
+      });
 
-    const pt = await this.ptService.getPt(roomId, ptId);
-    if (!pt) return;
+      const pt = await this.ptService.getPt(roomId, ptId);
+      if (!pt) return;
 
-    this.notifyUpdatePt(client, server, pt);
+      this.notifyUpdatePt(client, server, pt);
+    }
   }
 
   /** 참가자 이름 업데이트 */
