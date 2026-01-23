@@ -1,6 +1,5 @@
 export interface CreateQuickRoomResponse {
   roomCode: string;
-  token: string;
 }
 
 export interface CreateCustomRoomRequest {

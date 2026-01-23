@@ -29,7 +29,7 @@ function validateMaxParticipants(maxStr: string): number {
 async function createRoom(
   client: ApiClient,
   options: StartOptions,
-): Promise<{ roomCode: string; token: string }> {
+): Promise<{ roomCode: string; token?: string }> {
   const spinner = ora('Creating room...').start();
 
   if (options.custom) {
@@ -45,8 +45,9 @@ async function createRoom(
     return { roomCode: response.roomCode, token: response.token };
   } else {
     const response = await client.createQuickRoom();
+
     spinner.succeed(chalk.green('Quick room created!'));
-    return { roomCode: response.roomCode, token: response.token };
+    return { roomCode: response.roomCode };
   }
 }
 
@@ -113,8 +114,13 @@ export const startCommand = new Command('start')
       const client = new ApiClient(config.serverUrl);
       const { roomCode, token } = await createRoom(client, options);
       displayRoomInfo(roomCode, options);
-      const roomUrl = `${config.clientUrl}/join/${roomCode}?token=${token}`;
-      await openRoomInBrowser(roomUrl, options.browser !== false);
+      if (!options.custom) {
+        const roomUrl = `${config.clientUrl}/rooms/${roomCode}`;
+        await openRoomInBrowser(roomUrl, options.browser !== false);
+      } else {
+        const roomUrl = `${config.clientUrl}/join/${roomCode}?token=${token}`;
+        await openRoomInBrowser(roomUrl, options.browser !== false);
+      }
     } catch (error) {
       handleError('Failed to create room', error);
     }
