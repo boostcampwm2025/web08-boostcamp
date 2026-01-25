@@ -7,17 +7,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Room } from '../room/room.entity';
-
-export enum PtRole {
-  HOST = 'host',
-  EDITOR = 'editor',
-  VIEWER = 'viewer',
-}
-
-export enum PtPresence {
-  ONLINE = 'online',
-  OFFLINE = 'offline',
-}
+import { ROLE, PRESENCE, type PtRole, type PtPresence } from '@codejam/common';
 
 @Entity('pts')
 export class Pt {
@@ -42,14 +32,13 @@ export class Pt {
 
   @Column({
     type: 'enum',
-    enum: PtRole,
+    enum: Object.values(ROLE),
   })
   role: PtRole;
 
   @Column({
     type: 'enum',
-    enum: PtPresence,
-    default: PtPresence.ONLINE,
+    enum: Object.values(PRESENCE),
   })
   presence: PtPresence;
 
