@@ -1,17 +1,10 @@
 import { socket } from '@/shared/api/socket';
-import { SOCKET_EVENTS } from '@codejam/common';
+import {
+  SOCKET_EVENTS,
+  type FilenameCheckResultPayload,
+} from '@codejam/common';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-export type FileResult =
-  | {
-      error: false;
-    }
-  | {
-      error: true;
-      type: 'ext' | 'duplicate';
-      message?: string;
-    };
 
 export function useFileRename(roomCode: string | null) {
   const [isDuplicated, setIsDuplicated] = useState(false);
@@ -20,7 +13,7 @@ export function useFileRename(roomCode: string | null) {
     throw new Error('Invalid roomCode');
   }
 
-  const handleShowModal = (result: FileResult): boolean => {
+  const handleShowModal = (result: FilenameCheckResultPayload): boolean => {
     if (!result.error) {
       setIsDuplicated(false);
       return true;
@@ -45,7 +38,7 @@ export function useFileRename(roomCode: string | null) {
           roomCode,
           filename,
         },
-        (response: FileResult) => {
+        (response: FilenameCheckResultPayload) => {
           resolve(handleShowModal(response));
         },
       );
