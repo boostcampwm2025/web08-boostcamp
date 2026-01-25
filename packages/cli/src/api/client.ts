@@ -1,9 +1,10 @@
-import type {
-  CreateQuickRoomResponse,
-  CreateCustomRoomRequest,
-  CreateCustomRoomResponse,
-  RoomJoinStatus,
-} from './types.js';
+import {
+  API_ENDPOINTS,
+  type CreateQuickRoomResponse,
+  type CreateCustomRoomResponse,
+  type CreateCustomRoomRequest,
+  type RoomJoinStatus,
+} from '@codejam/common';
 
 export class ApiClient {
   constructor(private baseUrl: string) {}
@@ -25,23 +26,29 @@ export class ApiClient {
   }
 
   async createQuickRoom(): Promise<CreateQuickRoomResponse> {
-    return this.request<CreateQuickRoomResponse>('/api/rooms/quick', {
-      method: 'POST',
-    });
+    return this.request<CreateQuickRoomResponse>(
+      API_ENDPOINTS.ROOM.CREATE_QUICK,
+      {
+        method: 'POST',
+      },
+    );
   }
 
   async createCustomRoom(
     request: CreateCustomRoomRequest,
   ): Promise<CreateCustomRoomResponse> {
-    return this.request<CreateCustomRoomResponse>('/api/rooms/custom', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
+    return this.request<CreateCustomRoomResponse>(
+      API_ENDPOINTS.ROOM.CREATE_CUSTOM,
+      {
+        method: 'POST',
+        body: JSON.stringify(request),
+      },
+    );
   }
 
   async checkJoinable(roomCode: string): Promise<RoomJoinStatus> {
     const response = await fetch(
-      `${this.baseUrl}/api/rooms/${roomCode}/joinable`,
+      `${this.baseUrl}${API_ENDPOINTS.ROOM.JOINABLE(roomCode)}`,
       {
         method: 'GET',
       },
@@ -58,7 +65,7 @@ export class ApiClient {
 
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/health`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.HEALTH}`, {
         method: 'GET',
       });
       return response.ok;
