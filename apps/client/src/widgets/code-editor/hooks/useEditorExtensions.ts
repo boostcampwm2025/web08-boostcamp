@@ -16,7 +16,7 @@ import {
   type RemoteUser,
 } from '../plugin/LineAvatars';
 import { getLanguageExtension } from '../lib/constants';
-import { type Language } from '../lib/types';
+import { type Language } from '@codejam/common';
 
 const cursorTheme = EditorView.theme({
   // 커서 이름표 스타일

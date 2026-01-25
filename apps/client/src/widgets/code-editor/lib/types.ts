@@ -1,7 +1,7 @@
-export type Language = 'javascript' | 'html' | 'css';
+import type { Language, FileId } from '@codejam/common';
 
 export interface CodeEditorProps {
-  fileId: string;
+  fileId: FileId;
   language?: Language;
   readOnly?: boolean;
 }
