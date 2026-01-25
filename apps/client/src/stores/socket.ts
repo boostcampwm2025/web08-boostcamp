@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { RoomCode } from '@codejam/common';
 import { socket } from '@/shared/api/socket';
 import { setupDomainEventHandlers, emitJoinRoom } from './socket-events';
 import { useTempStore } from './temp';
@@ -6,7 +7,7 @@ import { useTempStore } from './temp';
 interface SocketState {
   socket: typeof socket;
   isConnected: boolean;
-  roomCode: string | null;
+  roomCode: RoomCode | null;
 
   cleanup: () => void;
 
