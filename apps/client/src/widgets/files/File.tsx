@@ -48,8 +48,7 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
       <ContextMenu>
         <ContextMenuTrigger disabled={!hasPermission}>
           <div
-            className={`flex items-center justify-between p-2 transition-all duration-200
-              select-none ${isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER}`}
+            className={`flex items-center justify-between p-2 transition-all duration-200 select-none ${isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER}`}
             onClick={handleClick}
           >
             <div className="flex items-center space-x-3">

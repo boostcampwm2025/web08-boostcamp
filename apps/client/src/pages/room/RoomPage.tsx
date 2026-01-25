@@ -54,17 +54,17 @@ function RoomPage() {
   const isViewer = myPt?.role === ROLE.VIEWER;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex h-screen flex-col">
       <Header roomCode={paramCode!} />
       {roomError && (
-        <div className="bg-red-500 text-white p-4 text-center">{roomError}</div>
+        <div className="bg-red-500 p-4 text-center text-white">{roomError}</div>
       )}
-      <main className="flex-1 overflow-hidden flex">
-        <div className="border-r border-border h-full overflow-y-auto scrollbar-thin flex flex-col bg-sidebar w-72 shrink-0">
+      <main className="flex flex-1 overflow-hidden">
+        <div className="border-border scrollbar-thin bg-sidebar flex h-full w-72 shrink-0 flex-col overflow-y-auto border-r">
           <Participants />
           <FileList />
         </div>
-        <div className="flex-1 h-full bg-background">
+        <div className="bg-background h-full flex-1">
           <FileViewer fileId={activeFileId} readOnly={isViewer} />
         </div>
       </main>

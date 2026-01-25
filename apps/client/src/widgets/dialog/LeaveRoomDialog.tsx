@@ -52,7 +52,7 @@ export function LeaveRoomDialog({
             type="submit"
             variant="ghost"
             size="sm"
-            className="text-destructive hover:text-red-500 hover:bg-destructive/10"
+            className="text-destructive hover:bg-destructive/10 hover:text-red-500"
             onClick={handleConfirm}
           >
             나가기

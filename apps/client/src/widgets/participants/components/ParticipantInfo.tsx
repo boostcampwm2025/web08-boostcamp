@@ -39,7 +39,7 @@ export function ParticipantInfo({
     hasHostPassword;
 
   return (
-    <div className="flex flex-col min-w-0 gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       <ParticipantName
         editable={editable}
         onEditable={onEditable}
@@ -49,7 +49,7 @@ export function ParticipantInfo({
         isMe={isMe}
       />
 
-      <div className="flex items-center h-6">
+      <div className="flex h-6 items-center">
         {showHostClaimSwitcher ? (
           <HostClaimSwitcher role={role} hasHostPassword={hasHostPassword} />
         ) : (

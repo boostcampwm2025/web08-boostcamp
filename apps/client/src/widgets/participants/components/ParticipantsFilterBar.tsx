@@ -98,7 +98,7 @@ export function ParticipantsFilterBar({
                 <button
                   type="button"
                   onClick={() => onFiltersChange([])}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm p-1 transition-colors"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
                   aria-label="Clear all filters"
                 >
                   <X className="size-4" />
@@ -114,7 +114,7 @@ export function ParticipantsFilterBar({
                   );
                   return (
                     <ComboboxItem key={item.value} value={item}>
-                      <div className="flex items-center justify-between w-full">
+                      <div className="flex w-full items-center justify-between">
                         <span>{item.label}</span>
                         {isSelected && <Check className="size-4" />}
                       </div>
@@ -150,7 +150,7 @@ export function ParticipantsFilterBar({
               size="icon"
               variant="outline"
               onClick={onBulkEdit}
-              className="h-8 w-8 ml-auto"
+              className="ml-auto h-8 w-8"
               title="전체 편집 허용"
             >
               <Pencil className="size-4" />

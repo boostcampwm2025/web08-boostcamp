@@ -43,12 +43,12 @@ export function DeleteDialog({ fileId, fileName, onOpen }: DeleteDialogProps) {
             삭제하시겠습니까?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="sm:justify-start mt-4">
+        <DialogFooter className="mt-4 sm:justify-start">
           <Button
             type="submit"
             variant="default"
             size="sm"
-            className="text-red-400 border border-red-400"
+            className="border border-red-400 text-red-400"
           >
             삭제
           </Button>

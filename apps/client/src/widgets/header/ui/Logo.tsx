@@ -10,7 +10,7 @@ export function Logo() {
           alt="CodeJam Logo"
           className="h-8 w-8 sm:h-10 sm:w-10"
         />
-        <h1 className="text-xl sm:text-2xl font-semibold text-foreground hidden sm:block">
+        <h1 className="text-foreground hidden text-xl font-semibold sm:block sm:text-2xl">
           {PROJECT_NAME}
         </h1>
       </div>

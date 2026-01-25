@@ -23,12 +23,12 @@ export function RoomCode({ roomCode }: RoomCodeProps) {
   };
 
   return (
-    <div className="flex items-center gap-2 ml-2 sm:ml-6 shrink-0">
-      <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider hidden md:block">
+    <div className="ml-2 flex shrink-0 items-center gap-2 sm:ml-6">
+      <span className="text-muted-foreground hidden text-xs font-semibold tracking-wider uppercase md:block">
         ROOM CODE
       </span>
-      <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 border border-border rounded-md bg-secondary/50">
-        <span className="font-mono text-xs sm:text-sm font-semibold max-w-[80px] sm:max-w-none truncate">
+      <div className="border-border bg-secondary/50 flex items-center gap-1 rounded-md border px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
+        <span className="max-w-[80px] truncate font-mono text-xs font-semibold sm:max-w-none sm:text-sm">
           {roomCode}
         </span>
         <Button
