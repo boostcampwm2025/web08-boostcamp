@@ -1,4 +1,5 @@
 import type { CustomRoomData } from '@/shared/api/room';
+import { LIMITS } from '@codejam/common';
 import { Button, Input } from '@/shared/ui';
 import { Slider } from '@/shared/ui/slider';
 import { ArrowRight, Check, ChevronLeft, Lock, Users } from 'lucide-react';
@@ -11,13 +12,15 @@ interface Props {
 
 const validatePassword = (pwd: string) => {
   if (!pwd) return true;
-  return /^[a-zA-Z0-9]{1,16}$/.test(pwd);
+  return new RegExp(
+    `^[a-zA-Z0-9]{${LIMITS.PASSWORD_MIN},${LIMITS.PASSWORD_MAX}}$`,
+  ).test(pwd);
 };
 
 export function CustomStartPopover({ onCreate, isLoading }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [data, setData] = useState({
-    maxPts: 6,
+    maxPts: LIMITS.MAX_CAN_EDIT,
     roomPassword: '',
     hostPassword: '',
   });
@@ -104,17 +107,18 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
               </div>
 
               <Slider
-                defaultValue={[6]}
+                defaultValue={[LIMITS.MAX_CAN_EDIT]}
                 value={[data.maxPts]}
-                min={2}
-                max={150}
+                min={LIMITS.MIN_PTS}
+                max={LIMITS.MAX_PTS}
                 step={1}
                 onValueChange={handleSliderChange}
                 className="cursor-pointer py-2"
               />
 
               <p className="text-xs text-gray-400 text-center bg-gray-50 py-2 rounded">
-                최소 2명부터 최대 150명까지 설정 가능합니다.
+                최소 {LIMITS.MIN_PTS}명부터 최대 {LIMITS.MAX_PTS}명까지 설정
+                가능합니다.
               </p>
             </div>
             <div>
@@ -138,7 +142,7 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
                 </label>
                 <Input
                   type="password"
-                  placeholder="영문+숫자 1~16자리"
+                  placeholder={`영문+숫자 ${LIMITS.PASSWORD_MIN}~${LIMITS.PASSWORD_MAX}자리`}
                   value={data.roomPassword}
                   onChange={(e) => handleChange('roomPassword', e.target.value)}
                   className={`h-11 transition-all ${
@@ -149,7 +153,8 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
                 />
                 {errors.room && (
                   <span className="text-[10px] text-red-500 ml-1">
-                    영문+숫자 조합 1~16자리로 입력해주세요.
+                    영문+숫자 조합 {LIMITS.PASSWORD_MIN}~{LIMITS.PASSWORD_MAX}
+                    자리로 입력해주세요.
                   </span>
                 )}
               </div>
@@ -159,7 +164,7 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
                 </label>
                 <Input
                   type="password"
-                  placeholder="영문+숫자 1~16자리"
+                  placeholder={`영문+숫자 ${LIMITS.PASSWORD_MIN}~${LIMITS.PASSWORD_MAX}자리`}
                   value={data.hostPassword}
                   onChange={(e) => handleChange('hostPassword', e.target.value)}
                   className={`h-11 transition-all ${
@@ -170,7 +175,8 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
                 />
                 {errors.host && (
                   <span className="text-[10px] text-red-500 ml-1">
-                    영문+숫자 조합 1~16자리로 입력해주세요.
+                    영문+숫자 조합 {LIMITS.PASSWORD_MIN}~{LIMITS.PASSWORD_MAX}
+                    자리로 입력해주세요.
                   </span>
                 )}
               </div>

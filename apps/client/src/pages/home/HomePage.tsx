@@ -1,3 +1,4 @@
+import { PROJECT_NAME } from '@codejam/common';
 import { Hero } from './sections/Hero';
 import { ActionCards } from './sections/ActionCards';
 import { FeatureCards } from './sections/FeatureCards';
@@ -35,8 +36,8 @@ export default function MainPage() {
                 {/* 가짜 주소창 */}
                 <div className="ml-4 flex-1 max-w-md h-6 bg-white border border-gray-200 rounded-md flex items-center px-3">
                   <span className="text-[10px] text-gray-400 font-mono flex items-center gap-1">
-                    <span className="text-green-500">🔒</span>{' '}
-                    https://lets-codejam.vercel.app/room/demo-mode
+                    <span className="text-green-500">🔒</span> https://lets-
+                    {PROJECT_NAME.toLowerCase()}.vercel.app/room/demo-mode
                   </span>
                 </div>
               </div>
@@ -44,7 +45,7 @@ export default function MainPage() {
               <div className="aspect-[16/9] bg-gray-50 flex items-center justify-center relative overflow-hidden">
                 <img
                   src="/demo-preview.gif"
-                  alt="CodeJam Demo"
+                  alt={`${PROJECT_NAME} Demo`}
                   className="object-cover w-full h-full"
                 />
               </div>
@@ -58,7 +59,7 @@ export default function MainPage() {
 
       {/* Footer */}
       <footer className="py-8 text-center text-xs text-gray-400 font-mono border-t border-gray-100 mt-12">
-        <p>© 2026 CodeJam. All rights reserved.</p>
+        <p>© 2026 {PROJECT_NAME}. All rights reserved.</p>
       </footer>
     </main>
   );
