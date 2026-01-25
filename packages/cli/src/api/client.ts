@@ -65,7 +65,7 @@ export class ApiClient {
 
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.HEALTH}`, {
+      const response = await fetch(`${this.baseUrl}/${API_ENDPOINTS.HEALTH}`, {
         method: 'GET',
       });
       return response.ok;
