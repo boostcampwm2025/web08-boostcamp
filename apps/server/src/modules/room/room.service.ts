@@ -5,21 +5,27 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, LessThan, Repository } from 'typeorm';
-import { CreateCustomRoomDto } from './dto/create-custom-room.dto';
+import { CreateCustomRoomRequestDto } from './dto/create-custom-room-request.dto';
 
+import { Room } from './room.entity';
 import {
-  Room,
-  RoomType,
-  DefaultRolePolicy,
-  WhoCanDestroyRoom,
-} from './room.entity';
+  ROOM_TYPE,
+  DEFAULT_ROLE,
+  WHO_CAN_DESTROY_ROOM,
+  ROLE,
+  PRESENCE,
+  LIMITS,
+  type PtRole,
+  type PtPresence,
+} from '@codejam/common';
 import { customAlphabet } from 'nanoid';
-import { Pt, PtRole, PtPresence } from '../pt/pt.entity';
+import { Pt } from '../pt/pt.entity';
 import { Document } from '../document/document.entity';
 import { FileService } from '../file/file.service';
 import { PtService } from '../pt/pt.service';
 import { RoomTokenService } from '../auth/room-token.service';
-import { CreateRoomResponseDto } from './dto/create-room-response.dto';
+import { CreateQuickRoomResponseDto } from './dto/create-quick-room-response.dto';
+import { CreateCustomRoomResponseDto } from './dto/create-custom-room-response.dto';
 import { RoomCreationOptions } from './room.interface';
 
 /** 방의 생명 주기 관리 */
@@ -62,39 +68,48 @@ export class RoomService {
     });
   }
 
-  async createQuickRoom(): Promise<CreateRoomResponseDto> {
+  async createQuickRoom(): Promise<CreateQuickRoomResponseDto> {
     const options: RoomCreationOptions = {
-      roomType: RoomType.QUICK,
+      roomType: ROOM_TYPE.QUICK,
       maxPts: this.QUICK_ROOM_MAX_PTS,
-      defaultRolePolicy: DefaultRolePolicy.EDITOR,
-      whoCanDestroyRoom: WhoCanDestroyRoom.EDITOR,
-      roomCreatorRole: PtRole.EDITOR,
+      defaultRolePolicy: DEFAULT_ROLE[ROOM_TYPE.QUICK],
+      whoCanDestroyRoom: WHO_CAN_DESTROY_ROOM[ROOM_TYPE.QUICK],
+      roomCreatorRole: ROLE.EDITOR,
     };
 
-    return this.createRoom(options);
+    const result = await this.createRoom(options);
+    // Quick room은 token이 없으므로 제거
+    return { roomCode: result.roomCode };
   }
 
   async createCustomRoom(
-    dto: CreateCustomRoomDto,
-  ): Promise<CreateRoomResponseDto> {
+    dto: CreateCustomRoomRequestDto,
+  ): Promise<CreateCustomRoomResponseDto> {
     const { roomPassword, hostPassword, maxPts } = dto;
 
     const options: RoomCreationOptions = {
-      roomType: RoomType.CUSTOM,
+      roomType: ROOM_TYPE.CUSTOM,
       roomPassword,
       hostPassword,
       maxPts,
-      defaultRolePolicy: DefaultRolePolicy.VIEWER,
-      whoCanDestroyRoom: WhoCanDestroyRoom.HOST,
-      roomCreatorRole: PtRole.HOST,
+      defaultRolePolicy: DEFAULT_ROLE[ROOM_TYPE.CUSTOM],
+      whoCanDestroyRoom: WHO_CAN_DESTROY_ROOM[ROOM_TYPE.CUSTOM],
+      roomCreatorRole: ROLE.HOST,
     };
 
-    return this.createRoom(options);
+    const result = await this.createRoom(options);
+    // Custom room은 token이 필수
+    if (!result.token) {
+      throw new InternalServerErrorException(
+        'Token is required for custom room',
+      );
+    }
+    return { roomCode: result.roomCode, token: result.token };
   }
 
   private async createRoom(
     options: RoomCreationOptions,
-  ): Promise<CreateRoomResponseDto> {
+  ): Promise<{ roomCode: string; token?: string }> {
     const roomCode = await this.generateUniqueRoomCode();
 
     const {
@@ -125,14 +140,14 @@ export class RoomService {
 
       const savedRoom = await queryRunner.manager.save(newRoom);
       const token = await (async () => {
-        if (roomType === RoomType.QUICK) return undefined;
+        if (roomType === ROOM_TYPE.QUICK) return undefined;
         const hostPt = queryRunner.manager.create(Pt, {
           room: savedRoom,
           ptHash: this.ptService.generatePtHash(),
           role: roomCreatorRole,
           nickname: 'Host',
           color: '#E0E0E0',
-          presence: PtPresence.ONLINE,
+          presence: PRESENCE.ONLINE,
         });
 
         const savedPt = await queryRunner.manager.save(hostPt);
@@ -156,7 +171,7 @@ export class RoomService {
       await queryRunner.commitTransaction();
 
       this.logger.log(
-        `✅ ${roomType === RoomType.QUICK ? 'Quick' : 'Custom'} Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})], Doc Id: [${document.docId}]`,
+        `✅ ${roomType} Room Created: [${savedRoom.roomCode}] (ID: ${savedRoom.roomId})], Doc Id: [${document.docId}]`,
       );
 
       return {
@@ -195,7 +210,7 @@ export class RoomService {
     );
   }
 
-  protected generateRoomCode(roomCodeLength = 6): string {
+  protected generateRoomCode(roomCodeLength = LIMITS.ROOM_CODE_LENGTH): string {
     const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const nanoid = customAlphabet(alphabet, roomCodeLength);
     return nanoid();

@@ -1,39 +1,44 @@
 import { Controller, Get, Param, Post, Body } from '@nestjs/common';
 import { RoomService } from './room.service';
-import { CreateCustomRoomDto } from './dto/create-custom-room.dto';
-import { CreateRoomResponseDto } from './dto/create-room-response.dto';
+import { CreateCustomRoomRequestDto } from './dto/create-custom-room-request.dto';
+import { CreateQuickRoomResponseDto } from './dto/create-quick-room-response.dto';
+import { CreateCustomRoomResponseDto } from './dto/create-custom-room-response.dto';
 import { PtService } from '../pt/pt.service';
-import { RoomJoinStatus } from '@codejam/common';
+import {
+  CheckRoomJoinableResponse,
+  API_ENDPOINTS,
+  ROOM_JOIN_STATUS,
+} from '@codejam/common';
 
-@Controller('api/rooms')
+@Controller()
 export class RoomController {
   constructor(
     private readonly roomService: RoomService,
     private readonly ptService: PtService,
   ) {}
 
-  @Get(':roomCode/joinable')
-  async checkRoomExists(
+  @Get(API_ENDPOINTS.ROOM.JOINABLE(':roomCode'))
+  async checkRoomJoinable(
     @Param('roomCode') roomCode: string,
-  ): Promise<RoomJoinStatus> {
+  ): Promise<CheckRoomJoinableResponse> {
     const room = await this.roomService.findRoomByCode(roomCode);
-    if (!room) return 'NOT_FOUND';
+    if (!room) return ROOM_JOIN_STATUS.NOT_FOUND;
 
     const counter = await this.ptService.roomCounter(room.roomId);
-    if (counter >= room.maxPts) return 'FULL';
+    if (counter >= room.maxPts) return ROOM_JOIN_STATUS.FULL;
 
-    return 'JOINABLE';
+    return ROOM_JOIN_STATUS.JOINABLE;
   }
 
-  @Post('quick')
-  async createQuickRoom(): Promise<CreateRoomResponseDto> {
+  @Post(API_ENDPOINTS.ROOM.CREATE_QUICK)
+  async createQuickRoom(): Promise<CreateQuickRoomResponseDto> {
     return await this.roomService.createQuickRoom();
   }
 
-  @Post('custom')
+  @Post(API_ENDPOINTS.ROOM.CREATE_CUSTOM)
   async createCustomRoom(
-    @Body() dto: CreateCustomRoomDto,
-  ): Promise<CreateRoomResponseDto> {
+    @Body() dto: CreateCustomRoomRequestDto,
+  ): Promise<CreateCustomRoomResponseDto> {
     return await this.roomService.createCustomRoom(dto);
   }
 }

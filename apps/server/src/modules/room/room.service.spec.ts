@@ -1,18 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomService } from './room.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DefaultRolePolicy, Room } from './room.entity';
+import { Room } from './room.entity';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
-import { PtRole } from '../pt/pt.entity';
 import { PtService } from '../pt/pt.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { FileService } from '../file/file.service';
+import { DEFAULT_ROLE, ROLE, ROOM_TYPE, type PtRole } from '@codejam/common';
 
 // 테스트 상수
 const MOCK_ROOM_CODE = 'UNI001';
 const MOCK_ROOM_ID = 100;
-const MOCK_PT_ID = 'uuid-host-1';
 const MOCK_PT_HASH = '1234';
 const MOCK_TOKEN = 'mock-jwt-token';
 const MOCK_DOC_ID = 'mock-doc-id';
@@ -104,7 +103,7 @@ describe('RoomService', () => {
   });
 
   describe('createQuickRoom', () => {
-    it('성공 시: 트랜잭션 내에서 Room과 Pt를 저장하고 결과를 반환한다', async () => {
+    it('성공 시: 트랜잭션 내에서 Room과 Document를 저장하고 결과를 반환한다 (Pt 생성 없음)', async () => {
       // Arrange
       jest
         .spyOn(service as any, 'generateRoomCode')
@@ -112,11 +111,6 @@ describe('RoomService', () => {
       repository.findOne.mockResolvedValue(null); // 중복 없음
 
       const savedRoom = { roomId: MOCK_ROOM_ID, roomCode: MOCK_ROOM_CODE };
-      const savedPt = {
-        ptId: MOCK_PT_ID,
-        room: savedRoom,
-        role: PtRole.EDITOR,
-      };
       const savedDocument = {
         docId: 'mock-doc-id',
         room: savedRoom,
@@ -125,7 +119,6 @@ describe('RoomService', () => {
 
       (queryRunner.manager.save as jest.Mock)
         .mockResolvedValueOnce(savedRoom) // Room 저장 성공
-        .mockResolvedValueOnce(savedPt) // Pt 저장 성공
         .mockResolvedValueOnce(savedDocument); // Document 저장 성공
 
       // Act
@@ -140,12 +133,14 @@ describe('RoomService', () => {
       expect(queryRunner.release).toHaveBeenCalled();
       expect(queryRunner.rollbackTransaction).not.toHaveBeenCalled();
 
-      // 2. 데이터 저장 검증
+      // 2. 데이터 저장 검증 (Quick room은 Pt 생성 없이 Room과 Document만 저장)
+      expect(queryRunner.manager.save).toHaveBeenCalledTimes(2);
+
       expect(queryRunner.manager.save).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
           roomCode: MOCK_ROOM_CODE,
-          defaultRolePolicy: DefaultRolePolicy.EDITOR,
+          defaultRolePolicy: DEFAULT_ROLE[ROOM_TYPE.QUICK],
         }),
       );
 
@@ -153,29 +148,16 @@ describe('RoomService', () => {
         2,
         expect.objectContaining({
           room: savedRoom,
-          role: PtRole.EDITOR,
-          ptHash: MOCK_PT_HASH,
-        }),
-      );
-
-      expect(queryRunner.manager.save).toHaveBeenNthCalledWith(
-        3,
-        expect.objectContaining({
-          room: savedRoom,
           roomId: MOCK_ROOM_ID,
         }),
       );
 
-      // 3. 토큰 생성 검증
-      expect(roomTokenService.sign).toHaveBeenCalledWith({
-        roomCode: MOCK_ROOM_CODE,
-        ptId: MOCK_PT_ID,
-      });
+      // 3. Quick room은 토큰 생성하지 않음
+      expect(roomTokenService.sign).not.toHaveBeenCalled();
 
-      // 4. 반환값 검증
+      // 4. 반환값 검증 (token 없음)
       expect(result).toEqual({
         roomCode: MOCK_ROOM_CODE,
-        token: MOCK_TOKEN,
       });
     });
 
@@ -191,7 +173,7 @@ describe('RoomService', () => {
         .mockResolvedValueOnce(null); // 2차 결과: 없음
 
       const mockRoom = { roomId: 1, roomCode: 'UNI002' } as Room;
-      const mockPt = { ptId: 'mock-pt-id', room: mockRoom, role: PtRole.HOST };
+      const mockPt = { ptId: 'mock-pt-id', room: mockRoom, role: ROLE.HOST };
       const mockDocument = { docId: 'mock-doc-id', room: mockRoom, roomId: 1 };
 
       (queryRunner.manager.save as jest.Mock)
