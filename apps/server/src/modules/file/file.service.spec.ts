@@ -2,11 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FileService } from './file.service';
 import { YRedisService } from '../y-redis/y-redis.service';
 import { DocumentService } from '../document/document.service';
-import {
-  DEFAULT_LANGUAGE,
-  DEFAULT_FILE_NAME,
-  type Language,
-} from '@codejam/common';
+import { DEFAULT_LANGUAGE, DEFAULT_FILE_NAME } from '@codejam/common';
 
 const mockYRedisService = {
   bind: jest.fn().mockReturnValue({

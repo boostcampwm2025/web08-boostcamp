@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   Logger,
 } from '@nestjs/common';
-import { ERROR_CODE, ROLE, type PtRole } from '@codejam/common';
+import { ERROR_CODE, ROLE } from '@codejam/common';
 import type { CollabSocket } from '../collaboration.types';
 
 @Injectable()

@@ -15,8 +15,6 @@ import {
   ROLE,
   PRESENCE,
   LIMITS,
-  type PtRole,
-  type PtPresence,
 } from '@codejam/common';
 import { customAlphabet } from 'nanoid';
 import { Pt } from '../pt/pt.entity';
