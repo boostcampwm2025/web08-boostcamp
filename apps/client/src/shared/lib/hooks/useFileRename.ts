@@ -86,7 +86,6 @@ export function useFileRename(roomCode: string | null) {
     }
 
     if (!files || files.length === 0) {
-      console.log(files);
       toast.error('파일을 하나 이상 선택해주세요.');
       return;
     }

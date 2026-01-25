@@ -365,7 +365,6 @@ export const useFileStore = create<FileState>((set, get) => ({
   addTempFile: (file) => {
     const target = get().tempFiles;
     target.push(file);
-    console.log(target);
 
     set({ tempFiles: target });
   },
