@@ -4,7 +4,7 @@ import { ParticipantsFilterBar } from './components/ParticipantsFilterBar';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, ROLE } from '@codejam/common';
 import { toast } from 'sonner';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
@@ -24,7 +24,7 @@ export function Participants() {
 
   // 내 정보와 권한 확인
   const meData = usePt(myPtId);
-  const iAmHost = meData?.role === 'host';
+  const iAmHost = meData?.role === ROLE.HOST;
 
   // 상태 관리
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -66,7 +66,7 @@ export function Participants() {
       socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
         roomCode,
         ptId,
-        role: 'editor',
+        role: ROLE.EDITOR,
       });
     });
 
@@ -87,7 +87,7 @@ export function Participants() {
       socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
         roomCode,
         ptId,
-        role: 'viewer',
+        role: ROLE.VIEWER,
       });
     });
 

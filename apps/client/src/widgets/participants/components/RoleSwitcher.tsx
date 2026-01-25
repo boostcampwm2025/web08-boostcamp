@@ -1,6 +1,6 @@
 import { cn } from '@/shared/lib/utils';
 import { ROLE_BADGE_STYLES, getRoleDisplayText } from '../lib/types';
-import type { Pt } from '@codejam/common';
+import { ROLE, type Pt } from '@codejam/common';
 
 interface RoleSwitcherProps {
   role: Pt['role'];
@@ -19,7 +19,7 @@ export function RoleSwitcher({
   onToggle,
 }: RoleSwitcherProps) {
   const roleText = getRoleDisplayText(role);
-  const isEditor = role === 'editor';
+  const isEditor = role === ROLE.EDITOR;
 
   if (!isInteractive) {
     // [Non-Interactive] 권한이 없거나 호스트인 경우

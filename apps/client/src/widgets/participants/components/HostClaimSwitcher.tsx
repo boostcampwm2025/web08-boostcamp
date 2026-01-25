@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { ROLE_BADGE_STYLES, getRoleDisplayText } from '../lib/types';
 import { socket } from '@/shared/api/socket';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, ROLE } from '@codejam/common';
 import { HostPasswordDialog } from '@/widgets/dialog/HostPasswordDialog';
 import type { Pt } from '@codejam/common';
 
@@ -69,7 +69,7 @@ export function HostClaimSwitcher({
         <div
           className={cn(
             'z-10 flex-1 text-center text-[10px] font-bold uppercase tracking-wider transition-colors',
-            role === 'editor'
+            role === ROLE.EDITOR
               ? 'text-blue-600 dark:text-blue-300'
               : 'text-gray-800 dark:text-gray-100',
           )}
