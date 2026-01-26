@@ -108,3 +108,10 @@ export const runtimeSchema = z.object({
 
 // Get runtimes response schema
 export const getRuntimesResponseSchema = z.array(runtimeSchema);
+
+// Inferred types
+export type CodeFile = z.infer<typeof codeFileSchema>;
+export type ExecuteCodeRequest = z.infer<typeof executeCodeRequestSchema>;
+export type StageResult = z.infer<typeof stageResultSchema>;
+export type ExecuteCodeResponse = z.infer<typeof executeCodeResponseSchema>;
+export type Runtime = z.infer<typeof runtimeSchema>;
