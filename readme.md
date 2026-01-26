@@ -6,14 +6,13 @@
   <img src="./docs/assets/slogan_animation.svg" width="720" />
 </p>
 
-<p align="center">
-  <a href="https://lets-codejam.vercel.app/"> 
-    <img src="https://img.shields.io/badge/Service-v0.3.0-2F81F7?style=for-the-badge&logo=rocket" alt="Live Demo" />
-  </a>
-  <a href="./LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
-  </a>
-</p>
+<div align="center">
+
+  ### 👉 [CodeJam 서비스 바로가기](https://lets-codejam.vercel.app/)
+
+  [📖 프로젝트 소개 (Docs)](https://introduction-to-codejam.vercel.app/)  ·  [🐛 버그 제보 및 피드백](https://docs.google.com/forms/d/e/1FAIpQLSdGDFbhIiuZt-cgUCCn82nwpdz9gSq5htistTdv2_MwdTfrtQ/viewform?usp=dialog)
+
+</div>
 
 ---
 
