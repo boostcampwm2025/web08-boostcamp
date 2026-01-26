@@ -26,6 +26,9 @@ interface FileState {
   isInitialized: boolean;
   isInitialDocLoaded: boolean;
 
+  // 업로드 파일
+  tempFiles: File[];
+
   // Capacity State (용량 측정)
   capacityBytes: number;
   capacityPercentage: number;
@@ -41,11 +44,15 @@ interface FileState {
   measureCapacity: () => number;
 
   // CRUD Actions
+  addTempFile: (file: File) => void;
+  shiftTempFile: () => void;
+  clearTempFile: () => void;
   createFile: (name: string, content?: string) => string;
   deleteFile: (fileId: string) => void;
   renameFile: (fileId: string, newName: string) => void;
   overwriteFile: (fileId: string, content?: string) => void;
   getFileId: (name: string) => string | undefined;
+  getTempFiles: () => File[];
   getFilesMap: () => YMap<YMap<unknown>> | null;
   getFileIdMap: () => YMap<string> | null;
 
@@ -59,6 +66,8 @@ export const useFileStore = create<FileState>((set, get) => ({
   activeFileId: null,
   isInitialized: false,
   isInitialDocLoaded: false,
+
+  tempFiles: [],
 
   // Capacity State 초기값
   capacityBytes: 0,
@@ -285,6 +294,10 @@ export const useFileStore = create<FileState>((set, get) => ({
     return fileIdMap.get(name);
   },
 
+  getTempFiles: () => {
+    return get().tempFiles;
+  },
+
   // CRUD: 파일 덮어쓰기
   overwriteFile(fileId: string, content?: string) {
     const { yDoc } = get();
@@ -347,6 +360,24 @@ export const useFileStore = create<FileState>((set, get) => ({
     });
 
     return total;
+  },
+
+  addTempFile: (file) => {
+    const target = get().tempFiles;
+    target.push(file);
+
+    set({ tempFiles: target });
+  },
+
+  shiftTempFile: () => {
+    const target = get().tempFiles;
+    target.shift();
+
+    set({ tempFiles: target });
+  },
+
+  clearTempFile: () => {
+    set({ tempFiles: [] });
   },
 
   // 파일 내용 가져오기

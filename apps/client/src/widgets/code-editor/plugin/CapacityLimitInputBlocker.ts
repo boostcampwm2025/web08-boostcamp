@@ -36,6 +36,10 @@ export function capacityLimitInputBlocker() {
       return false; // 허용
     },
 
+    drop: () => {
+      return true;
+    },
+
     // 2. 키 입력 (Typing) 차단
     keydown: (event, view) => {
       // 삭제 키, 네비게이션 키, 기능 키 등은 무조건 허용
