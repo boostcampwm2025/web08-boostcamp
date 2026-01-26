@@ -1,6 +1,6 @@
-import { RoomToken } from '@codejam/common';
+import { createZodDto } from 'nestjs-zod';
+import { createRoomResponseSchema } from '@codejam/common';
 
-export class CreateRoomResponseDto {
-  roomCode: string;
-  token?: RoomToken;
-}
+export class CreateRoomResponseDto extends createZodDto(
+  createRoomResponseSchema,
+) {}
