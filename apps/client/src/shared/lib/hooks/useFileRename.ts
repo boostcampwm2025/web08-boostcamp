@@ -1,6 +1,9 @@
 import { socket } from '@/shared/api/socket';
 import { useFileStore } from '@/stores/file';
-import { SOCKET_EVENTS, type FilenameCheckResultPayload } from '@codejam/common';
+import {
+  SOCKET_EVENTS,
+  type FilenameCheckResultPayload,
+} from '@codejam/common';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { extname } from '../file';

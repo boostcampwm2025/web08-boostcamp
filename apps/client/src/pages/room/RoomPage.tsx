@@ -80,7 +80,7 @@ function RoomPage() {
           <FileList />
         </div>
         <div
-          className="flex-1 h-full bg-background"
+          className="bg-background h-full flex-1"
           onDragOver={handleDragPrevent}
           onDrop={handleFileDrop}
         >
