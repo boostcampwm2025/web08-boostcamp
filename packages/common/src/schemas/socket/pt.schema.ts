@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { ptSchema, updatablePtRoleSchema, ptIdSchema, nicknameSchema } from '../pt.schema.js';
+import {
+  ptSchema,
+  updatablePtRoleSchema,
+  ptIdSchema,
+  nicknameSchema,
+} from '../entities/pt.schema.js';
+import { passwordSchema } from '../entities/room.schema.js';
 
 // 새 참가자 입장 알림 (S -> C)
 export const ptJoinedPayloadSchema = z.object({
@@ -31,4 +37,9 @@ export const ptUpdateRolePayloadSchema = z.object({
 export const ptUpdateNamePayloadSchema = z.object({
   ptId: ptIdSchema,
   nickname: nicknameSchema,
+});
+
+// 호스트 권한 요청 (C -> S)
+export const claimHostPayloadSchema = z.object({
+  hostPassword: passwordSchema,
 });

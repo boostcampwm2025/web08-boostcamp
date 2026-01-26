@@ -5,8 +5,8 @@ import {
   roomTokenSchema,
   roomTypeSchema,
   whoCanDestroyRoomSchema,
-} from '../room.schema.js';
-import { nicknameSchema, ptIdSchema, ptSchema } from '../pt.schema.js';
+} from '../entities/room.schema.js';
+import { nicknameSchema, ptIdSchema, ptSchema } from '../entities/pt.schema.js';
 
 // 방 입장 요청 스키마 (C -> S)
 export const joinRoomPayloadSchema = z.object({
@@ -41,5 +41,5 @@ export const roomAwarenessPayloadSchema = z.object({
 
 // 방 만료 알림 스키마 (S -> C)
 export const roomExpiredPayloadSchema = z.object({
-  message: z.string().optional(),
+  message: z.string().trim().optional(),
 });
