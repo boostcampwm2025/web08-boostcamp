@@ -9,7 +9,7 @@ import {
   API_ENDPOINTS,
   ROOM_JOIN_STATUS,
 } from '@codejam/common';
-import { CustomThrottlerGuard } from 'src/common/guards/custom-throttler.guard';
+import { CustomThrottlerGuard } from '../../common/guards/custom-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller()

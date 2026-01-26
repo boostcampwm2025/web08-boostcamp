@@ -55,7 +55,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private mapStatusToErrorCode(status: number): string {
-    switch (status) {
+    switch (status as HttpStatus) {
       case HttpStatus.BAD_REQUEST:
         return ERROR_CODE.INVALID_INPUT;
       case HttpStatus.UNAUTHORIZED:
