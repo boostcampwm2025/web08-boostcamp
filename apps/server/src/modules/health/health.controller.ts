@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
+import { API_ENDPOINTS } from '@codejam/common';
 
-@Controller('health')
+@Controller(API_ENDPOINTS.HEALTH)
 export class HealthController {
   @Get()
   check() {

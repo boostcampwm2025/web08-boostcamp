@@ -7,7 +7,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { PtService } from '../pt/pt.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { FileService } from '../file/file.service';
-import { DEFAULT_ROLE, ROLE, ROOM_TYPE, type PtRole } from '@codejam/common';
+import { DEFAULT_ROLE, ROLE, ROOM_TYPE } from '@codejam/common';
 
 // 테스트 상수
 const MOCK_ROOM_CODE = 'UNI001';

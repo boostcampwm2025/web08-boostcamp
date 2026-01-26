@@ -7,5 +7,5 @@ export const API_ENDPOINTS = {
     JOINABLE: (roomCode: string) => `${API_PREFIX}/rooms/${roomCode}/joinable`,
     DESTROY: (roomCode: string) => `${API_PREFIX}/rooms/${roomCode}`,
   },
-  HEALTH: '/health',
+  HEALTH: 'health',
 } as const;
