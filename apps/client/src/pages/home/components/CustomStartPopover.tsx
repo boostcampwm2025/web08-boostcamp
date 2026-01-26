@@ -1,16 +1,15 @@
-import type { CustomRoomData } from '@/shared/api/room';
-import { LIMITS } from '@codejam/common';
+import { LIMITS, type CreateCustomRoomRequest } from '@codejam/common';
 import { Button, Input } from '@/shared/ui';
 import { Slider } from '@/shared/ui/slider';
 import { ArrowRight, Check, ChevronLeft, Lock, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface Props {
-  onCreate: (data: CustomRoomData) => void;
+  onCreate: (data: CreateCustomRoomRequest) => void;
   isLoading: boolean;
 }
 
-const validatePassword = (pwd: string) => {
+const validatePassword = (pwd?: string) => {
   if (!pwd) return true;
   return new RegExp(
     `^[a-zA-Z0-9]{${LIMITS.PASSWORD_MIN},${LIMITS.PASSWORD_MAX}}$`,
@@ -20,7 +19,7 @@ const validatePassword = (pwd: string) => {
 export function CustomStartPopover({ onCreate, isLoading }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [data, setData] = useState({
-    maxPts: LIMITS.MAX_CAN_EDIT,
+    maxPts: LIMITS.MAX_CAN_EDIT as number,
     roomPassword: '',
     hostPassword: '',
   });
@@ -35,8 +34,11 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
   };
 
   const handleCreate = () => {
-    const isRoomValid = validatePassword(data.roomPassword);
-    const isHostValid = validatePassword(data.hostPassword);
+    const roomPassword = data.roomPassword.trim() || undefined;
+    const hostPassword = data.hostPassword.trim() || undefined;
+
+    const isRoomValid = validatePassword(roomPassword);
+    const isHostValid = validatePassword(hostPassword);
 
     if (!isRoomValid || !isHostValid) {
       setErrors({
@@ -46,7 +48,11 @@ export function CustomStartPopover({ onCreate, isLoading }: Props) {
       return;
     }
 
-    onCreate(data);
+    onCreate({
+      maxPts: data.maxPts,
+      roomPassword,
+      hostPassword,
+    });
   };
 
   const handleChange = (
