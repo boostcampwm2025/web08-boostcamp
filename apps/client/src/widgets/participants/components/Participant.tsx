@@ -5,7 +5,7 @@ import { ParticipantInfo } from './ParticipantInfo';
 import type { ParticipantProps, PermissionPtProps } from '../lib/types';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, ROLE, PRESENCE } from '@codejam/common';
 import {
   Popover,
   PopoverContent,
@@ -29,11 +29,11 @@ export const Participant = memo(
 
     if (!pt) return null;
 
-    const isOnline = pt.presence === 'online';
+    const isOnline = pt.presence === PRESENCE.ONLINE;
     const opacity = isOnline ? 'opacity-100' : 'opacity-40';
     const isMe = ptId === myPtId;
 
-    const isTargetHost = pt.role === 'host';
+    const isTargetHost = pt.role === ROLE.HOST;
     const canToggle = hasPermission && !isMe && !isTargetHost;
 
     const handleToggleRole = () => {
@@ -41,7 +41,7 @@ export const Participant = memo(
         return;
       }
 
-      const newRole = pt.role === 'editor' ? 'viewer' : 'editor';
+      const newRole = pt.role === ROLE.EDITOR ? ROLE.VIEWER : ROLE.EDITOR;
 
       socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
         roomCode,

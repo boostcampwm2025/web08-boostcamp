@@ -13,7 +13,7 @@ import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import { HostClaimRequestDialog } from '@/widgets/dialog/HostClaimRequestDialog';
-import type { RoomJoinStatus } from '@codejam/common';
+import { ROLE, type RoomJoinStatus } from '@codejam/common';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
@@ -56,7 +56,7 @@ function RoomPage() {
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || '');
-  const isViewer = myPt?.role === 'viewer';
+  const isViewer = myPt?.role === ROLE.VIEWER;
 
   const handleDragPrevent = (ev: DragEvent) => {
     ev.preventDefault();

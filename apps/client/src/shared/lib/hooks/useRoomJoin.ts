@@ -5,6 +5,7 @@ import { emitJoinRoom } from '@/stores/socket-events';
 import { useRoomStore } from '@/stores/room';
 import { getRoomToken } from '@/shared/lib/storage';
 import { useTempValue } from '@/stores/temp';
+import { ERROR_CODE } from '@codejam/common';
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
@@ -41,29 +42,29 @@ export function useRoomJoin() {
   useEffect(() => {
     const handleError = (error: { type?: string; message?: string }) => {
       // PERMISSION_DENIED는 에디터 레벨에서 처리하므로 여기서는 무시
-      if (error.type === 'PERMISSION_DENIED') {
+      if (error.type === ERROR_CODE.PERMISSION_DENIED) {
         return;
       }
       if (
-        error.type === 'PASSWORD_REQUIRED' ||
-        error.message === 'PASSWORD_REQUIRED'
+        error.type === ERROR_CODE.PASSWORD_REQUIRED ||
+        error.message === ERROR_CODE.PASSWORD_REQUIRED
       ) {
         setIsPasswordDialogOpen(true);
       } else if (
-        error.type === 'PASSWORD_UNCORRECT' ||
-        error.message === 'PASSWORD_UNCORRECT'
+        error.type === ERROR_CODE.PASSWORD_UNCORRECT ||
+        error.message === ERROR_CODE.PASSWORD_UNCORRECT
       ) {
         setIsPasswordDialogOpen(true);
         setPasswordError('패스워드가 틀렸습니다.');
       } else if (
-        error.type === 'NICKNAME_REQUIRED' ||
-        error.message === 'NICKNAME_REQUIRED'
+        error.type === ERROR_CODE.NICKNAME_REQUIRED ||
+        error.message === ERROR_CODE.NICKNAME_REQUIRED
       ) {
         setIsPasswordDialogOpen(false);
         setIsNicknameDialogOpen(true);
       } else if (
-        error.type === 'ROOM_NOT_FOUND' ||
-        error.message === 'ROOM_NOT_FOUND'
+        error.type === ERROR_CODE.ROOM_NOT_FOUND ||
+        error.message === ERROR_CODE.ROOM_NOT_FOUND
       ) {
         setRoomError('방을 찾을 수 없습니다.');
       } else {

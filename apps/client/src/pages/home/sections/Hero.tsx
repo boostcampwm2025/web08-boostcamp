@@ -1,3 +1,4 @@
+import { PROJECT_NAME } from '@codejam/common';
 import logoAnimation from '@/assets/logo_animation.svg';
 
 export function Hero() {
@@ -21,7 +22,7 @@ export function Hero() {
 
           <img
             src={logoAnimation}
-            alt="CodeJam Logo"
+            alt={`${PROJECT_NAME} Logo`}
             className="relative w-20 h-20 md:w-24 md:h-24 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3"
           />
         </div>

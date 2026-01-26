@@ -1,8 +1,9 @@
 import { EditorView } from 'codemirror';
 import { toast } from 'sonner';
 import { useFileStore } from '@/stores/file';
+import { LIMITS } from '@codejam/common';
 
-const MAX_LIMIT = 1_000_000; // 1MB
+const MAX_LIMIT = LIMITS.MAX_DOC_SIZE_CLIENT;
 
 export function capacityLimitInputBlocker() {
   return EditorView.domEventHandlers({

@@ -1,24 +1,20 @@
-import type { RoomJoinStatus, RoomToken } from '@codejam/common';
+import type {
+  RoomJoinStatus,
+  CreateQuickRoomResponse,
+  CreateCustomRoomResponse,
+  CreateCustomRoomRequest,
+} from '@codejam/common';
+import { API_ENDPOINTS } from '@codejam/common';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const ROOM_API_PREFIX = `${API_BASE_URL}/api/rooms`;
-
-interface CreateQuickRoomResponse {
-  roomCode: string;
-  token: RoomToken;
-}
-
-export interface CustomRoomData {
-  roomPassword?: string;
-  hostPassword?: string;
-  maxPts: number;
-}
 
 export async function checkRoomExists(
   roomCode: string,
 ): Promise<RoomJoinStatus> {
   try {
-    const response = await fetch(`${ROOM_API_PREFIX}/${roomCode}/joinable`);
+    const response = await fetch(
+      `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOINABLE(roomCode)}`,
+    );
     const text = (await response.text()) as RoomJoinStatus;
     if (text === 'NOT_FOUND') {
       throw new Error('Room not found');
@@ -33,9 +29,12 @@ export async function checkRoomExists(
 
 export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
   try {
-    const response = await fetch(`${ROOM_API_PREFIX}/quick`, {
-      method: 'POST',
-    });
+    const response = await fetch(
+      `${API_BASE_URL}${API_ENDPOINTS.ROOM.CREATE_QUICK}`,
+      {
+        method: 'POST',
+      },
+    );
 
     if (!response.ok) {
       const message = 'Failed to create quick room';
@@ -49,14 +48,19 @@ export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
   }
 }
 
-export const createCustomRoom = async (data: CustomRoomData) => {
-  const response = await fetch(`${ROOM_API_PREFIX}/custom`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+export const createCustomRoom = async (
+  data: CreateCustomRoomRequest,
+): Promise<CreateCustomRoomResponse> => {
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.ROOM.CREATE_CUSTOM}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     },
-    body: JSON.stringify(data),
-  });
+  );
 
   if (!response.ok) {
     const errorData = await response.json();

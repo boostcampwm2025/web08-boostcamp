@@ -5,19 +5,13 @@ import {
   applyAwarenessUpdate,
   encodeAwarenessUpdate,
 } from 'y-protocols/awareness';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, LIMITS, type AwarenessUpdate } from '@codejam/common';
 import { v7 as uuidv7 } from 'uuid';
 import { createDecoder } from 'lib0/decoding';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
 import { readSyncMessage, writeUpdate } from 'y-protocols/sync';
 import { useSocketStore } from './socket';
 import { emitAwarenessUpdate, emitFileUpdate } from './socket-events';
-
-type AwarenessChanges = {
-  added: number[];
-  updated: number[];
-  removed: number[];
-};
 
 interface FileState {
   yDoc: Doc | null;
@@ -109,7 +103,7 @@ export const useFileStore = create<FileState>((set, get) => ({
 
     // Setup awareness update listener
 
-    const onAwarenessUpdate = (changes: AwarenessChanges, origin: unknown) => {
+    const onAwarenessUpdate = (changes: AwarenessUpdate, origin: unknown) => {
       if (origin === 'remote') return;
 
       const changed = changes.added.concat(changes.updated, changes.removed);
@@ -351,12 +345,15 @@ export const useFileStore = create<FileState>((set, get) => ({
       }
     });
 
-    const percentage = Math.min((total / 1_000_000) * 100, 100);
+    const percentage = Math.min(
+      (total / LIMITS.MAX_DOC_SIZE_CLIENT) * 100,
+      100,
+    );
 
     set({
       capacityBytes: total,
       capacityPercentage: percentage,
-      isOverLimit: total >= 1_000_000,
+      isOverLimit: total >= LIMITS.MAX_DOC_SIZE_CLIENT,
     });
 
     return total;

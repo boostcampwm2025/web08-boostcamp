@@ -1,7 +1,8 @@
 import { useRef } from 'react';
 import type { KeyboardEvent, ClipboardEvent } from 'react';
+import { LIMITS } from '@codejam/common';
 
-export const ROOM_CODE_LENGTH = 6;
+export const ROOM_CODE_LENGTH = LIMITS.ROOM_CODE_LENGTH;
 
 type ColorKey = 'blue' | 'green' | 'purple';
 
