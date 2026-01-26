@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type DragEvent } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
 import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
@@ -17,6 +17,8 @@ import { ROLE, type RoomJoinStatus } from '@codejam/common';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
+import { useFileRename } from '@/shared/lib/hooks/useFileRename';
+import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 
 function RoomPage() {
   const {
@@ -30,6 +32,9 @@ function RoomPage() {
     handleNicknameConfirm,
     handlePasswordConfirm,
   } = useRoomJoin();
+  const { setIsDuplicated, isDuplicated, handleFileChange } = useFileRename(
+    paramCode || '',
+  );
 
   useAwarenessSync();
   useInitialFileSelection();
@@ -53,6 +58,16 @@ function RoomPage() {
   const myPt = usePt(myPtId || '');
   const isViewer = myPt?.role === ROLE.VIEWER;
 
+  const handleDragPrevent = (ev: DragEvent) => {
+    ev.preventDefault();
+  };
+
+  const handleFileDrop = (ev: DragEvent) => {
+    ev.preventDefault();
+    const files = ev.dataTransfer.files;
+    handleFileChange(files);
+  };
+
   return (
     <div className="flex h-screen flex-col">
       <Header roomCode={paramCode!} />
@@ -64,7 +79,11 @@ function RoomPage() {
           <Participants />
           <FileList />
         </div>
-        <div className="bg-background h-full flex-1">
+        <div
+          className="flex-1 h-full bg-background"
+          onDragOver={handleDragPrevent}
+          onDrop={handleFileDrop}
+        >
           <FileViewer fileId={activeFileId} readOnly={isViewer} />
         </div>
       </main>
@@ -89,6 +108,7 @@ function RoomPage() {
         />
       )}
       <Toaster />
+      <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
       <HostClaimRequestDialog />
     </div>
   );
