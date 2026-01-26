@@ -1,5 +1,10 @@
 import {
   SOCKET_EVENTS,
+  ERROR_CODE,
+  ROLE,
+  UPDATABLE_PT_ROLES,
+  EXT_TYPES,
+  FILENAME_CHECK_RESULT_TYPES,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
@@ -12,6 +17,8 @@ import {
   type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
+  type PtRole,
+  type PtId,
 } from '@codejam/common';
 import { WsException } from '@nestjs/websockets';
 import { Injectable, Logger } from '@nestjs/common';
@@ -22,13 +29,12 @@ import { FileService } from '../file/file.service';
 import { RoomService } from '../room/room.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { DocumentService } from '../document/document.service';
-import { PtRole } from '../pt/pt.entity';
 import { Room } from '../room/room.entity';
 import { Document } from '../document/document.entity';
 
-/** 호스트 권한 요청 대기 상태 (Service 내부용) */
+// 호스트 권한 요청 대기 상태 (Service 내부용)
 interface PendingClaim {
-  requesterId: string;
+  requesterId: PtId;
   requesterSocketId: string;
   requesterRole: PtRole;
   timeoutId: NodeJS.Timeout;
@@ -89,7 +95,7 @@ export class CollaborationService {
 
     // 방 유효성 검사
     const room = await this.roomService.findRoomByCode(roomCode);
-    if (!room) throw new Error('ROOM_NOT_FOUND');
+    if (!room) throw new Error(ERROR_CODE.ROOM_NOT_FOUND);
 
     const roomId = room.roomId;
 
@@ -99,11 +105,11 @@ export class CollaborationService {
     if (token) {
       const tokenPayload = this.roomTokenService.verify(token);
       if (!tokenPayload) {
-        throw new Error('INVALID_TOKEN');
+        throw new Error(ERROR_CODE.INVALID_TOKEN);
       }
       // 토큰의 roomCode와 요청 roomCode 일치 여부 확인
       if (tokenPayload.roomCode.toUpperCase() !== roomCode) {
-        throw new Error('TOKEN_ROOM_MISMATCH');
+        throw new Error(ERROR_CODE.TOKEN_ROOM_MISMATCH);
       }
       ptId = tokenPayload.ptId;
     }
@@ -119,13 +125,13 @@ export class CollaborationService {
     // 신규 유저는 패스워드와 닉네임 필수
     if (!pt) {
       if (room.roomPassword && !password) {
-        throw new Error('PASSWORD_REQUIRED');
+        throw new Error(ERROR_CODE.PASSWORD_REQUIRED);
       }
       if (room.roomPassword && room.roomPassword !== password) {
-        throw new Error('PASSWORD_UNCORRECT');
+        throw new Error(ERROR_CODE.PASSWORD_UNCORRECT);
       }
       if (!nickname) {
-        throw new Error('NICKNAME_REQUIRED');
+        throw new Error(ERROR_CODE.NICKNAME_REQUIRED);
       }
       pt = await this.ptService.createPt(roomId, nickname);
     }
@@ -188,7 +194,7 @@ export class CollaborationService {
     this.logger.log(`[LEFT_ROOM] ptId: ${ptId} left room ${roomCode}`);
 
     // Host가 나갔다면 다른 참가자에게 호스트 권한 양도
-    if (role === PtRole.HOST) {
+    if (role === ROLE.HOST) {
       await this.handleAutoTransferHost(client, server);
     }
 
@@ -248,10 +254,16 @@ export class CollaborationService {
     const { roomId } = client.data;
     const { ptId, role } = payload;
 
-    if (client.data.role === PtRole.HOST) {
-      await this.ptService.updatePt(client, server, ptId, {
-        role: role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
-      });
+    if (client.data.role === ROLE.HOST) {
+      if (!UPDATABLE_PT_ROLES.includes(role)) {
+        client.emit('error', {
+          type: ERROR_CODE.INVALID_INPUT,
+          message: '호스트 권한은 양도를 통해서만 변경할 수 있습니다',
+        });
+        return;
+      }
+
+      await this.ptService.updatePt(client, server, ptId, { role });
 
       const pt = await this.ptService.getPt(roomId, ptId);
       if (!pt) return;
@@ -282,20 +294,10 @@ export class CollaborationService {
     client: CollabSocket,
     payload: FilenameCheckPayload,
   ): Promise<FilenameCheckResultPayload> {
-    const currentExts = [
-      'mjs',
-      'cjs',
-      'js',
-      'ts',
-      'tsx',
-      'jsx',
-      'htm',
-      'html',
-      'css',
-    ];
+    const currentExts = [...EXT_TYPES, 'htm'];
     const extResult = {
       error: true,
-      type: 'ext',
+      type: FILENAME_CHECK_RESULT_TYPES[0], // 'ext'
       message: '유효하지 않는 확장자입니다.',
     } as FilenameCheckResultPayload;
 
@@ -307,7 +309,7 @@ export class CollaborationService {
     if (!room) {
       return {
         error: true,
-        type: 'no_room',
+        type: FILENAME_CHECK_RESULT_TYPES[2], // 'no_room'
         message: '유효하지 않는 방입니다.',
       };
     }
@@ -330,7 +332,7 @@ export class CollaborationService {
     if (this.fileService.checkDuplicate(docId, filename)) {
       return {
         error: true,
-        type: 'duplicate',
+        type: FILENAME_CHECK_RESULT_TYPES[1], // 'duplicate'
         message: '중복되는 파일명입니다.',
       };
     }
@@ -374,7 +376,7 @@ export class CollaborationService {
     client.data.roomType = room.roomType;
     client.data.docId = doc.docId;
     client.data.ptId = pt.ptId;
-    client.data.role = pt.role as PtRole;
+    client.data.role = pt.role;
     client.data.nickname = pt.nickname;
     client.data.color = pt.color;
     client.data.createdAt = pt.createdAt;
@@ -436,7 +438,7 @@ export class CollaborationService {
 
     // 2. 새 호스트로 역할 변경
     await this.ptService.updatePt(client, server, nextHost.ptId, {
-      role: PtRole.HOST,
+      role: ROLE.HOST,
     });
 
     // 3. 변경된 참가자 정보 브로드캐스트
@@ -514,7 +516,7 @@ export class CollaborationService {
     const room = await this.roomService.findRoomById(roomId);
     if (!room) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'ROOM_NOT_FOUND',
+        reason: ERROR_CODE.ROOM_NOT_FOUND,
       });
       return;
     }
@@ -522,7 +524,7 @@ export class CollaborationService {
     // hostPassword 검증
     if (room.hostPassword !== hostPassword) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'INVALID_PASSWORD',
+        reason: ERROR_CODE.INVALID_PASSWORD,
       });
       return;
     }
@@ -530,7 +532,7 @@ export class CollaborationService {
     // 동시 요청 체크
     if (this.pendingClaims.has(roomId)) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'CLAIM_ALREADY_PENDING',
+        reason: ERROR_CODE.CLAIM_ALREADY_PENDING,
       });
       return;
     }
@@ -539,7 +541,7 @@ export class CollaborationService {
     const hostSocket = await this.findHostSocket(server, roomCode);
     if (!hostSocket) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'HOST_NOT_FOUND',
+        reason: ERROR_CODE.HOST_NOT_FOUND,
       });
       return;
     }
@@ -608,9 +610,9 @@ export class CollaborationService {
         requesterSocket as CollabSocket,
         server,
         requesterId,
-        { role: PtRole.HOST },
+        { role: ROLE.HOST },
       );
-      (requesterSocket as CollabSocket).data.role = PtRole.HOST;
+      (requesterSocket as CollabSocket).data.role = ROLE.HOST;
     }
 
     const newHostPt = await this.ptService.getPt(roomId, requesterId);
@@ -698,7 +700,7 @@ export class CollaborationService {
   ): Promise<CollabSocket | null> {
     const sockets = await server.in(roomCode).fetchSockets();
     for (const socket of sockets) {
-      if ((socket as unknown as CollabSocket).data.role === PtRole.HOST) {
+      if ((socket as unknown as CollabSocket).data.role === ROLE.HOST) {
         return socket as unknown as CollabSocket;
       }
     }

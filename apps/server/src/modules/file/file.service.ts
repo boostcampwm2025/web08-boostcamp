@@ -15,27 +15,22 @@ import {
   AwarenessUpdatePayload,
   FileUpdatePayload,
   SOCKET_EVENTS,
+  type AwarenessUpdate,
+  LIMITS,
+  type Language,
+  getDefaultFileName,
+  getDefaultFileTemplate,
+  type FileId,
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
 import { v7 as uuidv7 } from 'uuid';
-import {
-  Language,
-  getDefaultFileName,
-  getDefaultFileTemplate,
-} from './file.constants';
-
-export type AwarenessUpdate = {
-  added: number[];
-  updated: number[];
-  removed: number[];
-};
 
 export type RoomDoc = {
   docId: string;
   doc: Doc;
   awareness: Awareness;
-  files: Set<string>;
+  files: Set<FileId>;
 
   docListener: (update: Uint8Array, origin: unknown) => void;
   awarenessListener: (changes: AwarenessUpdate, origin: unknown) => void;
@@ -54,7 +49,7 @@ export class FileService {
   private readonly logger = new Logger(FileService.name);
 
   // Doc size limit
-  private readonly MAX_DOC_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly MAX_DOC_SIZE = LIMITS.MAX_DOC_SIZE_SERVER;
 
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();

@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RoomController } from './room.controller';
 import { RoomService } from './room.service';
 import { PtService } from '../pt/pt.service';
-import { CreateRoomResponseDto } from './dto/create-room-response.dto';
+import { CreateQuickRoomResponseDto } from './dto/create-quick-room-response.dto';
+import { API_ENDPOINTS } from '@codejam/common';
 
 describe('RoomController', () => {
   let controller: RoomController;
@@ -41,11 +42,10 @@ describe('RoomController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('createQuickRoom (POST /api/room/quick)', () => {
+  describe(`createQuickRoom (POST ${API_ENDPOINTS.ROOM.CREATE_QUICK})`, () => {
     it('Service를 호출하고 생성된 방 정보를 반환해야 한다', async () => {
-      const mockResponse: CreateRoomResponseDto = {
+      const mockResponse: CreateQuickRoomResponseDto = {
         roomCode: 'ABCDEF',
-        token: 'RoomToken',
       };
 
       mockRoomService.createQuickRoom.mockResolvedValue(mockResponse);
