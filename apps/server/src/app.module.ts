@@ -11,6 +11,7 @@ import { config as databaseConfig } from './config/database.config';
 import { CleanupModule } from './modules/cleanup/cleanup.module';
 import { YRedisModule } from './modules/y-redis/y-redis.module';
 import { HealthModule } from './modules/health/health.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -24,6 +25,12 @@ import { HealthModule } from './modules/health/health.module';
       useFactory: (configService: ConfigService): TypeOrmModuleOptions =>
         configService.get<TypeOrmModuleOptions>('database')!,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 6000, // 1분 (기본)
+        limit: 10, // 10회 (기본)
+      },
+    ]),
     RedisModule,
     YRedisModule,
     AuthModule,
