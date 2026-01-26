@@ -31,7 +31,7 @@ export function MenuButton({
   return (
     <button
       onClick={onClick}
-      className={`text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 ${className}`}
+      className={`p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ${className}`}
     >
       {label}
     </button>

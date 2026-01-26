@@ -56,10 +56,7 @@ export const Participant = memo(
     };
 
     return (
-      <div
-        className="flex items-center justify-between p-2 transition-colors
-        select-none group hover:bg-gray-100 dark:hover:bg-gray-700"
-      >
+      <div className="group flex items-center justify-between p-2 transition-colors select-none hover:bg-gray-100 dark:hover:bg-gray-700">
         <div className={`flex items-center space-x-5 ${opacity}`}>
           <ParticipantAvatar ptId={ptId} />
           <ParticipantInfo
@@ -78,7 +75,7 @@ export const Participant = memo(
             <PopoverContent className="z-9999">
               <div
                 onClick={handleRenamePopover}
-                className="absolute border w-45 p-4 rounded-md bg-white text-black dark:bg-black dark:hover:bg-gray-800 dark:text-white hover:bg-gray-50 hover:cursor-pointer"
+                className="absolute w-45 rounded-md border bg-white p-4 text-black hover:cursor-pointer hover:bg-gray-50 dark:bg-black dark:text-white dark:hover:bg-gray-800"
               >
                 <span>이름 변경</span>
               </div>

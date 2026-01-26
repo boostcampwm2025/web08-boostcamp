@@ -40,7 +40,7 @@ export function DestroyRoomDialog({ children }: DestroyRoomDialogProps) {
               <br />이 작업은 되돌릴 수 없습니다.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-row justify-end gap-2 mt-4 border-t pt-4">
+          <DialogFooter className="mt-4 flex-row justify-end gap-2 border-t pt-4">
             <DialogClose asChild>
               <Button type="button" variant="secondary" size="sm">
                 취소
@@ -50,7 +50,7 @@ export function DestroyRoomDialog({ children }: DestroyRoomDialogProps) {
               type="submit"
               variant="ghost"
               size="sm"
-              className="text-destructive hover:text-red-500 hover:bg-destructive/10"
+              className="text-destructive hover:bg-destructive/10 hover:text-red-500"
             >
               폭파하기
             </Button>

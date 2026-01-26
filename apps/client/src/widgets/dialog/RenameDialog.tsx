@@ -91,7 +91,7 @@ export function RenameDialog({
           <DialogTitle>파일 이름 변경</DialogTitle>
           <DialogDescription>파일의 이름을 변경합니다.</DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2 mt-2 mb-2">
+        <div className="mt-2 mb-2 flex items-center space-x-2">
           <Label htmlFor="filename" className="sr-only">
             파일명
           </Label>
@@ -119,7 +119,7 @@ export function RenameDialog({
           </Select>
         </div>
         {helperMessage && (
-          <p className="text-[12px] text-destructive text-red-500">
+          <p className="text-destructive text-[12px] text-red-500">
             {helperMessage}
           </p>
         )}

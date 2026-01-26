@@ -78,7 +78,7 @@ export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
               파일의 이름을 입력해서 새 파일을 만들어보세요
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center space-x-2 mt-2 mb-2">
+          <div className="mt-2 mb-2 flex items-center space-x-2">
             <Label htmlFor="filename" className="sr-only">
               파일명
             </Label>
@@ -106,7 +106,7 @@ export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
             </Select>
           </div>
           {helperMessage && (
-            <p className="text-[12px] text-destructive text-red-500">
+            <p className="text-destructive text-[12px] text-red-500">
               {helperMessage}
             </p>
           )}

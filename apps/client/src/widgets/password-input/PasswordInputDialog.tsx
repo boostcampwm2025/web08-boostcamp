@@ -80,10 +80,10 @@ export function PasswordDialogProps({
                 maxLength={16}
               />
               {error && (
-                <p className="text-sm text-destructive text-red-600">{error}</p>
+                <p className="text-destructive text-sm text-red-600">{error}</p>
               )}
               {passwordError && (
-                <p className="text-sm text-destructive text-red-600">
+                <p className="text-destructive text-sm text-red-600">
                   {passwordError}
                 </p>
               )}

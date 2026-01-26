@@ -118,11 +118,11 @@ export function Participants() {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-0 max-h-[30vh]">
+        <div className="max-h-[30vh] min-h-0 flex-1 overflow-y-auto">
           {me && <Participant ptId={me.ptId} hasPermission={false} />}
 
           {me && others.length > 0 && (
-            <div className="mx-3 my-1 border-t border-gray-300 dark:border-gray-600 opacity-50" />
+            <div className="mx-3 my-1 border-t border-gray-300 opacity-50 dark:border-gray-600" />
           )}
 
           {others.map((p) => (

@@ -74,7 +74,7 @@ export function HostClaimRequestDialog() {
             </span>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-row justify-end gap-2 mt-4 border-t pt-4">
+        <DialogFooter className="mt-4 flex-row justify-end gap-2 border-t pt-4">
           <Button
             type="button"
             variant="secondary"
@@ -88,7 +88,7 @@ export function HostClaimRequestDialog() {
             variant="ghost"
             size="sm"
             onClick={handleAccept}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
+            className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
           >
             수락
           </Button>

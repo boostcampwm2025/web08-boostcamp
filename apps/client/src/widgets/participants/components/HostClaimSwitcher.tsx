@@ -41,7 +41,7 @@ export function HostClaimSwitcher({
       <div className="block group-hover:hidden">
         <span
           className={cn(
-            'text-[10px] px-1.5 py-0.5 rounded-md border font-medium uppercase tracking-wide',
+            'rounded-md border px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase',
             ROLE_BADGE_STYLES[role],
             'opacity-90',
           )}
@@ -53,7 +53,7 @@ export function HostClaimSwitcher({
       {/* [State B] Interactive Switch - role | HOST */}
       <div
         className={cn(
-          'hidden group-hover:flex relative items-center bg-gray-200 dark:bg-gray-700 rounded-md p-0.5 w-[104px] h-6 select-none animate-in fade-in zoom-in-95 duration-200',
+          'animate-in fade-in zoom-in-95 relative hidden h-6 w-[104px] items-center rounded-md bg-gray-200 p-0.5 duration-200 select-none group-hover:flex dark:bg-gray-700',
           isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
         )}
         onClick={(e) => {
@@ -63,12 +63,12 @@ export function HostClaimSwitcher({
         title={isDisabled ? '호스트 비밀번호가 설정되지 않은 방입니다' : ''}
       >
         {/* Current Role Pill (선택됨) */}
-        <div className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-sm bg-white dark:bg-gray-600 shadow-sm left-0.5" />
+        <div className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-sm bg-white shadow-sm dark:bg-gray-600" />
 
         {/* Current Role Label */}
         <div
           className={cn(
-            'z-10 flex-1 text-center text-[10px] font-bold uppercase tracking-wider transition-colors',
+            'z-10 flex-1 text-center text-[10px] font-bold tracking-wider uppercase transition-colors',
             role === ROLE.EDITOR
               ? 'text-blue-600 dark:text-blue-300'
               : 'text-gray-800 dark:text-gray-100',
@@ -78,7 +78,7 @@ export function HostClaimSwitcher({
         </div>
 
         {/* HOST Label */}
-        <div className="z-10 flex-1 text-center text-[10px] font-bold uppercase tracking-wider transition-colors text-gray-400 dark:text-gray-500">
+        <div className="z-10 flex-1 text-center text-[10px] font-bold tracking-wider text-gray-400 uppercase transition-colors dark:text-gray-500">
           Host
         </div>
       </div>
