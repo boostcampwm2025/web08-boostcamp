@@ -34,4 +34,7 @@ export const ERROR_CODE = {
 
   // Rate limit errors
   TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
+
+  // Server errors
+  SERVER_ERROR: 'SERVER_ERROR',
 } as const;
