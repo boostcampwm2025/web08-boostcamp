@@ -14,6 +14,10 @@ const ERROR_MESSAGES = {
   FILE_NOT_FOUND: '파일을 찾을 수 없습니다',
   INVALID_FILENAME: '유효하지 않은 파일명입니다',
   DUPLICATE_FILENAME: '중복된 파일명입니다',
+  CODE_EXECUTION_FAILED: '코드 실행에 실패했습니다',
+  CODE_EXECUTION_SERVICE_UNAVAILABLE: '코드 실행 서비스에 연결할 수 없습니다',
+  INVALID_LANGUAGE: '지원하지 않는 언어입니다',
+  INVALID_LANGUAGE_VERSION: '지원하지 않는 언어 버전입니다',
 } as const;
 
 const VALIDATION_MESSAGES = {
