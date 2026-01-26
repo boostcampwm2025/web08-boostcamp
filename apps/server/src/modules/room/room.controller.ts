@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, UseGuards } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateCustomRoomRequestDto } from './dto/create-custom-room-request.dto';
 import { CreateQuickRoomResponseDto } from './dto/create-quick-room-response.dto';
@@ -9,6 +9,8 @@ import {
   API_ENDPOINTS,
   ROOM_JOIN_STATUS,
 } from '@codejam/common';
+import { CustomThrottlerGuard } from 'src/common/guards/custom-throttler.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller()
 export class RoomController {
@@ -31,11 +33,15 @@ export class RoomController {
   }
 
   @Post(API_ENDPOINTS.ROOM.CREATE_QUICK)
+  @UseGuards(CustomThrottlerGuard)
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
   async createQuickRoom(): Promise<CreateQuickRoomResponseDto> {
     return await this.roomService.createQuickRoom();
   }
 
   @Post(API_ENDPOINTS.ROOM.CREATE_CUSTOM)
+  @UseGuards(CustomThrottlerGuard)
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
   async createCustomRoom(
     @Body() dto: CreateCustomRoomRequestDto,
   ): Promise<CreateCustomRoomResponseDto> {
