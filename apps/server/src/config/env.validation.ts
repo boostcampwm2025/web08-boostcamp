@@ -23,6 +23,9 @@ export const validationSchema = Joi.object({
     JWT_ROOM_TOKEN_DEFAULT_EXPIRES,
   ),
 
+  // Piston (Code Execution)
+  PISTON_API_URL: Joi.string().required(),
+
   // Environment
   NODE_ENV: Joi.string()
     .valid('development', 'production', 'test')

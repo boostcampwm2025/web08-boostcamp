@@ -1,0 +1,21 @@
+services:
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: piston
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - '2000:2000'
+    volumes:
+      - piston_data:/piston
+    environment:
+      # Configure Piston settings
+      - PISTON_LOG_LEVEL=INFO
+      # Disable networking for executed code
+      - PISTON_DISABLE_NETWORKING=true
+      # Maximum concurrent jobs
+      - PISTON_MAX_CONCURRENT_JOBS=64
+
+volumes:
+  piston_data:
+    driver: local

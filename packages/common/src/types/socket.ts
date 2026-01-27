@@ -22,6 +22,10 @@ import {
   fileRenamePayloadSchema,
   fileDeletePayloadSchema,
   filenameCheckResultPayloadSchema,
+  // Code execution socket schemas
+  executeCodePayloadSchema,
+  codeExecutionResultPayloadSchema,
+  codeExecutionErrorPayloadSchema,
 } from '../schemas/socket/index.js';
 
 // ==================== Room Socket Types ====================
@@ -89,4 +93,19 @@ export type FileDeletePayload = z.infer<typeof fileDeletePayloadSchema>;
 /** 파일 이름 확인 (S -> C) */
 export type FilenameCheckResultPayload = z.infer<
   typeof filenameCheckResultPayloadSchema
+>;
+
+// ==================== Code Execution Socket Types ====================
+
+/** 코드 실행 요청 (C -> S) */
+export type ExecuteCodePayload = z.infer<typeof executeCodePayloadSchema>;
+
+/** 코드 실행 결과 (S -> C) */
+export type CodeExecutionResultPayload = z.infer<
+  typeof codeExecutionResultPayloadSchema
+>;
+
+/** 코드 실행 시 시스템 또는 인프라 에러 (S -> C) */
+export type CodeExecutionErrorPayload = z.infer<
+  typeof codeExecutionErrorPayloadSchema
 >;

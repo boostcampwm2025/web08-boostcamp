@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@codejam/common": "workspace:*",
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -34,6 +35,7 @@
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.9",
+    "axios": "^1.13.3",
     "cookie": "^1.1.1",
     "ioredis": "^5.8.2",
     "joi": "^18.0.2",

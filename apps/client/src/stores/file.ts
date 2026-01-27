@@ -50,6 +50,7 @@ interface FileState {
   getFilesMap: () => YMap<YMap<unknown>> | null;
   getFileIdMap: () => YMap<string> | null;
 
+  getFileName: (fileId: string) => string | null;
   getFileContent: (fileId: string) => string | null;
   getActiveFileContent: () => string | null;
 }
@@ -375,6 +376,19 @@ export const useFileStore = create<FileState>((set, get) => ({
 
   clearTempFile: () => {
     set({ tempFiles: [] });
+  },
+
+  // 파일 이름 가져오기
+  getFileName: (fileId: string) => {
+    const { yDoc } = get();
+    if (!yDoc) return null;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const fileMap = filesMap.get(fileId);
+    if (!fileMap) return null;
+
+    const name = fileMap.get('name') as string;
+    return name || null;
   },
 
   // 파일 내용 가져오기

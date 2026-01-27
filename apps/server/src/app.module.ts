@@ -11,6 +11,7 @@ import { config as databaseConfig } from './config/database.config';
 import { CleanupModule } from './modules/cleanup/cleanup.module';
 import { YRedisModule } from './modules/y-redis/y-redis.module';
 import { HealthModule } from './modules/health/health.module';
+import { CodeExecutionModule } from './modules/code-execution/code-execution.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
@@ -39,6 +40,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     FileModule,
     CleanupModule,
     HealthModule,
+    CodeExecutionModule,
   ],
 })
 export class AppModule {}

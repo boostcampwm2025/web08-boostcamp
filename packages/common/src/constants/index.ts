@@ -9,3 +9,4 @@ export * from './file.js';
 export * from './pt.js';
 export * from './room.js';
 export * from './routes.js';
+export * from './code-execution.js';

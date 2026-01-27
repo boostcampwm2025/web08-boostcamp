@@ -5,6 +5,7 @@ import {
   filenameSchema,
   filenameCheckResultTypeSchema,
 } from '../entities/file.schema.js';
+import { executeCodeResponseSchema } from '../api/code-execution.schema.js';
 
 // 파일 내용 변경 (C <-> S)
 export const fileUpdatePayloadSchema = z.object({
@@ -38,4 +39,21 @@ export const filenameCheckResultPayloadSchema = z.object({
   error: z.boolean(),
   type: filenameCheckResultTypeSchema.optional(),
   message: z.string().trim().optional(),
+});
+
+// 코드 실행 요청 (C -> S)
+export const executeCodePayloadSchema = z.object({
+  fileId: fileIdSchema,
+  language: z.string(),
+  stdin: z.string().optional(),
+  args: z.array(z.string()).optional(),
+});
+
+// 코드 실행 결과 (S -> C)
+export const codeExecutionResultPayloadSchema = executeCodeResponseSchema;
+
+// 코드 실행 에러 (S -> C)
+export const codeExecutionErrorPayloadSchema = z.object({
+  error: z.string(),
+  message: z.string(),
 });

@@ -4,6 +4,7 @@ import { NewFileButton } from './buttons/NewFileButton';
 import { FileUploadButton } from './buttons/FileUploadButton';
 import { FileDownloadButton } from './buttons/FileDownloadButton';
 import { FileCopyButton } from './buttons/FileCopyButton';
+import { CodeExecutionButton } from './buttons/CodeExecutionButton';
 import { ShareButton } from './buttons/ShareButton';
 import { DestroyRoomButton } from './buttons/DestroyRoomButton';
 import { SettingsButton } from './buttons/SettingsButton';
@@ -27,6 +28,7 @@ export default function Header({ roomCode }: HeaderProps) {
         <FileUploadButton roomCode={roomCode} />
         <FileDownloadButton />
         <FileCopyButton />
+        <CodeExecutionButton />
         <ShareButton />
         <DestroyRoomButton />
         <SettingsButton />
