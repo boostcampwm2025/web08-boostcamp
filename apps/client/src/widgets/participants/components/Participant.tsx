@@ -7,12 +7,11 @@ import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
 import { SOCKET_EVENTS, ROLE, PRESENCE } from '@codejam/common';
 import {
-  Button,
   RadixPopover as Popover,
   RadixPopoverContent as PopoverContent,
   RadixPopoverTrigger as PopoverTrigger,
 } from '@codejam/ui';
-import { MoreVertical } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 
 /**
  * 참가자 정보를 표시하는 컴포넌트
@@ -71,11 +70,9 @@ export const Participant = memo(
         {isMe && (
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="ghost">
-                <MoreVertical className="size-4" />
-              </Button>
+              <MoreHorizontal className="size-4" />
             </PopoverTrigger>
-            <PopoverContent className="z-50 w-32 p-1" align="end">
+            <PopoverContent className="z-50 w-32 p-1" align="start">
               <button
                 type="button"
                 onClick={handleRenamePopover}
