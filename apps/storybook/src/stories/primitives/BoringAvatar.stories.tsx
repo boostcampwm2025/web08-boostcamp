@@ -23,7 +23,7 @@ const meta = {
       description: '고유 ID (아바타 생성에 사용)',
     },
     size: {
-      control: { type: 'range', min: 24, max: 120, step: 4 },
+      control: { type: 'range', min: 16, max: 120, step: 4 },
       description: '아바타 크기 (픽셀)',
     },
   },
@@ -159,7 +159,13 @@ export const VariantBauhaus: Story = {
 
 export const CustomColors: Story = {
   render: () => {
-    const customColors = ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51'];
+    const customColors = [
+      '#264653',
+      '#2a9d8f',
+      '#e9c46a',
+      '#f4a261',
+      '#e76f51',
+    ];
     const { Avatar } = createAvatarGenerator(
       new BoringAvatarProvider({ colors: customColors }),
     );

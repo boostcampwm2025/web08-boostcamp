@@ -23,7 +23,7 @@ const meta = {
       description: '고유 ID (아바타 생성에 사용)',
     },
     size: {
-      control: { type: 'range', min: 24, max: 120, step: 4 },
+      control: { type: 'range', min: 16, max: 120, step: 4 },
       description: '아바타 크기 (픽셀)',
     },
   },
