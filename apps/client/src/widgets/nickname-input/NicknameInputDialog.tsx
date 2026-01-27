@@ -75,6 +75,7 @@ export function NicknameInputDialog({
                 autoFocus
                 aria-invalid={!!error}
                 maxLength={6}
+                className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/50"
               />
               {error && <p className="text-destructive text-sm">{error}</p>}
             </div>
