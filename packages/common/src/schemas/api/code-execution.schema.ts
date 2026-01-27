@@ -2,7 +2,6 @@ import { z } from 'zod';
 import {
   FILE_ENCODING,
   EXECUTION_STATUS,
-  CODE_EXECUTION_CONFIG,
   CODE_EXECUTION_LIMITS,
 } from '../../constants/code-execution.js';
 
@@ -20,7 +19,7 @@ const executionStatusValues = Object.values(EXECUTION_STATUS) as [
 export const codeFileSchema = z.object({
   name: z.string().optional(),
   content: z.string().max(CODE_EXECUTION_LIMITS.MAX_FILE_SIZE),
-  encoding: z.enum(fileEncodingValues).optional().default(FILE_ENCODING.UTF8),
+  encoding: z.enum(fileEncodingValues).optional(),
 });
 
 // Execute code request schema
@@ -31,50 +30,34 @@ export const executeCodeRequestSchema = z.object({
     .array(codeFileSchema)
     .min(1, 'At least one file is required')
     .max(CODE_EXECUTION_LIMITS.MAX_FILES),
-  stdin: z.string().optional().default(''),
-  args: z
-    .array(z.string())
-    .max(CODE_EXECUTION_LIMITS.MAX_ARGS)
-    .optional()
-    .default([]),
+  stdin: z.string().optional(),
+  args: z.array(z.string()).max(CODE_EXECUTION_LIMITS.MAX_ARGS).optional(),
   compile_timeout: z
     .number()
     .int()
     .positive()
     .max(CODE_EXECUTION_LIMITS.MAX_COMPILE_TIMEOUT)
-    .optional()
-    .default(CODE_EXECUTION_CONFIG.DEFAULT_COMPILE_TIMEOUT),
+    .optional(),
   run_timeout: z
     .number()
     .int()
     .positive()
     .max(CODE_EXECUTION_LIMITS.MAX_RUN_TIMEOUT)
-    .optional()
-    .default(CODE_EXECUTION_CONFIG.DEFAULT_RUN_TIMEOUT),
+    .optional(),
   compile_cpu_time: z
     .number()
     .int()
     .positive()
     .max(CODE_EXECUTION_LIMITS.MAX_COMPILE_CPU_TIME)
-    .optional()
-    .default(CODE_EXECUTION_CONFIG.DEFAULT_COMPILE_CPU_TIME),
+    .optional(),
   run_cpu_time: z
     .number()
     .int()
     .positive()
     .max(CODE_EXECUTION_LIMITS.MAX_RUN_CPU_TIME)
-    .optional()
-    .default(CODE_EXECUTION_CONFIG.DEFAULT_RUN_CPU_TIME),
-  compile_memory_limit: z
-    .number()
-    .int()
-    .optional()
-    .default(CODE_EXECUTION_CONFIG.DEFAULT_COMPILE_MEMORY_LIMIT),
-  run_memory_limit: z
-    .number()
-    .int()
-    .optional()
-    .default(CODE_EXECUTION_CONFIG.DEFAULT_RUN_MEMORY_LIMIT),
+    .optional(),
+  compile_memory_limit: z.number().int().optional(),
+  run_memory_limit: z.number().int().optional(),
 });
 
 // Stage result schema (compile or run)
@@ -110,8 +93,8 @@ export const runtimeSchema = z.object({
 export const getRuntimesResponseSchema = z.array(runtimeSchema);
 
 // Inferred types
-export type CodeFile = z.infer<typeof codeFileSchema>;
-export type ExecuteCodeRequest = z.infer<typeof executeCodeRequestSchema>;
+export type CodeFile = z.input<typeof codeFileSchema>;
+export type ExecuteCodeRequest = z.input<typeof executeCodeRequestSchema>;
 export type StageResult = z.infer<typeof stageResultSchema>;
 export type ExecuteCodeResponse = z.infer<typeof executeCodeResponseSchema>;
 export type Runtime = z.infer<typeof runtimeSchema>;
