@@ -71,9 +71,6 @@ importers:
       socket.io-client:
         specifier: ^4.8.1
         version: 4.8.1
-      sonner:
-        specifier: ^2.0.7
-        version: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       tailwindcss:
         specifier: ^4.1.18
         version: 4.1.18
