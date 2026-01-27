@@ -62,5 +62,5 @@ export {
   SelectValue,
 } from './select';
 export { Slider } from './slider';
-export { Toaster } from './sonner';
+export { Toaster, toast } from './sonner';
 export { Switch } from './switch';
