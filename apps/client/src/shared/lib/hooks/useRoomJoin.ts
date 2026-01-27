@@ -87,9 +87,9 @@ export function useRoomJoin() {
         setIsPasswordDialogOpen(false);
         setIsNicknameDialogOpen(true);
       } catch (e) {
-        const error = e as any;
+        const error = e as { code: keyof typeof ERROR_CODE; message: string };
         if (
-          error.type === ERROR_CODE.PASSWORD_UNCORRECT ||
+          error.code === ERROR_CODE.PASSWORD_UNCORRECT ||
           error.message?.includes('Incorrect')
         ) {
           setPasswordError('비밀번호가 일치하지 않습니다.');
