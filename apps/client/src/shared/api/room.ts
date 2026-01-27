@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '@codejam/common';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export async function checkRoomExists(
+export async function checkRoomJoinable(
   roomCode: string,
 ): Promise<RoomJoinStatus> {
   try {

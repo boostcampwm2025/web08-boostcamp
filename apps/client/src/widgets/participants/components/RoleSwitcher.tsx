@@ -1,4 +1,4 @@
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@codejam/ui';
 import { ROLE_BADGE_STYLES, getRoleDisplayText } from '../lib/types';
 import { ROLE, type Pt } from '@codejam/common';
 

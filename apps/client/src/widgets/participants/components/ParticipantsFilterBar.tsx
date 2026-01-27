@@ -9,15 +9,15 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxValue,
-} from '@/shared/ui/combobox';
+} from '@codejam/ui';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/ui/select';
-import { Button } from '@/shared/ui/button';
+  RadixSelect as Select,
+  RadixSelectContent as SelectContent,
+  RadixSelectItem as SelectItem,
+  RadixSelectTrigger as SelectTrigger,
+  RadixSelectValue as SelectValue,
+} from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
 import { Check, X, Pencil, Eye } from 'lucide-react';
 import type { FilterOption } from '../types';
 import type { SortKey } from '../lib/types';
