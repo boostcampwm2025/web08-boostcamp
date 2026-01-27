@@ -92,6 +92,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
 
     return [
       basicSetup,
+      EditorView.lineWrapping,
       yCollab(yText, awareness),
       getLanguageExtension(language),
       // safeInput({ allowAscii: true }),
