@@ -9,8 +9,7 @@ import {
   checkRoomJoinable,
   createCustomRoom,
 } from '@/shared/api/room';
-import type { CreateCustomRoomRequest } from '@codejam/common';
-import { ROUTES } from '@codejam/common';
+import { ROUTES, type CreateCustomRoomRequest } from '@codejam/common';
 import { setRoomToken } from '@/shared/lib/storage';
 import {
   RadixPopover as Popover,
@@ -18,7 +17,6 @@ import {
   RadixPopoverTrigger as PopoverTrigger,
 } from '@codejam/ui';
 import { CustomStartPopover } from '../components/CustomStartPopover';
-import type { CreateCustomRoomRequest } from '@codejam/common';
 
 interface ErrorMessageProps {
   message: string;
@@ -179,7 +177,7 @@ export function ActionCards() {
               <Button
                 onClick={handleJoinRoom}
                 disabled={roomCode.some((digit) => digit === '') || isJoining}
-                className={`group from-brand-green shadow-brand-green/20 hover:to-brand-green hover:shadow-brand-green/40 relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br to-emerald-600 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:bg-none disabled:text-gray-400 disabled:shadow-none`}
+                className={`group from-brand-green shadow-brand-green/20 hover:to-brand-green hover:shadow-brand-green/40 relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-br to-emerald-600 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:bg-none disabled:text-gray-400 disabled:shadow-none`}
               >
                 {isJoining ? '입장 중...' : '입장하기'}
               </Button>
