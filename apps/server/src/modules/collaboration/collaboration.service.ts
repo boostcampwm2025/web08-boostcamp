@@ -191,12 +191,23 @@ export class CollaborationService {
       );
     }
 
-    // 참가자 삭제 및 다른 참가자들에게 알림
+    // 참가자 삭제 전에 pt 정보 조회 (시스템 메시지용)
+    const pt = await this.ptService.getPt(roomId, ptId);
 
+    // 참가자 삭제 및 다른 참가자들에게 알림
     await this.ptService.deletePt(roomId, ptId);
 
     client.emit(SOCKET_EVENTS.GOODBYE);
     server.to(roomCode).emit(SOCKET_EVENTS.PT_LEFT, { ptId });
+
+    // 시스템 메시지 발송 
+    if (pt) {
+      server.to(roomCode).emit(SOCKET_EVENTS.CHAT_SYSTEM, {
+        id: uuidv7(),
+        type: 'leave',
+        pt: pt,
+      });
+    }
 
     await client.leave(roomCode);
 
