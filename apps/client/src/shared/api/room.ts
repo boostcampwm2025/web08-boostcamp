@@ -66,6 +66,7 @@ export const createCustomRoom = async (
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+        credentials: 'include',
       },
     );
 
@@ -84,5 +85,23 @@ export const createCustomRoom = async (
   } catch (e) {
     const error = e as Error;
     throw error;
+  }
+};
+
+export const joinRoom = async (
+  roomCode: string,
+  nickname: string,
+  password: string | null,
+) => {
+  const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/join`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nickname, password }),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || 'Failed to join room');
   }
 };

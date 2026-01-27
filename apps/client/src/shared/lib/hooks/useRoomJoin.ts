@@ -6,6 +6,7 @@ import { useRoomStore } from '@/stores/room';
 import { getRoomToken } from '@/shared/lib/storage';
 import { useTempValue } from '@/stores/temp';
 import { ERROR_CODE } from '@codejam/common';
+import { joinRoom } from '@/shared/api/room';
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
@@ -98,12 +99,30 @@ export function useRoomJoin() {
   }, [paramCode]);
 
   const handleNicknameConfirm = useCallback(
-    (nickname: string) => {
+    async (nickname: string) => {
       if (!paramCode) return;
-
       setRoomError('');
-      emitJoinRoom(paramCode, nickname, tempRoomPassword);
-      setIsNicknameDialogOpen(false);
+
+      try {
+        // [HTTP] 입장 API 호출 (여기서 쿠키!)
+        await joinRoom(paramCode, nickname, tempRoomPassword);
+
+        // [Socket] 소켓 재연결
+        // 이제 쿠키가 있으므로, 소켓이 다시 연결되면 서버에서 복원 로직
+        socket.disconnect();
+        socket.once('connect', () => {
+          console.log('🔄 Reconnected, emitting joinRoom...');
+          emitJoinRoom(paramCode);
+        });
+        socket.connect();
+
+        emitJoinRoom(paramCode);
+
+        setIsNicknameDialogOpen(false);
+      } catch (e) {
+        const error = e as Error;
+        setRoomError(error.message);
+      }
     },
     [paramCode, tempRoomPassword],
   );
