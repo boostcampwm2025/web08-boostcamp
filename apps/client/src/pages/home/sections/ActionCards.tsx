@@ -8,12 +8,12 @@ import {
   createQuickRoom,
   checkRoomExists,
   createCustomRoom,
-  type CustomRoomData,
 } from '@/shared/api/room';
 import { getRoomUrl } from '@/shared/lib/routes';
 import { setRoomToken } from '@/shared/lib/storage';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { CustomStartPopover } from '../components/CustomStartPopover';
+import type { CreateCustomRoomRequest } from '@codejam/common';
 
 interface ErrorMessageProps {
   message: string;
@@ -66,7 +66,7 @@ export function ActionCards() {
     }
   };
 
-  const handleCustomStart = async (data: CustomRoomData) => {
+  const handleCustomStart = async (data: CreateCustomRoomRequest) => {
     if (isCreating) return;
 
     setIsCreating(true);
