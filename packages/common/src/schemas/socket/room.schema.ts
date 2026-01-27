@@ -19,6 +19,7 @@ export const welcomePayloadSchema = z.object({
   myPtId: ptIdSchema,
   roomType: roomTypeSchema,
   whoCanDestroyRoom: whoCanDestroyRoomSchema,
+  hasHostPassword: z.boolean(),
 });
 
 // 방 참가자 목록 스키마 (S -> C)
