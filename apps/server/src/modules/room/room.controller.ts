@@ -9,7 +9,7 @@ import {
   API_ENDPOINTS,
   ROOM_JOIN_STATUS,
 } from '@codejam/common';
-import { CustomThrottlerGuard } from '../../common/guards/custom-throttler.guard';
+import { CommonThrottlerGuard } from '../../common/guards/common-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller()
@@ -33,14 +33,14 @@ export class RoomController {
   }
 
   @Post(API_ENDPOINTS.ROOM.CREATE_QUICK)
-  @UseGuards(CustomThrottlerGuard)
+  @UseGuards(CommonThrottlerGuard)
   @Throttle({ default: { limit: 2, ttl: 60000 } })
   async createQuickRoom(): Promise<CreateQuickRoomResponseDto> {
     return await this.roomService.createQuickRoom();
   }
 
   @Post(API_ENDPOINTS.ROOM.CREATE_CUSTOM)
-  @UseGuards(CustomThrottlerGuard)
+  @UseGuards(CommonThrottlerGuard)
   @Throttle({ default: { limit: 2, ttl: 60000 } })
   async createCustomRoom(
     @Body() dto: CreateCustomRoomRequestDto,

@@ -4,7 +4,7 @@ import { ApiException } from '../exceptions/api.exception';
 import { ERROR_CODE, ERROR_MESSAGES } from '@codejam/common';
 
 @Injectable()
-export class CustomThrottlerGuard extends ThrottlerGuard {
+export class CommonThrottlerGuard extends ThrottlerGuard {
   protected throwThrottlingException(): Promise<void> {
     throw new ApiException(
       ERROR_CODE.TOO_MANY_REQUESTS,
