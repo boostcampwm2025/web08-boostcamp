@@ -9,7 +9,6 @@ import {
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type Pt,
-  type RoomToken,
   type PtUpdateRolePayload,
   type FilenameCheckResultPayload,
   type FilenameCheckPayload,

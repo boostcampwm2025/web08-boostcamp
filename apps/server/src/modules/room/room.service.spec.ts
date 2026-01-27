@@ -27,7 +27,6 @@ const mockQueryRunner = {
 
 describe('RoomService', () => {
   let service: RoomService;
-  let dataSource: DataSource;
   let ptService: PtService;
   let roomTokenService: RoomTokenService;
   let fileService: FileService;
@@ -78,7 +77,6 @@ describe('RoomService', () => {
     }).compile();
 
     service = module.get<RoomService>(RoomService);
-    dataSource = module.get(DataSource);
     ptService = module.get(PtService);
     roomTokenService = module.get(RoomTokenService);
     fileService = module.get(FileService);
