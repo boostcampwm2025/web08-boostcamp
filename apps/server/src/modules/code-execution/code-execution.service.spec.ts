@@ -19,6 +19,7 @@ const mockHttpService = {
 
 describe('CodeExecutionService', () => {
   let service: CodeExecutionService;
+  let httpService: HttpService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
