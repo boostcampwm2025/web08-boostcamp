@@ -4,9 +4,10 @@ import {
   setupFileEventHandlers,
   emitFileUpdate,
   emitAwarenessUpdate,
+  emitExecuteCode,
 } from './file';
 
-export { emitJoinRoom, emitFileUpdate, emitAwarenessUpdate };
+export { emitJoinRoom, emitFileUpdate, emitAwarenessUpdate, emitExecuteCode };
 
 /**
  * Setup all domain-specific event handlers

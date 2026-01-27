@@ -74,6 +74,8 @@ export class CodeExecutionService {
 
       return result as ExecuteCodeResponseDto;
     } catch (error) {
+      this.logger.log(error);
+
       if (error instanceof AxiosError) {
         const data = error.response?.data as { message?: string };
         const status = error.response?.status;
