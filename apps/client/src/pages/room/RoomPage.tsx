@@ -19,6 +19,8 @@ import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
+import { Terminal } from '@/widgets/terminal';
+import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 
 function RoomPage() {
   const {
@@ -45,6 +47,8 @@ function RoomPage() {
   const loader = useLoaderData<RoomJoinStatus>();
 
   useSocket(paramCode || '');
+
+  const { isDark } = useDarkMode();
 
   useEffect(() => {
     if (!paramCode) {
@@ -85,6 +89,9 @@ function RoomPage() {
           onDrop={handleFileDrop}
         >
           <FileViewer fileId={activeFileId} readOnly={isViewer} />
+        </div>
+        <div className="border-border h-full w-96 shrink-0 border-l">
+          <Terminal variant={isDark ? 'dark' : 'light'} />
         </div>
       </main>
       {loader === 'FULL' ? (
