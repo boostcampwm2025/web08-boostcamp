@@ -3,7 +3,6 @@ import { SOCKET_EVENTS, type WelcomePayload } from '@codejam/common';
 import { useRoomStore } from '../room';
 import { useFileStore } from '../file';
 import { toast } from 'sonner';
-import { useTempStore } from '../temp';
 
 const redirectToHome = () => {
   window.location.href = '/';
@@ -21,15 +20,12 @@ export const setupRoomEventHandlers = () => {
       setWhoCanDestroyRoom,
       setHasHostPassword,
     } = useRoomStore.getState();
-    const { setTempRoomPassword } = useTempStore.getState();
-
     if (!roomCode) return;
 
     setMyPtId(myPtId);
     setRoomType(roomType);
     setWhoCanDestroyRoom(whoCanDestroyRoom);
     setHasHostPassword(hasHostPassword);
-    setTempRoomPassword(undefined);
 
     // Initialize filestore after joining room
     const { initialize } = useFileStore.getState();
@@ -77,15 +73,9 @@ export const setupRoomEventHandlers = () => {
   };
 };
 
-export const emitJoinRoom = (
-  roomCode: string,
-  nickname?: string,
-  password?: string | null,
-) => {
+export const emitJoinRoom = (roomCode: string) => {
   socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
     roomCode,
-    nickname: nickname || undefined,
-    password: password || undefined,
   });
 };
 
