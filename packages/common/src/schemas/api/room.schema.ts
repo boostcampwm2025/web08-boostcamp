@@ -22,7 +22,6 @@ export const createQuickRoomResponseSchema = z.object({
 // Custom Room 생성 응답 스키마 (token 필수)
 export const createCustomRoomResponseSchema = z.object({
   roomCode: roomCodeSchema,
-  token: roomTokenSchema,
 });
 
 // 방 참가 가능 여부 확인 응답 스키마

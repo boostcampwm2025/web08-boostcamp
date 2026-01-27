@@ -10,7 +10,6 @@ import {
   createCustomRoom,
 } from '@/shared/api/room';
 import { ROUTES, type CreateCustomRoomRequest } from '@codejam/common';
-import { setRoomToken } from '@/shared/lib/storage';
 import {
   RadixPopover as Popover,
   RadixPopoverContent as PopoverContent,
@@ -76,8 +75,7 @@ export function ActionCards() {
     setCreateRoomError('');
 
     try {
-      const { roomCode, token } = await createCustomRoom(data);
-      setRoomToken(roomCode, token);
+      const { roomCode } = await createCustomRoom(data);
       navigate(ROUTES.ROOM(roomCode));
     } catch (e) {
       setCreateRoomError((e as Error).message);
