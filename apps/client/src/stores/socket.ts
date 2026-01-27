@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { RoomCode } from '@codejam/common';
 import { socket } from '@/shared/api/socket';
 import { setupDomainEventHandlers, emitJoinRoom } from './socket-events';
-import { useTempStore } from './temp';
 
 interface SocketState {
   socket: typeof socket;
@@ -39,9 +38,8 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     const onConnect = () => {
       console.log('🟢 Connected to Socket Server');
-      const { tempRoomPassword } = useTempStore.getState();
       set({ isConnected: true });
-      emitJoinRoom(roomCode, undefined, tempRoomPassword);
+      emitJoinRoom(roomCode);
     };
 
     const onDisconnect = () => {

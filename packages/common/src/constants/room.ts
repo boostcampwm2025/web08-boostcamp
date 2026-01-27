@@ -24,3 +24,15 @@ export const ROOM_JOIN_STATUS = {
   FULL: 'FULL',
   NOT_FOUND: 'NOT_FOUND',
 } as const;
+
+export const ROOM_CONFIG = {
+  EXPIRATION_MS: 24 * 60 * 60 * 1000, // 1일
+  COOKIE_MAX_AGE: 24 * 60 * 60 * 1000, // 1일
+  MAX_RETRIES: 3,
+  QUICK_ROOM_MAX_PTS: 6,
+};
+
+export const DEFAULT_HOST = {
+  NICKNAME: 'Host',
+  COLOR: '#E0E0E0',
+};

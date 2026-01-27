@@ -9,7 +9,6 @@ import {
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type Pt,
-  type RoomToken,
   type PtUpdateRolePayload,
   type FilenameCheckResultPayload,
   type FilenameCheckPayload,
@@ -92,74 +91,71 @@ export class CollaborationService {
     client: CollabSocket,
     server: Server,
     payload: JoinRoomPayload,
+    token: string | null,
   ): Promise<void> {
-    const { roomCode: rawRoomCode, token, nickname, password } = payload;
-    const roomCode = rawRoomCode.toUpperCase(); // 대문자 변환
+    const { roomCode: rawRoomCode } = payload;
+    const roomCode = rawRoomCode.toUpperCase();
 
-    // 방 유효성 검사
+    // 방 존재 확인
     const room = await this.roomService.findRoomByCode(roomCode);
     if (!room) throw new Error(ERROR_CODE.ROOM_NOT_FOUND);
 
-    const roomId = room.roomId;
-
-    // 토큰 검증 및 ptId 추출
-    let ptId: string | null = null;
-
+    // ============================================================
+    // 쿠키(토큰)가 있다 -> 복원 시도
+    // ============================================================
     if (token) {
-      const tokenPayload = this.roomTokenService.verify(token);
-      if (!tokenPayload) {
-        throw new Error(ERROR_CODE.INVALID_TOKEN);
+      try {
+        const decoded = this.roomTokenService.verify(token);
+
+        if (decoded && decoded.roomCode.toUpperCase() === roomCode) {
+          const pt = await this.ptService.restorePt(room.roomId, decoded.ptId);
+
+          if (pt) {
+            await this.completeJoinRoom(client, server, room, pt);
+            return;
+          }
+        }
+      } catch (e) {
+        this.logger.warn(`Token verification failed: ${e.message}`);
       }
-      // 토큰의 roomCode와 요청 roomCode 일치 여부 확인
-      if (tokenPayload.roomCode.toUpperCase() !== roomCode) {
-        throw new Error(ERROR_CODE.TOKEN_ROOM_MISMATCH);
-      }
-      ptId = tokenPayload.ptId;
     }
 
-    // 참가자 조회 또는 생성
-    let pt: Pt | null = null;
-
-    // ptId가 있으면 DB에서 조회 (호스트 또는 재접속 유저)
-    if (ptId) {
-      pt = await this.ptService.restorePt(roomId, ptId);
+    // ============================================================
+    // 토큰 없음 -> 에러 -> HTTP join 유도
+    // ============================================================
+    if (room.roomPassword) {
+      throw new Error(ERROR_CODE.PASSWORD_REQUIRED);
+    } else {
+      throw new Error(ERROR_CODE.NICKNAME_REQUIRED);
     }
+  }
 
-    // 신규 유저는 패스워드와 닉네임 필수
-    if (!pt) {
-      if (room.roomPassword && !password) {
-        throw new Error(ERROR_CODE.PASSWORD_REQUIRED);
-      }
-      if (room.roomPassword && room.roomPassword !== password) {
-        throw new Error(ERROR_CODE.PASSWORD_UNCORRECT);
-      }
-      if (!nickname) {
-        throw new Error(ERROR_CODE.NICKNAME_REQUIRED);
-      }
-      pt = await this.ptService.createPt(roomId, nickname);
-    }
-
-    // 새 토큰 발급
-    const newToken = this.roomTokenService.sign({
-      roomCode,
-      ptId: pt.ptId,
-    });
-
-    // 문서 조회
-    const doc = await this.documentService.getDocByRoomId(roomId);
+  /**
+   * 입장 완료 처리
+   */
+  private async completeJoinRoom(
+    client: CollabSocket,
+    server: Server,
+    room: Room,
+    pt: Pt,
+  ) {
+    const doc = await this.documentService.getDocByRoomId(room.roomId);
     if (!doc) throw new Error('DOCUMENT_NOT_FOUND');
 
-    // socket.data 설정
+    // 소켓 데이터 세팅
     this.setupSocketData(client, room, pt, doc);
-    await client.join(roomCode);
 
-    // Y.Doc 준비
+    // 실제 소켓 룸 조인
+    await client.join(room.roomCode);
+
+    // Yjs 동기화
     await this.fileService.prepareDoc(client, server);
 
-    await this.notifyParticipantJoined(client, server, pt, newToken, room);
+    // 알림 전송
+    await this.notifyParticipantJoined(client, server, pt, room);
 
     this.logger.log(
-      `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
+      `[JOIN_ROOM] ${pt.nickname}(${pt.ptId}) restored/joined ${room.roomCode}`,
     );
   }
 
@@ -439,7 +435,6 @@ export class CollaborationService {
     client: CollabSocket,
     server: Server,
     pt: Pt,
-    token: RoomToken,
     room: Room,
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
@@ -447,7 +442,6 @@ export class CollaborationService {
     // 본인에게: 내 ptId 및 토큰 전달
     client.emit(SOCKET_EVENTS.WELCOME, {
       myPtId: pt.ptId,
-      token,
       roomType: room.roomType,
       whoCanDestroyRoom: room.whoCanDestroyRoom,
       hasHostPassword: !!room.hostPassword,
