@@ -1,19 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import {
-  ERROR_CODE,
+  ERROR_MESSAGES,
   CODE_EXECUTION_LIMITS,
   type ExecuteCodeRequest,
   type ExecuteCodeResponse,
-  type CodeFile,
 } from '@codejam/common';
 import {
   ExecuteCodeRequestDto,
   ExecuteCodeResponseDto,
 } from './dto/execute-code.dto';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 @Injectable()
 export class CodeExecutionService {
@@ -74,30 +74,39 @@ export class CodeExecutionService {
 
       return result as ExecuteCodeResponseDto;
     } catch (error) {
-      this.logger.log(error);
+      // Unknown errors
+      if (!(error instanceof AxiosError)) {
+        this.logger.error(`Unexpected error: ${error}`);
 
-      if (error instanceof AxiosError) {
-        const data = error.response?.data as { message?: string };
-        const status = error.response?.status;
-
-        const message = `Piston API error (${status}): ${data?.message || error.message}`;
-        this.logger.error(message);
-
-        // Network/connection errors
-        if (!error.response) {
-          this.logger.error(`Network error: ${error.message}`);
-          throw new Error(ERROR_CODE.CODE_EXECUTION_SERVICE_UNAVAILABLE);
-        }
-
-        throw new Error(ERROR_CODE.CODE_EXECUTION_FAILED);
+        throw new ApiException(
+          'CODE_EXECUTION_FAILED',
+          ERROR_MESSAGES.CODE_EXECUTION_FAILED,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
 
-      // Custom error
-      if (error.message in ERROR_CODE) throw error;
+      // Network/connection errors
+      if (!error.response) {
+        this.logger.error(`Network error: ${error.message}`);
 
-      // Unknown errors
-      this.logger.error(`Unexpected error: ${error}`);
-      throw new Error(ERROR_CODE.CODE_EXECUTION_FAILED);
+        throw new ApiException(
+          'CODE_EXECUTION_SERVICE_UNAVAILABLE',
+          ERROR_MESSAGES.CODE_EXECUTION_SERVICE_UNAVAILABLE,
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
+
+      // Piston API error
+      const data = error.response.data as { message?: string };
+      const message = `Piston API error (${error.response.status}): 
+        ${data?.message || error.message}`;
+      this.logger.error(message);
+
+      throw new ApiException(
+        'CODE_EXECUTION_FAILED',
+        ERROR_MESSAGES.CODE_EXECUTION_FAILED,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
