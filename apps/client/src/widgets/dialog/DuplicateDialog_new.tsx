@@ -1,5 +1,6 @@
 import {
   RadixDialog as Dialog,
+  DialogClose,
   RadixDialogContent as DialogContent,
   RadixDialogDescription as DialogDescription,
   RadixDialogFooter as DialogFooter,
@@ -13,40 +14,34 @@ import { extname, purename } from '@/shared/lib/file';
 interface DuplicateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  filename: string;
+  onClick: () => void;
+  file?: File;
 }
 
-export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
-  const {
-    overwriteFile,
-    createFile,
-    getFileId,
-    getFileIdMap,
-    tempFiles,
-    shiftTempFile,
-  } = useFileStore();
-  const fileName = tempFiles && tempFiles[0] ? tempFiles[0].name : '';
-
-  const checkRepeat = () => {
-    shiftTempFile();
-    if (tempFiles.length === 0) {
-      onOpenChange(false);
-    }
-  };
+export function DuplicateDialog({
+  open,
+  onOpenChange,
+  filename,
+  onClick,
+  file,
+}: DuplicateDialogProps) {
+  const { overwriteFile, createFile, getFileId, getFileIdMap } = useFileStore();
 
   const handleOverwrite = async () => {
-    const fileId = getFileId(tempFiles[0].name);
+    const fileId = getFileId(filename);
     if (!fileId) {
       return;
     }
 
-    const content = await tempFiles[0].text();
+    const content = await file?.text();
     overwriteFile(fileId, content);
-    checkRepeat();
+    onOpenChange(false);
+    onClick();
   };
 
   const handleRename = async () => {
-    const fileId = getFileId(fileName);
-
+    const fileId = getFileId(filename);
     if (!fileId) {
       return;
     }
@@ -54,13 +49,13 @@ export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
     const newName = (): string => {
       const fileIdMap = getFileIdMap();
       if (!fileIdMap) {
-        return fileName;
+        return filename;
       }
 
       const entries: [string, string][] = Object.entries(
         fileIdMap.toJSON(),
       ).filter(([name]) => {
-        const pure = purename(fileName);
+        const pure = purename(filename);
         const size = pure.length;
         if (name.length < size) {
           return false;
@@ -79,25 +74,18 @@ export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
 
       return `${pure.replace(/\((\d+)\)$/i, `(${(parseInt(fileMatch[1]) + 1).toString()})`)}.${ext}`;
     };
-    const content = (await tempFiles[0].text()) ?? '';
+    const content = (await file?.text()) ?? '';
     createFile(newName(), content);
-    checkRepeat();
-  };
-
-  const handleCancel = () => {
-    checkRepeat();
+    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>파일 중복</DialogTitle>
           <DialogDescription>
-            <b>{fileName}</b>파일은 이미 존재합니다. 하시겠습니까?
+            이미 존재하는 파일입니다. 어떻게 하시겠습니까?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -107,9 +95,9 @@ export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
           <Button type="button" onClick={handleRename}>
             이름변경
           </Button>
-          <Button type="button" onClick={handleCancel}>
-            취소
-          </Button>
+          <DialogClose asChild>
+            <Button type="button">취소</Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
