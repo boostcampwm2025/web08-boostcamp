@@ -20,7 +20,7 @@ import {
   Type,
 } from 'lucide-react';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 
 export function SettingsDialog() {
   const {

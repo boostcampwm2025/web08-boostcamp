@@ -5,7 +5,7 @@ import {
   type FilenameCheckResultPayload,
 } from '@codejam/common';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 import { extname } from '../file';
 
 export function useFileRename(roomCode: string | null) {

@@ -1,6 +1,6 @@
 import { EditorView } from 'codemirror';
 import { MESSAGE } from '@codejam/common';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 
 export function readOnlyToast() {
   return EditorView.domEventHandlers({
