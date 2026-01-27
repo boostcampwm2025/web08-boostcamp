@@ -19,7 +19,6 @@ const mockHttpService = {
 
 describe('CodeExecutionService', () => {
   let service: CodeExecutionService;
-  let httpService: HttpService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -241,7 +240,7 @@ describe('CodeExecutionService', () => {
       try {
         await service.execute(dto);
       } catch (error) {
-        expect(error.message).toBe(ERROR_CODE.CODE_EXECUTION_FAILED);
+        expect(error.code).toBe(ERROR_CODE.CODE_EXECUTION_FAILED);
       }
     });
 
@@ -268,9 +267,7 @@ describe('CodeExecutionService', () => {
       try {
         await service.execute(dto);
       } catch (error) {
-        expect(error.message).toBe(
-          ERROR_CODE.CODE_EXECUTION_SERVICE_UNAVAILABLE,
-        );
+        expect(error.code).toBe(ERROR_CODE.CODE_EXECUTION_SERVICE_UNAVAILABLE);
       }
     });
 
@@ -291,7 +288,7 @@ describe('CodeExecutionService', () => {
       try {
         await service.execute(dto);
       } catch (error) {
-        expect(error.message).toBe(ERROR_CODE.CODE_EXECUTION_FAILED);
+        expect(error.code).toBe(ERROR_CODE.CODE_EXECUTION_FAILED);
       }
     });
   });

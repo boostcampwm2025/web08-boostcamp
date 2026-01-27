@@ -4,6 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import {
+  ERROR_CODE,
   ERROR_MESSAGES,
   CODE_EXECUTION_LIMITS,
   type ExecuteCodeRequest,
@@ -79,7 +80,7 @@ export class CodeExecutionService {
         this.logger.error(`Unexpected error: ${error}`);
 
         throw new ApiException(
-          'CODE_EXECUTION_FAILED',
+          ERROR_CODE.CODE_EXECUTION_FAILED,
           ERROR_MESSAGES.CODE_EXECUTION_FAILED,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
@@ -90,7 +91,7 @@ export class CodeExecutionService {
         this.logger.error(`Network error: ${error.message}`);
 
         throw new ApiException(
-          'CODE_EXECUTION_SERVICE_UNAVAILABLE',
+          ERROR_CODE.CODE_EXECUTION_SERVICE_UNAVAILABLE,
           ERROR_MESSAGES.CODE_EXECUTION_SERVICE_UNAVAILABLE,
           HttpStatus.SERVICE_UNAVAILABLE,
         );
@@ -103,7 +104,7 @@ export class CodeExecutionService {
       this.logger.error(message);
 
       throw new ApiException(
-        'CODE_EXECUTION_FAILED',
+        ERROR_CODE.CODE_EXECUTION_FAILED,
         ERROR_MESSAGES.CODE_EXECUTION_FAILED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
