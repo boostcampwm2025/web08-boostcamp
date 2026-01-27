@@ -18,6 +18,7 @@ import {
   RadixPopoverTrigger as PopoverTrigger,
 } from '@codejam/ui';
 import { CustomStartPopover } from '../components/CustomStartPopover';
+import type { CreateCustomRoomRequest } from '@codejam/common';
 
 interface ErrorMessageProps {
   message: string;

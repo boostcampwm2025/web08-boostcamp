@@ -1,7 +1,7 @@
 import { LIMITS } from './limits.js';
 import { ERROR_CODE } from './errors.js';
 
-const ERROR_MESSAGES = {
+export const ERROR_MESSAGES = {
   ROOM_NOT_FOUND: '방을 찾을 수 없습니다',
   ROOM_FULL: '방이 가득 찼습니다',
   ROOM_EXPIRED: '방이 만료되었습니다',
@@ -14,9 +14,11 @@ const ERROR_MESSAGES = {
   FILE_NOT_FOUND: '파일을 찾을 수 없습니다',
   INVALID_FILENAME: '유효하지 않은 파일명입니다',
   DUPLICATE_FILENAME: '중복된 파일명입니다',
+  TOO_MANY_REQUESTS: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요',
+  SERVER_ERROR: '일시적인 서버 오류가 발생했습니다',
 } as const;
 
-const VALIDATION_MESSAGES = {
+export const VALIDATION_MESSAGES = {
   NICKNAME_REQUIRED: '닉네임을 입력해주세요.',
   NICKNAME_TOO_LONG: `닉네임은 최대 ${LIMITS.NICKNAME_MAX}자까지 입력 가능합니다.`,
   PASSWORD_REQUIRED: '비밀번호를 입력해주세요',
