@@ -29,7 +29,7 @@ import { HostGuard } from './guards/host.guard';
 import { DestroyRoomGuard } from './guards/destroy-room.guard';
 import { CustomRoomGuard } from './guards/custom-room.guard';
 import { NotHostGuard } from './guards/not-host.guard';
-import { WsToken } from 'src/common/decorators/ws-token.decorator';
+import { WsToken } from '../../common/decorators/ws-token.decorator';
 
 @WebSocketGateway({
   cors: {
