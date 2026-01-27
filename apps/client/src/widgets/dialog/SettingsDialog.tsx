@@ -87,12 +87,12 @@ export function SettingsDialog() {
 
         <div className="grid gap-6 py-4">
           <h4 className="text-muted-foreground mb-1 text-sm font-medium">
-            Editor & Theme
+            폰트
           </h4>
           {/* 폰트 크기 설정 */}
           <div className="grid gap-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="fontSize">Font Size</Label>
+              <Label htmlFor="fontSize">폰트 크기</Label>
               <span className="text-muted-foreground text-xs">10px - 30px</span>
             </div>
 
@@ -125,7 +125,7 @@ export function SettingsDialog() {
 
         <div className="grid gap-4">
           <h4 className="text-muted-foreground mb-1 text-sm font-medium">
-            Cursor & Appearance
+            커서 & 외관
           </h4>
 
           {/* 원격 커서 보이기/숨기기 */}
@@ -133,7 +133,7 @@ export function SettingsDialog() {
             <div className="flex items-center gap-2">
               <MousePointer2 className="text-muted-foreground h-4 w-4" />
               <Label htmlFor="show-cursor" className="cursor-pointer">
-                Show Remote Cursors
+                다른 사용자의 커서 보기
               </Label>
             </div>
             <Switch
@@ -148,7 +148,7 @@ export function SettingsDialog() {
             <div className="flex items-center gap-2">
               <UserCircle className="text-muted-foreground h-4 w-4" />
               <Label htmlFor="show-gutter" className="cursor-pointer">
-                Show Gutter Avatars
+                줄 번호 옆 프로필 표시
               </Label>
             </div>
             <Switch
@@ -163,7 +163,7 @@ export function SettingsDialog() {
             <div className="flex items-center gap-2">
               <Type className="text-muted-foreground h-4 w-4" />
               <Label htmlFor="show-labels" className="cursor-pointer">
-                Always Show Labels
+                커서 이름표 항상 보기
               </Label>
             </div>
             <Switch
@@ -183,7 +183,7 @@ export function SettingsDialog() {
             className="text-muted-foreground hover:text-red-500"
           >
             <RotateCcw className="mr-1 h-3 w-3" />
-            Reset to Default
+            초기화
           </Button>
         </div>
       </DialogContent>
