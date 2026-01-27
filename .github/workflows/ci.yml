@@ -21,6 +21,7 @@ jobs:
             client:
               - 'apps/client/**'
               - 'packages/common/**'
+              - 'packages/ui/**'
               - 'pnpm-lock.yaml'
 
       - name: Setup pnpm
@@ -43,8 +44,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Build common package
-        run: pnpm --filter @codejam/common build
+      - name: Build common and ui packages
+        run: |
+          pnpm --filter @codejam/common build
+          pnpm --filter @codejam/ui build
 
       - name: Format check
         id: format
@@ -153,10 +156,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Install dependencies and build common
+      - name: Install dependencies and build packages
         run: |
           pnpm install --frozen-lockfile
           pnpm --filter @codejam/common build
+          pnpm --filter @codejam/ui build
 
       - name: Install Vercel CLI
         run: pnpm add -g vercel

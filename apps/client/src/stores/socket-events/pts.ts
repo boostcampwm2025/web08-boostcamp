@@ -17,7 +17,7 @@ import {
 import { usePtsStore } from '../pts';
 import { useRoomStore } from '../room';
 import { useHostClaimStore } from '../hostClaim';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 
 export const setupPtsEventHandlers = () => {
   const onPtJoined = (data: PtJoinedPayload) => {

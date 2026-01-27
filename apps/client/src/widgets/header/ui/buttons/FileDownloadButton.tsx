@@ -1,5 +1,5 @@
 import { Download } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 import { HeaderActionButton } from './HeaderActionButton';
 
 export function FileDownloadButton() {

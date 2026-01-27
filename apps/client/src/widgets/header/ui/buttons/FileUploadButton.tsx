@@ -1,6 +1,6 @@
 import { useRef, type ChangeEvent } from 'react';
 import { Upload } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { HeaderActionButton } from './HeaderActionButton';

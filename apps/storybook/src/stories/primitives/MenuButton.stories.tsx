@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { MenuButton } from '@codejam/ui';
-import { toast } from 'sonner';
-import { RadixToaster as Toaster } from '@codejam/ui';
+import { RadixToaster as Toaster, toast } from '@codejam/ui';
 
 const meta = {
   title: 'Primitives/MenuButton',

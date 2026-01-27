@@ -9,6 +9,7 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxValue,
+  useComboboxAnchor,
 } from '@codejam/ui';
 import {
   RadixSelect as Select,
@@ -18,7 +19,7 @@ import {
   RadixSelectValue as SelectValue,
 } from '@codejam/ui';
 import { RadixButton as Button } from '@codejam/ui';
-import { Check, X, Pencil, Eye } from 'lucide-react';
+import { X, Pencil, Eye } from 'lucide-react';
 import type { FilterOption } from '../types';
 import type { SortKey } from '../lib/types';
 import { FILTER_OPTIONS, SORT_OPTIONS } from '../types';
@@ -45,6 +46,7 @@ export function ParticipantsFilterBar({
   isHost,
 }: ParticipantsFilterBarProps) {
   const [inputValue, setInputValue] = useState('');
+  const anchor = useComboboxAnchor();
 
   // 필터 옵션을 검색어로 필터링
   const filteredOptions = useMemo(() => {
@@ -59,12 +61,6 @@ export function ParticipantsFilterBar({
     onFiltersChange(values);
   };
 
-  // 개별 필터 제거
-  const handleRemoveFilter = (value: string) => {
-    const newFilters = selectedFilters.filter((f) => f.value !== value);
-    onFiltersChange(newFilters);
-  };
-
   return (
     <div className="space-y-2">
       {/* 필터 Combobox */}
@@ -77,14 +73,11 @@ export function ParticipantsFilterBar({
             onValueChange={handleValueChange}
             itemToStringValue={(item) => item.value}
           >
-            <div className="relative">
+            <div className="relative" ref={anchor}>
               <ComboboxChips>
                 <ComboboxValue>
                   {selectedFilters.map((filter) => (
-                    <ComboboxChip
-                      key={filter.value}
-                      onRemove={() => handleRemoveFilter(filter.value)}
-                    >
+                    <ComboboxChip key={filter.value}>
                       {filter.label}
                     </ComboboxChip>
                   ))}
@@ -105,22 +98,14 @@ export function ParticipantsFilterBar({
                 </button>
               )}
             </div>
-            <ComboboxContent>
+            <ComboboxContent anchor={anchor} className="min-w-(--anchor-width)">
               <ComboboxEmpty>필터를 찾을 수 없습니다.</ComboboxEmpty>
               <ComboboxList>
-                {(item) => {
-                  const isSelected = selectedFilters.some(
-                    (f) => f.value === item.value,
-                  );
-                  return (
-                    <ComboboxItem key={item.value} value={item}>
-                      <div className="flex w-full items-center justify-between">
-                        <span>{item.label}</span>
-                        {isSelected && <Check className="size-4" />}
-                      </div>
-                    </ComboboxItem>
-                  );
-                }}
+                {filteredOptions.map((item) => (
+                  <ComboboxItem key={item.value} value={item}>
+                    {item.label}
+                  </ComboboxItem>
+                ))}
               </ComboboxList>
             </ComboboxContent>
           </Combobox>
@@ -131,7 +116,7 @@ export function ParticipantsFilterBar({
       <div className="flex items-center gap-2">
         {/* 정렬 Select */}
         <Select value={sortKey} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="w-30">
             <SelectValue placeholder="정렬" />
           </SelectTrigger>
           <SelectContent>
