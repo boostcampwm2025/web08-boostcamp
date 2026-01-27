@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { setRoomToken } from '@/shared/lib/storage';
-import { getRoomUrl } from '@/shared/lib/routes';
+import { ROUTES } from '@codejam/common';
 
 export default function JoinPage() {
   const { roomCode, token } = useLoaderData() as {
@@ -15,7 +15,7 @@ export default function JoinPage() {
     setRoomToken(roomCode, token);
 
     // Navigate to room immediately
-    const url = getRoomUrl(roomCode);
+    const url = ROUTES.ROOM(roomCode);
     navigate(url, { replace: true });
   }, [roomCode, token, navigate]);
 

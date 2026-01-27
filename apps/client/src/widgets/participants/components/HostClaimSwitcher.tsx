@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@codejam/ui';
 import { ROLE_BADGE_STYLES, getRoleDisplayText } from '../lib/types';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS, ROLE } from '@codejam/common';

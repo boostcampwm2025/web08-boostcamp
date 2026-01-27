@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/dialog';
-import { Label } from '@/shared/ui/label';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Slider } from '@/shared/ui/slider';
-import { Switch } from '@/shared/ui/switch';
+  RadixDialog as Dialog,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+  RadixDialogTrigger as DialogTrigger,
+} from '@codejam/ui';
+import { RadixLabel as Label } from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
+import { RadixInput as Input } from '@codejam/ui';
+import { RadixSlider as Slider } from '@codejam/ui';
+import { RadixSwitch as Switch } from '@codejam/ui';
 import {
   Settings,
   RotateCcw,

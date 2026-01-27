@@ -1,14 +1,14 @@
-import { Button } from '@/shared/ui';
+import { RadixButton as Button } from '@codejam/ui';
 import {
-  Dialog,
+  RadixDialog as Dialog,
   DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { DialogTrigger } from '@radix-ui/react-dialog';
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+  RadixDialogTrigger as DialogTrigger,
+} from '@codejam/ui';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS } from '@codejam/common';
 import { type FormEvent } from 'react';

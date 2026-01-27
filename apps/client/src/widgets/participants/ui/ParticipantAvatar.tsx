@@ -1,7 +1,6 @@
-import { Avatar } from '@/shared/ui';
+import { Avatar, getAvatarIcon } from '@codejam/ui';
 import { usePt } from '@/stores/pts';
 import type { ParticipantProps } from '../lib/types';
-import { getAvatarIcon } from '@/shared/ui/avatar-shared';
 import { ROLE } from '@codejam/common';
 
 /**

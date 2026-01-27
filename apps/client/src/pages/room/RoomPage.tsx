@@ -7,7 +7,7 @@ import { useSocket } from '@/shared/lib/hooks/useSocket';
 import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
-import { Toaster } from '@/shared/ui/sonner';
+import { RadixToaster as Toaster } from '@codejam/ui';
 import { FileList } from '@/widgets/files';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';

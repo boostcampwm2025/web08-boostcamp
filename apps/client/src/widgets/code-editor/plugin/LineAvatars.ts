@@ -1,4 +1,4 @@
-import { createAvatarElement } from '@/shared/ui/avatar-dom';
+import { createAvatarElement } from '@codejam/ui';
 import { gutter, GutterMarker } from '@codemirror/view';
 import * as Y from 'yjs';
 

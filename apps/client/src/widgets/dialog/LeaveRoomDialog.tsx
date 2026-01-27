@@ -1,13 +1,13 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { DialogClose } from '@radix-ui/react-dialog';
+  RadixDialog as Dialog,
+  DialogClose,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
 
 interface LeaveRoomDialogProps {
   open: boolean;

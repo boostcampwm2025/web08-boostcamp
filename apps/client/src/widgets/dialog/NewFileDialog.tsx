@@ -1,24 +1,28 @@
 import type { ExtType } from '@/shared/lib/file';
-import { Button, Input, Label } from '@/shared/ui';
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
+  RadixButton as Button,
+  RadixInput as Input,
+  RadixLabel as Label,
+} from '@codejam/ui';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/ui/select';
-import { DialogTrigger } from '@radix-ui/react-dialog';
+  RadixDialog as Dialog,
+  RadixDialogClose as DialogClose,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
+import {
+  RadixSelect as Select,
+  RadixSelectContent as SelectContent,
+  RadixSelectGroup as SelectGroup,
+  RadixSelectItem as SelectItem,
+  RadixSelectLabel as SelectLabel,
+  RadixSelectTrigger as SelectTrigger,
+  RadixSelectValue as SelectValue,
+} from '@codejam/ui';
+import { RadixDialogTrigger as DialogTrigger } from '@codejam/ui';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 
 type NewFileDialogProps = {

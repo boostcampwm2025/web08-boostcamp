@@ -1,4 +1,4 @@
-import { Progress } from '@/shared/ui/progress';
+import { RadixProgress as Progress } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 
 function formatBytes(bytes: number): string {
