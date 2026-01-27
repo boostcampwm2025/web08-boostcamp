@@ -4,8 +4,11 @@ import {
   setupFileEventHandlers,
   emitFileUpdate,
   emitAwarenessUpdate,
-  emitExecuteCode,
 } from './file';
+import {
+  setupCodeExecutionEventHandlers,
+  emitExecuteCode,
+} from './code-execution';
 
 export { emitJoinRoom, emitFileUpdate, emitAwarenessUpdate, emitExecuteCode };
 
@@ -18,10 +21,12 @@ export const setupDomainEventHandlers = () => {
   const cleanupRoom = setupRoomEventHandlers();
   const cleanupPts = setupPtsEventHandlers();
   const cleanupFile = setupFileEventHandlers();
+  const cleanupCodeExecution = setupCodeExecutionEventHandlers();
 
   return () => {
     cleanupRoom();
     cleanupPts();
     cleanupFile();
+    cleanupCodeExecution();
   };
 };
