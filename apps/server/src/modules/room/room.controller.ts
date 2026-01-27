@@ -16,6 +16,7 @@ import {
   CheckRoomJoinableResponse,
   API_ENDPOINTS,
   ROOM_JOIN_STATUS,
+  ROOM_CONFIG,
 } from '@codejam/common';
 import { CommonThrottlerGuard } from '../../common/guards/common-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
@@ -57,13 +58,7 @@ export class RoomController {
   ): Promise<CreateCustomRoomResponseDto> {
     const { roomCode, token } = await this.roomService.createCustomRoom(dto);
 
-    res.cookie(`auth_${roomCode.toUpperCase()}`, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 1일
-      path: '/',
-    });
+    this.setAuthCookie(res, roomCode, token);
 
     return { roomCode };
   }
@@ -74,7 +69,7 @@ export class RoomController {
     @Body() body: { nickname: string; password?: string },
     @Res({ passthrough: true }) res: Response,
   ) {
-    // 1. 유저 생성 (Create)
+    // 1. 유저 생성
     const { token } = await this.roomService.joinRoom(
       roomCode,
       body.nickname,
@@ -82,13 +77,7 @@ export class RoomController {
     );
 
     // 2. Set-Cookie
-    res.cookie(`auth_${roomCode.toUpperCase()}`, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 1일
-      path: '/',
-    });
+    this.setAuthCookie(res, roomCode, token);
 
     return { success: true };
   }
@@ -103,5 +92,21 @@ export class RoomController {
       body?.password,
     );
     return { success: true };
+  }
+
+  /**
+   * 인증 쿠키 설정 헬퍼 메서드
+   * 환경(Production/Dev)에 따른 Secure 옵션 처리 포함
+   */
+  private setAuthCookie(res: Response, roomCode: string, token: string) {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    res.cookie(`auth_${roomCode.toUpperCase()}`, token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: ROOM_CONFIG.COOKIE_MAX_AGE,
+      path: '/',
+    });
   }
 }
