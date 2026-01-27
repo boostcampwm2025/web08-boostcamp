@@ -92,12 +92,18 @@ export class PtService {
   }
 
   /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
-  async restorePt(roomId: number, ptId: string): Promise<Pt | null> {
+  async restorePt(
+    roomId: number,
+    ptId: string,
+  ): Promise<{ pt: Pt; wasAlreadyOnline: boolean } | null> {
     const ptEntity = await this.ptRepository.findOne({
       where: { roomId, ptId },
     });
 
     if (!ptEntity) return null;
+
+    // 업데이트 전 presence 상태 확인
+    const wasAlreadyOnline = ptEntity.presence === PRESENCE.ONLINE;
 
     // presence를 ONLINE으로 업데이트
     await this.ptRepository.update(
@@ -106,7 +112,10 @@ export class PtService {
     );
 
     ptEntity.presence = PRESENCE.ONLINE;
-    return this.entityToPt(ptEntity);
+    return {
+      pt: this.entityToPt(ptEntity),
+      wasAlreadyOnline,
+    };
   }
 
   /** 방의 모든 참가자 조회 */

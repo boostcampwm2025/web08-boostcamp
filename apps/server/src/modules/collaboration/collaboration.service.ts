@@ -23,6 +23,7 @@ import {
 import { WsException } from '@nestjs/websockets';
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
+import { v7 as uuidv7 } from 'uuid';
 import { CollabSocket } from './collaboration.types';
 import { PtService } from '../pt/pt.service';
 import { FileService } from '../file/file.service';
@@ -108,10 +109,18 @@ export class CollaborationService {
         const decoded = this.roomTokenService.verify(token);
 
         if (decoded && decoded.roomCode.toUpperCase() === roomCode) {
-          const pt = await this.ptService.restorePt(room.roomId, decoded.ptId);
+          const result = await this.ptService.restorePt(room.roomId, decoded.ptId);
 
-          if (pt) {
-            await this.completeJoinRoom(client, server, room, pt);
+          if (result) {
+            // wasAlreadyOnline이 false면 재접속, true면 신규 입장 (방금 createPt로 생성됨)
+            const isNewParticipant = result.wasAlreadyOnline;
+            await this.completeJoinRoom(
+              client,
+              server,
+              room,
+              result.pt,
+              isNewParticipant,
+            );
             return;
           }
         }
@@ -138,6 +147,7 @@ export class CollaborationService {
     server: Server,
     room: Room,
     pt: Pt,
+    isNewParticipant: boolean,
   ) {
     const doc = await this.documentService.getDocByRoomId(room.roomId);
     if (!doc) throw new Error('DOCUMENT_NOT_FOUND');
@@ -152,10 +162,10 @@ export class CollaborationService {
     await this.fileService.prepareDoc(client, server);
 
     // 알림 전송
-    await this.notifyParticipantJoined(client, server, pt, room);
+    await this.notifyParticipantJoined(client, server, pt, room, isNewParticipant);
 
     this.logger.log(
-      `[JOIN_ROOM] ${pt.nickname}(${pt.ptId}) restored/joined ${room.roomCode}`,
+      `[JOIN_ROOM] ${pt.nickname}(${pt.ptId}) ${isNewParticipant ? 'joined' : 'restored'} ${room.roomCode}`,
     );
   }
 
@@ -436,6 +446,7 @@ export class CollaborationService {
     server: Server,
     pt: Pt,
     room: Room,
+    isNewParticipant: boolean,
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
 
@@ -449,6 +460,15 @@ export class CollaborationService {
 
     // 다른 참가자들에게: 새 참가자 입장 알림
     client.to(roomCode).emit(SOCKET_EVENTS.PT_JOINED, { pt });
+
+    // 신규 입장일 때만 시스템 메시지 발송
+    if (isNewParticipant) {
+      client.to(roomCode).emit(SOCKET_EVENTS.CHAT_SYSTEM, {
+        id: uuidv7(),
+        type: 'join',
+        pt: pt,
+      });
+    }
 
     // 본인에게: 현재 방의 모든 참가자 목록 전달
     const pts = await this.ptService.getAllPts(roomId);
