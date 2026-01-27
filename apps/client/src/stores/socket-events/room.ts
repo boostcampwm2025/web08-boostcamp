@@ -7,7 +7,7 @@ import {
   setRoomToken,
   removeRoomToken,
 } from '@/shared/lib/storage';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 import { useTempStore } from '../temp';
 
 const redirectToHome = () => {
