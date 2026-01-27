@@ -62,5 +62,4 @@ export {
   SelectValue,
 } from './select';
 export { Slider } from './slider';
-export { Toaster, toast } from './sonner';
 export { Switch } from './switch';

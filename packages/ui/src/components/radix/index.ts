@@ -48,6 +48,6 @@ export {
   SelectValue as RadixSelectValue,
 } from './select';
 export { Slider as RadixSlider } from './slider';
-export { Toaster as RadixToaster } from './sonner';
+export { Toaster as RadixToaster, toast } from './sonner';
 export { Switch as RadixSwitch } from './switch';
 export { ThreeDot as RadixThreeDot } from './three-dot';

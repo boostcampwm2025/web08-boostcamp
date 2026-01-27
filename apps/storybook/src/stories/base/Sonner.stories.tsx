@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Toaster, Button } from '@codejam/ui';
-import { toast } from 'sonner';
+import { RadixToaster as Toaster, Button, toast } from '@codejam/ui';
 
 const meta = {
   title: 'Base/Sonner',
