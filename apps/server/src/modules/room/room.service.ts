@@ -316,6 +316,19 @@ export class RoomService {
     return { token, ptId: newPt.ptId };
   }
 
+  async verifyRoomPassword(roomCode: string, password?: string): Promise<void> {
+    const room = await this.findRoomByCode(roomCode);
+    if (!room) {
+      throw new ApiException(
+        ERROR_CODE.ROOM_NOT_FOUND,
+        '방을 찾을 수 없습니다.',
+        404,
+      );
+    }
+
+    this.validatePassword(room, password);
+  }
+
   /**
    * 비밀번호 검증
    */

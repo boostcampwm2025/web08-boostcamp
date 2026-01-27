@@ -92,4 +92,16 @@ export class RoomController {
 
     return { success: true };
   }
+
+  @Post('/rooms/:roomCode/verify')
+  async verifyPassword(
+    @Param('roomCode') roomCode: string,
+    @Body() body: { password?: string },
+  ) {
+    await this.roomService.verifyRoomPassword(
+      roomCode.toUpperCase(),
+      body?.password,
+    );
+    return { success: true };
+  }
 }

@@ -105,3 +105,31 @@ export const joinRoom = async (
     throw new Error(errorData?.message || 'Failed to join room');
   }
 };
+
+export async function verifyPassword(roomCode: string, password: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+
+      const message =
+        errorData?.error?.message ||
+        errorData?.message ||
+        'Failed to verify password';
+
+      throw new Error(message);
+    }
+
+    return await response.json();
+  } catch (e) {
+    const error = e as Error;
+    throw error;
+  }
+}
