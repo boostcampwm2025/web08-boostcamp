@@ -11,14 +11,12 @@ import {
 } from '@/shared/api/room';
 import type { CreateCustomRoomRequest } from '@codejam/common';
 import { ROUTES } from '@codejam/common';
-import { setRoomToken } from '@/shared/lib/storage';
 import {
   RadixPopover as Popover,
   RadixPopoverContent as PopoverContent,
   RadixPopoverTrigger as PopoverTrigger,
 } from '@codejam/ui';
 import { CustomStartPopover } from '../components/CustomStartPopover';
-import type { CreateCustomRoomRequest } from '@codejam/common';
 
 interface ErrorMessageProps {
   message: string;
@@ -78,8 +76,7 @@ export function ActionCards() {
     setCreateRoomError('');
 
     try {
-      const { roomCode, token } = await createCustomRoom(data);
-      setRoomToken(roomCode, token);
+      const { roomCode } = await createCustomRoom(data);
       navigate(ROUTES.ROOM(roomCode));
     } catch (e) {
       setCreateRoomError((e as Error).message);

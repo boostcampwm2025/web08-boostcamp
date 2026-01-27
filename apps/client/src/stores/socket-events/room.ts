@@ -2,13 +2,7 @@ import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS, type WelcomePayload } from '@codejam/common';
 import { useRoomStore } from '../room';
 import { useFileStore } from '../file';
-import {
-  getRoomToken,
-  setRoomToken,
-  removeRoomToken,
-} from '@/shared/lib/storage';
 import { toast } from 'sonner';
-import { useTempStore } from '../temp';
 
 const redirectToHome = () => {
   window.location.href = '/';
@@ -18,8 +12,7 @@ export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {
     console.log(`🎉 [WELCOME] My PtId: ${data.myPtId}`);
 
-    const { myPtId, token, roomType, whoCanDestroyRoom, hasHostPassword } =
-      data;
+    const { myPtId, roomType, whoCanDestroyRoom, hasHostPassword } = data;
     const {
       roomCode,
       setMyPtId,
@@ -27,16 +20,12 @@ export const setupRoomEventHandlers = () => {
       setWhoCanDestroyRoom,
       setHasHostPassword,
     } = useRoomStore.getState();
-    const { setTempRoomPassword } = useTempStore.getState();
-
     if (!roomCode) return;
 
     setMyPtId(myPtId);
     setRoomType(roomType);
     setWhoCanDestroyRoom(whoCanDestroyRoom);
     setHasHostPassword(hasHostPassword);
-    setRoomToken(roomCode, token);
-    setTempRoomPassword(undefined);
 
     // Initialize filestore after joining room
     const { initialize } = useFileStore.getState();
@@ -45,10 +34,6 @@ export const setupRoomEventHandlers = () => {
 
   const onGoodbye = () => {
     console.log('👋 [GOODBYE] Left the room');
-
-    const { roomCode } = useRoomStore.getState();
-    if (roomCode) removeRoomToken(roomCode);
-
     redirectToHome();
   };
 
@@ -88,18 +73,9 @@ export const setupRoomEventHandlers = () => {
   };
 };
 
-export const emitJoinRoom = (
-  roomCode: string,
-  nickname?: string,
-  password?: string | null,
-) => {
-  const savedRoomToken = getRoomToken(roomCode);
-
+export const emitJoinRoom = (roomCode: string) => {
   socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
     roomCode,
-    token: savedRoomToken || undefined,
-    nickname: nickname || undefined,
-    password: password || undefined,
   });
 };
 
