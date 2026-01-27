@@ -10,7 +10,6 @@ import {
   createCustomRoom,
 } from '@/shared/api/room';
 import { getRoomUrl } from '@/shared/lib/routes';
-import { setRoomToken } from '@/shared/lib/storage';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { CustomStartPopover } from '../components/CustomStartPopover';
 import type { CreateCustomRoomRequest } from '@codejam/common';
@@ -73,8 +72,7 @@ export function ActionCards() {
     setCreateRoomError('');
 
     try {
-      const { roomCode, token } = await createCustomRoom(data);
-      setRoomToken(roomCode, token);
+      const { roomCode } = await createCustomRoom(data);
       navigate(getRoomUrl(roomCode));
     } catch (e) {
       setCreateRoomError((e as Error).message);

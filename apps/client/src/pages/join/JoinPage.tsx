@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
-import { setRoomToken } from '@/shared/lib/storage';
 import { getRoomUrl } from '@/shared/lib/routes';
 
 export default function JoinPage() {
@@ -11,9 +10,6 @@ export default function JoinPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Save token to localStorage
-    setRoomToken(roomCode, token);
-
     // Navigate to room immediately
     const url = getRoomUrl(roomCode);
     navigate(url, { replace: true });
