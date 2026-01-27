@@ -234,6 +234,9 @@ importers:
       '@nestjs/websockets':
         specifier: ^11.1.9
         version: 11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(@nestjs/platform-socket.io@11.1.9)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      cookie:
+        specifier: ^1.1.1
+        version: 1.1.1
       ioredis:
         specifier: ^5.8.2
         version: 5.8.2
