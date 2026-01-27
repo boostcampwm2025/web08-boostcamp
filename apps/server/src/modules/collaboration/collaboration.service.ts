@@ -19,6 +19,7 @@ import {
   type ClaimHostPayload,
   type PtRole,
   type PtId,
+  type ExecuteCodePayload,
 } from '@codejam/common';
 import { WsException } from '@nestjs/websockets';
 import { Injectable, Logger } from '@nestjs/common';
@@ -29,6 +30,7 @@ import { FileService } from '../file/file.service';
 import { RoomService } from '../room/room.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { DocumentService } from '../document/document.service';
+import { CodeExecutionService } from '../code-execution/code-execution.service';
 import { Room } from '../room/room.entity';
 import { Document } from '../document/document.entity';
 
@@ -51,6 +53,7 @@ export class CollaborationService {
     private readonly roomService: RoomService,
     private readonly roomTokenService: RoomTokenService,
     private readonly documentService: DocumentService,
+    private readonly codeExecutionService: CodeExecutionService,
   ) {}
 
   /** 클라이언트 연결 시 초기화 */
@@ -362,6 +365,55 @@ export class CollaborationService {
     const { fileId } = payload;
     const { docId } = client.data;
     this.fileService.deleteFile(docId, fileId, client, server);
+  }
+
+  /** 코드 실행 */
+  async handleExecuteCode(
+    client: CollabSocket,
+    server: Server,
+    payload: ExecuteCodePayload,
+  ): Promise<void> {
+    const { docId } = client.data;
+    const { fileId, language, stdin, args } = payload;
+
+    // Get file info from Y.Doc
+    const fileInfo = this.fileService.getFileInfo(docId, fileId);
+
+    if (!fileInfo) {
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_ERROR, {
+        error: ERROR_CODE.FILE_NOT_FOUND,
+        message: '파일을 찾을 수 없습니다.',
+      });
+      return;
+    }
+
+    try {
+      // Execute code
+      const result = await this.codeExecutionService.execute({
+        language,
+        version: '*',
+        files: [{ name: fileInfo.name, content: fileInfo.content }],
+        stdin,
+        args,
+      });
+
+      // Send result back to client
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_RESULT, result);
+
+      this.logger.log(
+        `[EXECUTE_CODE] Executed ${language} code for file ${fileInfo.name} in doc ${docId}`,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      this.logger.error(`[EXECUTE_CODE] Error: ${errorMessage}`);
+
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_ERROR, {
+        error: errorMessage,
+        message: '코드 실행 중 오류가 발생했습니다.',
+      });
+    }
   }
 
   /** 소켓 데이터 설정 */

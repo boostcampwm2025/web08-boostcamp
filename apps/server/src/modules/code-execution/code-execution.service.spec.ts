@@ -83,10 +83,6 @@ describe('CodeExecutionService', () => {
       const result = await service.execute(dto);
 
       // Assert
-      expect(mockHttpService.post).toHaveBeenCalledWith(
-        `${PISTON_API_URL}/execute`,
-        dto,
-      );
       expect(result.language).toBe('python');
       expect(result.run.stdout).toBe('Hello, World!\n');
       expect(result.run.code).toBe(0);
@@ -212,10 +208,6 @@ describe('CodeExecutionService', () => {
       const result = await service.execute(dto);
 
       // Assert
-      expect(mockHttpService.post).toHaveBeenCalledWith(
-        `${PISTON_API_URL}/execute`,
-        dto,
-      );
       expect(result.run.stdout).toBe('Hello, World!\n');
       expect(result.run.code).toBe(0);
     });

@@ -18,7 +18,7 @@ const executionStatusValues = Object.values(EXECUTION_STATUS) as [
 // File schema
 export const codeFileSchema = z.object({
   name: z.string().optional(),
-  content: z.string().max(CODE_EXECUTION_LIMITS.MAX_FILE_SIZE),
+  content: z.string().max(CODE_EXECUTION_LIMITS.FILE_SIZE),
   encoding: z.enum(fileEncodingValues).optional(),
 });
 
@@ -29,32 +29,32 @@ export const executeCodeRequestSchema = z.object({
   files: z
     .array(codeFileSchema)
     .min(1, 'At least one file is required')
-    .max(CODE_EXECUTION_LIMITS.MAX_FILES),
+    .max(CODE_EXECUTION_LIMITS.FILES),
   stdin: z.string().optional(),
-  args: z.array(z.string()).max(CODE_EXECUTION_LIMITS.MAX_ARGS).optional(),
+  args: z.array(z.string()).max(CODE_EXECUTION_LIMITS.ARGS).optional(),
   compile_timeout: z
     .number()
     .int()
     .positive()
-    .max(CODE_EXECUTION_LIMITS.MAX_COMPILE_TIMEOUT)
+    .max(CODE_EXECUTION_LIMITS.COMPILE_TIMEOUT)
     .optional(),
   run_timeout: z
     .number()
     .int()
     .positive()
-    .max(CODE_EXECUTION_LIMITS.MAX_RUN_TIMEOUT)
+    .max(CODE_EXECUTION_LIMITS.RUN_TIMEOUT)
     .optional(),
   compile_cpu_time: z
     .number()
     .int()
     .positive()
-    .max(CODE_EXECUTION_LIMITS.MAX_COMPILE_CPU_TIME)
+    .max(CODE_EXECUTION_LIMITS.COMPILE_CPU_TIME)
     .optional(),
   run_cpu_time: z
     .number()
     .int()
     .positive()
-    .max(CODE_EXECUTION_LIMITS.MAX_RUN_CPU_TIME)
+    .max(CODE_EXECUTION_LIMITS.RUN_CPU_TIME)
     .optional(),
   compile_memory_limit: z.number().int().optional(),
   run_memory_limit: z.number().int().optional(),

@@ -25,6 +25,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
 import { v7 as uuidv7 } from 'uuid';
+import type { FileInfo } from './file.types';
 
 export type RoomDoc = {
   docId: string;
@@ -343,6 +344,27 @@ export class FileService {
     }
 
     return fileIdMap.has(fileName);
+  }
+
+  /**
+   * 파일 정보 가져오기
+   */
+  getFileInfo(docId: string, fileId: string): FileInfo | null {
+    const roomDoc = this.getDoc(docId);
+    const { doc } = roomDoc;
+
+    const files = doc.getMap('files');
+    if (!files) return null;
+
+    const file = files.get(fileId) as YMap<unknown>;
+    if (!file) return null;
+
+    const name = file.get('name') as string;
+    const text = file.get('content') as YText;
+    if (!name || !text) return null;
+
+    const content = text.toJSON();
+    return { name, content };
   }
 
   // ==================================================================

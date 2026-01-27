@@ -5,8 +5,10 @@ import { firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import {
   ERROR_CODE,
+  CODE_EXECUTION_LIMITS,
   type ExecuteCodeRequest,
   type ExecuteCodeResponse,
+  type CodeFile,
 } from '@codejam/common';
 import {
   ExecuteCodeRequestDto,
@@ -32,17 +34,34 @@ export class CodeExecutionService {
    * @returns Execution result including stdout, stderr, and exit code
    */
   async execute(dto: ExecuteCodeRequestDto): Promise<ExecuteCodeResponseDto> {
-    const { language, version, files } = dto;
+    const { language, version, files, stdin, args } = dto;
 
     const message = `Executing ${language} (${version}) code with ${files.length} file(s)`;
     this.logger.log(message);
 
+    // Build Piston API request
+
+    const request: ExecuteCodeRequest = {
+      language,
+      version,
+      files,
+      stdin,
+      args,
+      compile_timeout: CODE_EXECUTION_LIMITS.COMPILE_TIMEOUT,
+      run_timeout: CODE_EXECUTION_LIMITS.RUN_TIMEOUT,
+      compile_cpu_time: CODE_EXECUTION_LIMITS.COMPILE_CPU_TIME,
+      run_cpu_time: CODE_EXECUTION_LIMITS.RUN_CPU_TIME,
+      compile_memory_limit: CODE_EXECUTION_LIMITS.COMPILE_MEMORY_LIMIT,
+      run_memory_limit: CODE_EXECUTION_LIMITS.RUN_MEMORY_LIMIT,
+    };
+
+    // Execute code
+
+    const url = `${this.PISTON_API_URL}/execute`;
+
     try {
       const response = await firstValueFrom(
-        this.httpService.post<ExecuteCodeResponse>(
-          `${this.PISTON_API_URL}/execute`,
-          dto as ExecuteCodeRequest,
-        ),
+        this.httpService.post<ExecuteCodeResponse>(url, request),
       );
 
       const result = response.data;
@@ -72,9 +91,7 @@ export class CodeExecutionService {
       }
 
       // Custom error
-      if (error.message in ERROR_CODE) {
-        throw error;
-      }
+      if (error.message in ERROR_CODE) throw error;
 
       // Unknown errors
       this.logger.error(`Unexpected error: ${error}`);

@@ -35,4 +35,8 @@ export const SOCKET_EVENTS = {
 
   REQUEST_DOC: 'doc:request',
   REQUEST_AWARENESS: 'awareness:request',
+
+  EXECUTE_CODE: 'code:execute',
+  CODE_EXECUTION_RESULT: 'code:execution:result',
+  CODE_EXECUTION_ERROR: 'code:execution:error',
 } as const;

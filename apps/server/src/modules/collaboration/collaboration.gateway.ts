@@ -10,6 +10,7 @@ import {
   type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
+  type ExecuteCodePayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -207,6 +208,20 @@ export class CollaborationGateway
   @SubscribeMessage(SOCKET_EVENTS.REJECT_HOST_CLAIM)
   handleRejectHostClaim(@ConnectedSocket() client: CollabSocket) {
     this.collaborationService.handleRejectHostClaim(client, this.server);
+  }
+
+  /** C -> S 코드 실행 요청 */
+  @UseGuards(PermissionGuard)
+  @SubscribeMessage(SOCKET_EVENTS.EXECUTE_CODE)
+  async handleExecuteCode(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: ExecuteCodePayload,
+  ) {
+    await this.collaborationService.handleExecuteCode(
+      client,
+      this.server,
+      payload,
+    );
   }
 
   /**
