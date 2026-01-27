@@ -1,4 +1,4 @@
-import { Button } from '@/shared/ui/button';
+import { RadixButton as Button } from '@codejam/ui';
 import type { ComponentProps } from 'react';
 
 type HeaderActionButtonProps = ComponentProps<typeof Button>;

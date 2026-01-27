@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import type { EditableProps } from '../lib/types';
-import { Input } from '@/shared/ui';
+import { RadixInput as Input } from '@codejam/ui';
 import { usePtsStore } from '@/stores/pts';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS } from '@codejam/common';

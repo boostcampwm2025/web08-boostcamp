@@ -1,16 +1,16 @@
-import { Button } from '@/shared/ui';
+import { RadixButton as Button } from '@codejam/ui';
 import {
-  Dialog,
+  RadixDialog as Dialog,
   DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { DialogTrigger } from '@radix-ui/react-dialog';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+  RadixDialogTrigger as DialogTrigger,
+} from '@codejam/ui';
+import { RadixInput as Input } from '@codejam/ui';
+import { RadixLabel as Label } from '@codejam/ui';
 
 type ShareDialogProps = {
   children: React.ReactNode;

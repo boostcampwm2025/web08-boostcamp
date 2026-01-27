@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@/shared/ui';
+import { RadixButton as Button } from '@codejam/ui';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
+  RadixDialog as Dialog,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS } from '@codejam/common';
 import { useHostClaimStore } from '@/stores/hostClaim';

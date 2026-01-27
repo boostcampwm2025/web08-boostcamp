@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
+  RadixDialog as Dialog,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
+import { RadixInput as Input } from '@codejam/ui';
+import { RadixLabel as Label } from '@codejam/ui';
 
 interface HostPasswordDialogProps {
   open: boolean;

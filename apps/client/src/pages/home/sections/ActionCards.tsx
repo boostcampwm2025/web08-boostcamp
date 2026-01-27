@@ -3,15 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Hash, Settings2 } from 'lucide-react';
 import { ActionCard } from '../cards/ActionCard';
 import { RoomCodeInput, ROOM_CODE_LENGTH } from '../components/RoomCodeInput';
-import { Button } from '@/shared/ui/button';
+import { RadixButton as Button } from '@codejam/ui';
 import {
   createQuickRoom,
-  checkRoomExists,
+  checkRoomJoinable,
   createCustomRoom,
 } from '@/shared/api/room';
-import { getRoomUrl } from '@/shared/lib/routes';
+import type { CreateCustomRoomRequest } from '@codejam/common';
+import { ROUTES } from '@codejam/common';
 import { setRoomToken } from '@/shared/lib/storage';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import {
+  RadixPopover as Popover,
+  RadixPopoverContent as PopoverContent,
+  RadixPopoverTrigger as PopoverTrigger,
+} from '@codejam/ui';
 import { CustomStartPopover } from '../components/CustomStartPopover';
 import type { CreateCustomRoomRequest } from '@codejam/common';
 
@@ -56,7 +61,7 @@ export function ActionCards() {
       const { roomCode } = await createQuickRoom();
 
       // Then join the room
-      const url = getRoomUrl(roomCode);
+      const url = ROUTES.ROOM(roomCode);
       navigate(url);
     } catch (e) {
       const error = e as Error;
@@ -75,7 +80,7 @@ export function ActionCards() {
     try {
       const { roomCode, token } = await createCustomRoom(data);
       setRoomToken(roomCode, token);
-      navigate(getRoomUrl(roomCode));
+      navigate(ROUTES.ROOM(roomCode));
     } catch (e) {
       setCreateRoomError((e as Error).message);
     } finally {
@@ -93,11 +98,11 @@ export function ActionCards() {
     setJoinRoomError('');
 
     try {
-      const status = await checkRoomExists(code);
+      const status = await checkRoomJoinable(code);
       if (status === 'FULL') {
         setJoinRoomError('방의 정원이 초과되었습니다.');
       } else {
-        const roomUrl = getRoomUrl(code);
+        const roomUrl = ROUTES.ROOM(code);
         navigate(roomUrl);
       }
     } catch (e) {
@@ -130,15 +135,12 @@ export function ActionCards() {
 
             {/* Custom Start Popover Trigger */}
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  disabled={isCreating}
-                  className="h-10 w-full font-mono text-sm text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600"
-                >
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Custom Start
-                </Button>
+              <PopoverTrigger
+                disabled={isCreating}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md font-mono text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 disabled:pointer-events-none disabled:opacity-50"
+              >
+                <Settings2 className="h-4 w-4" />
+                Custom Start
               </PopoverTrigger>
 
               <PopoverContent

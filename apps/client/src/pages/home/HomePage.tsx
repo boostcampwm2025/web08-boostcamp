@@ -6,7 +6,7 @@ import { FeatureCards } from './sections/FeatureCards';
 export default function MainPage() {
   return (
     <main className="selection:bg-brand-blue/20 relative min-h-screen w-full overflow-x-hidden bg-[#fafafa]">
-      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_20%,#000_60%,transparent_100%)] [background-size:20px_20px]" />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] mask-[radial-gradient(ellipse_80%_80%_at_50%_20%,#000_60%,transparent_100%)] bg-size-[20px_20px]" />
 
       <div className="bg-brand-blue/10 pointer-events-none fixed top-[-10%] left-[-10%] z-0 h-[40%] w-[40%] animate-pulse rounded-full mix-blend-multiply blur-[120px]" />
       <div className="bg-brand-green/10 pointer-events-none fixed top-[20%] right-[-10%] z-0 h-[40%] w-[40%] animate-pulse rounded-full mix-blend-multiply blur-[120px] delay-1000" />
@@ -23,7 +23,7 @@ export default function MainPage() {
 
         <div className="animate-in fade-in slide-in-from-bottom-12 flex w-full justify-center delay-300 duration-1000">
           <div className="group relative w-full max-w-5xl">
-            <div className="from-brand-blue/30 to-brand-green/30 absolute -inset-1 rounded-2xl bg-gradient-to-r via-purple-500/30 opacity-20 blur-xl transition duration-1000 group-hover:opacity-40"></div>
+            <div className="from-brand-blue/30 to-brand-green/30 absolute -inset-1 rounded-2xl bg-linear-to-r via-purple-500/30 opacity-20 blur-xl transition duration-1000 group-hover:opacity-40"></div>
 
             <div className="relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white/80 shadow-2xl backdrop-blur-xl">
               {/* 브라우저 상단 바 */}
@@ -42,7 +42,7 @@ export default function MainPage() {
                 </div>
               </div>
 
-              <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gray-50">
+              <div className="relative flex aspect-video items-center justify-center overflow-hidden bg-gray-50">
                 <img
                   src="/demo-preview.gif"
                   alt={`${PROJECT_NAME} Demo`}
