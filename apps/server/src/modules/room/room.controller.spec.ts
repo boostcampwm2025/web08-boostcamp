@@ -4,6 +4,7 @@ import { RoomService } from './room.service';
 import { PtService } from '../pt/pt.service';
 import { CreateQuickRoomResponseDto } from './dto/create-quick-room-response.dto';
 import { API_ENDPOINTS } from '@codejam/common';
+import { CommonThrottlerGuard } from '../../common/guards/common-throttler.guard';
 
 describe('RoomController', () => {
   let controller: RoomController;
@@ -32,7 +33,10 @@ describe('RoomController', () => {
           useValue: mockPtService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(CommonThrottlerGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .compile();
 
     controller = module.get<RoomController>(RoomController);
     service = module.get<RoomService>(RoomService);
