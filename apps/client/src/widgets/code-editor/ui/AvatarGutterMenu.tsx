@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { type AvatarUser } from '../plugin/LineAvatars'; // 타입 import
 import { createPortal } from 'react-dom';
-import { getAvatarIcon } from '@/shared/ui/avatar-shared';
-import { Avatar } from '@/shared/ui';
+import { Avatar, getAvatarIcon } from '@codejam/ui';
 
 interface Props {
   isOpen: boolean;
