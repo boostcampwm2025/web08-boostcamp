@@ -29,6 +29,7 @@ import { HostGuard } from './guards/host.guard';
 import { DestroyRoomGuard } from './guards/destroy-room.guard';
 import { CustomRoomGuard } from './guards/custom-room.guard';
 import { NotHostGuard } from './guards/not-host.guard';
+import { WsToken } from 'src/common/decorators/ws-token.decorator';
 
 @WebSocketGateway({
   cors: {
@@ -58,12 +59,14 @@ export class CollaborationGateway
   async handleJoinRoom(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: JoinRoomPayload,
+    @WsToken() token: string | null,
   ) {
     try {
       await this.collaborationService.handleJoinRoom(
         client,
         this.server,
         payload,
+        token,
       );
     } catch (error) {
       const errorMessage =

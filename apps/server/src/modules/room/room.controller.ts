@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateCustomRoomRequestDto } from './dto/create-custom-room-request.dto';
 import { CreateQuickRoomResponseDto } from './dto/create-quick-room-response.dto';
@@ -11,6 +19,7 @@ import {
 } from '@codejam/common';
 import { CommonThrottlerGuard } from '../../common/guards/common-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
+import { type Response } from 'express';
 
 @Controller()
 export class RoomController {
@@ -44,7 +53,44 @@ export class RoomController {
   @Throttle({ default: { limit: 2, ttl: 60000 } })
   async createCustomRoom(
     @Body() dto: CreateCustomRoomRequestDto,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<CreateCustomRoomResponseDto> {
-    return await this.roomService.createCustomRoom(dto);
+    const result = await this.roomService.createCustomRoom(dto);
+    const { roomCode, token } = result;
+
+    res.cookie(`auth_${roomCode.toUpperCase()}`, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1일
+      path: '/',
+    });
+
+    return result;
+  }
+
+  @Post('/rooms/:roomCode/join')
+  async joinRoom(
+    @Param('roomCode') roomCode: string,
+    @Body() body: { nickname: string; password?: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // 1. 유저 생성 (Create)
+    const { token } = await this.roomService.joinRoom(
+      roomCode,
+      body.nickname,
+      body.password,
+    );
+
+    // 2. Set-Cookie
+    res.cookie(`auth_${roomCode.toUpperCase()}`, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1일
+      path: '/',
+    });
+
+    return { success: true };
   }
 }

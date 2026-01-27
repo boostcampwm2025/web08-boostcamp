@@ -15,6 +15,8 @@ import {
   ROLE,
   PRESENCE,
   LIMITS,
+  ERROR_CODE,
+  ERROR_MESSAGES,
 } from '@codejam/common';
 import { customAlphabet } from 'nanoid';
 import { Pt } from '../pt/pt.entity';
@@ -25,6 +27,7 @@ import { RoomTokenService } from '../auth/room-token.service';
 import { CreateQuickRoomResponseDto } from './dto/create-quick-room-response.dto';
 import { CreateCustomRoomResponseDto } from './dto/create-custom-room-response.dto';
 import { RoomCreationOptions } from './room.interface';
+import { ApiException } from 'src/common/exceptions/api.exception';
 
 /** 방의 생명 주기 관리 */
 
@@ -264,5 +267,76 @@ export class RoomService {
     await this.fileService.removeDoc(docId);
 
     this.logger.log(`🔥 Room destroyed: roomId=${roomId}, docId=${docId}`);
+  }
+
+  /**
+   * [HTTP 전용] 방 입장 처리 (Pt 생성 & Token 발행)
+   * 1. 방 비밀번호 검증
+   * 2. 정원 초과 확인
+   * 3. 참가자(Pt) DB 생성
+   * 4. 토큰(JWT) 발급
+   */
+  async joinRoom(
+    roomCode: string,
+    nickname: string,
+    password?: string,
+  ): Promise<{ token: string; ptId: string }> {
+    // 1. 방 조회
+    const room = await this.findRoomByCode(roomCode);
+    if (!room) {
+      throw new ApiException(
+        ERROR_CODE.ROOM_NOT_FOUND,
+        ERROR_MESSAGES.ROOM_NOT_FOUND,
+        404,
+      );
+    }
+
+    // 2. 비밀번호 검증
+    this.validatePassword(room, password);
+
+    // 3. 정원 체크
+    const currentCount = await this.ptService.roomCounter(room.roomId);
+    if (currentCount >= room.maxPts) {
+      throw new ApiException(
+        ERROR_CODE.ROOM_FULL,
+        '방의 정원이 초과되었습니다.',
+        409,
+      );
+    }
+
+    // 4. 참가자(Pt) 생성
+    const newPt = await this.ptService.createPt(room.roomId, nickname);
+
+    // 5. 토큰 발급
+    const token = this.roomTokenService.sign({
+      roomCode: room.roomCode,
+      ptId: newPt.ptId,
+    });
+
+    this.logger.log(`[HTTP_JOIN] New pt created: ${newPt.ptId} in ${roomCode}`);
+
+    return { token, ptId: newPt.ptId };
+  }
+
+  /**
+   * 비밀번호 검증
+   */
+  private validatePassword(room: Room, password?: string): void {
+    if (room.roomPassword) {
+      if (!password) {
+        throw new ApiException(
+          ERROR_CODE.PASSWORD_REQUIRED,
+          '비밀번호를 입력해주세요.',
+          401,
+        );
+      }
+      if (room.roomPassword !== password) {
+        throw new ApiException(
+          ERROR_CODE.PASSWORD_UNCORRECT,
+          '비밀번호가 일치하지 않습니다.',
+          401,
+        );
+      }
+    }
   }
 }
