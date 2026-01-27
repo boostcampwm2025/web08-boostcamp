@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "vite build --watch & tsc --watch",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint .",
     "test": "echo \"No tests configured\" && exit 0",
@@ -19,7 +19,10 @@
     "./styles.css": "./src/styles/base.css",
     "./lib/*": "./src/lib/*"
   },
-  "files": ["dist", "src/styles"],
+  "files": [
+    "dist",
+    "src/styles"
+  ],
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

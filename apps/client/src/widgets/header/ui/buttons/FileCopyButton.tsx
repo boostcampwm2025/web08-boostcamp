@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 import { HeaderActionButton } from './HeaderActionButton';
 import { useFileStore } from '@/stores/file';
 

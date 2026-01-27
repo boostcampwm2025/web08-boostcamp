@@ -2,7 +2,7 @@ import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS, type WelcomePayload } from '@codejam/common';
 import { useRoomStore } from '../room';
 import { useFileStore } from '../file';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 
 const redirectToHome = () => {
   window.location.href = '/';

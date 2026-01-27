@@ -5,7 +5,7 @@ import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
 import { SOCKET_EVENTS, ROLE } from '@codejam/common';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
 import { filterParticipants, sortParticipants } from './types';

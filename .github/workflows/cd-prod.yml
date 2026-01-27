@@ -28,10 +28,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Install dependencies and build common
+      - name: Install dependencies and build packages
         run: |
           pnpm install --frozen-lockfile
           pnpm --filter @codejam/common build
+          pnpm --filter @codejam/ui build
 
       - name: Install Vercel CLI
         run: pnpm add -g vercel

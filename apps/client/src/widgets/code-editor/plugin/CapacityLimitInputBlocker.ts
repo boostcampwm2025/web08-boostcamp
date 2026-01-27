@@ -1,5 +1,5 @@
 import { EditorView } from 'codemirror';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { LIMITS } from '@codejam/common';
 

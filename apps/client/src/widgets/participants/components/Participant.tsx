@@ -11,7 +11,7 @@ import {
   RadixPopoverContent as PopoverContent,
   RadixPopoverTrigger as PopoverTrigger,
 } from '@codejam/ui';
-import { MoreVertical } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 
 /**
  * 참가자 정보를 표시하는 컴포넌트
@@ -69,16 +69,17 @@ export const Participant = memo(
         </div>
         {isMe && (
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger>
-              <MoreVertical className="size-4" />
+            <PopoverTrigger asChild>
+              <MoreHorizontal className="size-4" />
             </PopoverTrigger>
-            <PopoverContent className="z-9999">
-              <div
+            <PopoverContent className="z-50 w-32 p-1" align="start">
+              <button
+                type="button"
                 onClick={handleRenamePopover}
-                className="absolute w-45 rounded-md border bg-white p-4 text-black hover:cursor-pointer hover:bg-gray-50 dark:bg-black dark:text-white dark:hover:bg-gray-800"
+                className="flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <span>이름 변경</span>
-              </div>
+              </button>
             </PopoverContent>
           </Popover>
         )}
