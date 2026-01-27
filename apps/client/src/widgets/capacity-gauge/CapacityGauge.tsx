@@ -32,7 +32,7 @@ export function CapacityGauge() {
           {capacityPercentage.toFixed(0)}%
         </span>
       </div>
-      <div className="text-primary-foreground invisible absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded border-[0.5px] border-gray-300 bg-white px-2 py-1 text-xs whitespace-nowrap opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 dark:border-gray-600 dark:bg-gray-800">
+      <div className="text-primary invisible absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded border-[0.5px] border-gray-300 bg-white px-2 py-1 text-xs whitespace-nowrap opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 dark:border-gray-600 dark:bg-gray-800">
         {tooltipText}
       </div>
     </div>
