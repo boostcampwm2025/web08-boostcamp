@@ -7,7 +7,6 @@ import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';
 
 // Plugins
-import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import {
@@ -95,7 +94,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       basicSetup,
       yCollab(yText, awareness),
       getLanguageExtension(language),
-      safeInput({ allowAscii: true }),
+      // safeInput({ allowAscii: true }),
       capacityLimitInputBlocker(),
 
       cursorTheme,
