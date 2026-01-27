@@ -83,9 +83,7 @@ export class RoomService {
     return { roomCode: result.roomCode };
   }
 
-  async createCustomRoom(
-    dto: CreateCustomRoomRequestDto,
-  ): Promise<CreateCustomRoomResponseDto> {
+  async createCustomRoom(dto: CreateCustomRoomRequestDto) {
     const { roomPassword, hostPassword, maxPts } = dto;
 
     const options: RoomCreationOptions = {

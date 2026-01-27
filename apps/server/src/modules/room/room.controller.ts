@@ -55,8 +55,7 @@ export class RoomController {
     @Body() dto: CreateCustomRoomRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<CreateCustomRoomResponseDto> {
-    const result = await this.roomService.createCustomRoom(dto);
-    const { roomCode, token } = result;
+    const { roomCode, token } = await this.roomService.createCustomRoom(dto);
 
     res.cookie(`auth_${roomCode.toUpperCase()}`, token, {
       httpOnly: true,
@@ -66,7 +65,7 @@ export class RoomController {
       path: '/',
     });
 
-    return result;
+    return { roomCode };
   }
 
   @Post('/rooms/:roomCode/join')
