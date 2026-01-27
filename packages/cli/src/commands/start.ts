@@ -49,7 +49,7 @@ async function createRoom(
     });
 
     spinner.succeed(chalk.green('Custom room created!'));
-    return { roomCode: response.roomCode, token: response.token };
+    return { roomCode: response.roomCode };
   } else {
     const response = await client.createQuickRoom();
 
@@ -125,7 +125,7 @@ export const startCommand = new Command('start')
         const roomUrl = `${config.clientUrl}${ROUTES.ROOM(roomCode)}`;
         await openRoomInBrowser(roomUrl, options.browser !== false);
       } else {
-        const roomUrl = `${config.clientUrl}${ROUTES.JOIN(roomCode, token)}`;
+        const roomUrl = `${config.clientUrl}${ROUTES.JOIN(roomCode)}`;
         await openRoomInBrowser(roomUrl, options.browser !== false);
       }
     } catch (error) {
