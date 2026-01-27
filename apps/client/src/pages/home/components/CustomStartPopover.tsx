@@ -1,7 +1,7 @@
 import type { CustomRoomData } from '@/shared/api/room';
 import { LIMITS } from '@codejam/common';
-import { Button, Input } from '@/shared/ui';
-import { Slider } from '@/shared/ui/slider';
+import { RadixButton as Button, RadixInput as Input } from '@codejam/ui';
+import { RadixSlider as Slider } from '@codejam/ui';
 import { ArrowRight, Check, ChevronLeft, Lock, Users } from 'lucide-react';
 import { useState } from 'react';
 
