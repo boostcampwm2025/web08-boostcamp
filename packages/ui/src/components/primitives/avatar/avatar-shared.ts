@@ -23,7 +23,7 @@ export const AVATAR_BASE_CLASSES =
 /**
  * 사용할 아이콘 목록
  */
-export const AVATAR_ICONS = [
+const AVATAR_ICONS = [
   Cat,
   Dog,
   Rabbit,
