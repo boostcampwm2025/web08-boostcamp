@@ -16,11 +16,11 @@ export function ParticipantAvatar({ ptId }: ParticipantProps) {
 
   if (!pt) return null;
 
-  const { ptHash, role } = pt;
+  const { ptHash, color, role } = pt;
   const badge =
     role === ROLE.HOST ? (
       <span className="text-yellow-500">👑</span>
     ) : undefined;
 
-  return <Avatar id={ptHash} badge={badge} size={32} />;
+  return <Avatar id={ptHash} color={color} badge={badge} size={32} />;
 }

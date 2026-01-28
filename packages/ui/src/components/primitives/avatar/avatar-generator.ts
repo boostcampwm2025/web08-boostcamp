@@ -1,12 +1,13 @@
 import { createElement, type ReactNode } from 'react';
 
 export interface AvatarProvider {
-  createComponent(id: string, size: number): ReactNode;
-  toSvgString(id: string, size: number): string;
+  createComponent(id: string, size: number, color?: string): ReactNode;
+  toSvgString(id: string, size: number, color?: string): string;
 }
 
 export interface GeneratedAvatarProps {
   id: string;
+  color?: string;
   badge?: ReactNode;
   size?: number;
   className?: string;
@@ -15,6 +16,7 @@ export interface GeneratedAvatarProps {
 export function createAvatarGenerator(provider: AvatarProvider) {
   function Avatar({
     id,
+    color,
     badge,
     size = 40,
     className = '',
@@ -22,7 +24,7 @@ export function createAvatarGenerator(provider: AvatarProvider) {
     return createElement(
       'div',
       { className: `relative ${className}` },
-      provider.createComponent(id, size),
+      provider.createComponent(id, size, color),
       badge &&
         createElement(
           'span',
@@ -32,8 +34,8 @@ export function createAvatarGenerator(provider: AvatarProvider) {
     );
   }
 
-  function toSvgString(id: string, size: number): string {
-    return provider.toSvgString(id, size);
+  function toSvgString(id: string, size: number, color?: string): string {
+    return provider.toSvgString(id, size, color);
   }
 
   function toElement(id: string, size: number): HTMLElement {

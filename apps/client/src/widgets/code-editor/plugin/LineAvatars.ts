@@ -70,10 +70,11 @@ class AvatarMarker extends GutterMarker {
     avatarContainer.style.borderRadius = '50%';
     avatarContainer.style.overflow = 'hidden'; // 둥근 테두리 밖으로 나가는 것 방지
 
-    // const borderColor = firstUser.color || 'rgba(255, 255, 255, 0.5)';
-    // avatarContainer.style.border = `1px solid ${borderColor}`;
-
-    const svgString = provider.toSvgString(firstUser.hash, avatarSize);
+    const svgString = provider.toSvgString(
+      firstUser.hash,
+      avatarSize,
+      firstUser.color,
+    );
 
     avatarContainer.innerHTML = svgString;
 

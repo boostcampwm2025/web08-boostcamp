@@ -25,4 +25,4 @@ export {
   type AvvvatarsOptions,
 } from './avatar/avvvatars-avatar.js';
 
-export { LucideAvatarProvider, getAvatarPreset } from './avatar/lucide-avatar.js';
+export { LucideAvatarProvider, getAvatarIcon } from './avatar/lucide-avatar.js';
