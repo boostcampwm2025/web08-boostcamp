@@ -20,7 +20,7 @@ export function Chat() {
       {isChatOpen && (
         <div className="border-border bg-background ring-foreground/10 fixed right-4 bottom-20 z-50 flex w-[320px] flex-col rounded-lg shadow-lg ring-1">
           <div className="border-border flex items-center justify-between border-b px-3 py-2">
-            <span className="text-sm font-medium">채팅</span>
+            <span className="text-foreground text-sm font-medium">채팅</span>
             <Button
               variant="ghost"
               size="icon-xs"

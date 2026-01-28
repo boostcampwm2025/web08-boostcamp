@@ -76,7 +76,7 @@ function RoomPage() {
         <div className="bg-red-500 p-4 text-center text-white">{roomError}</div>
       )}
       <main className="flex flex-1 overflow-hidden">
-        <div className="border-border scrollbar-thin flex h-full w-72 shrink-0 flex-col overflow-y-auto border-r bg-white">
+        <div className="border-border scrollbar-thin bg-background flex h-full w-72 shrink-0 flex-col overflow-y-auto border-r">
           <Participants />
           <FileList />
         </div>
