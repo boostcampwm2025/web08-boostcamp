@@ -1,3 +1,4 @@
+import { WebSocket } from 'ws';
 import {
   type CodeExecutionStartedPayload,
   type CodeExecutionStagePayload,
@@ -12,7 +13,7 @@ import {
 export interface WebSocketHandlerContext {
   ws: WebSocket;
   connectionTimeout: NodeJS.Timeout;
-  callbacks: ExecutionEventCallbacks;
+  callbacks: CodeExecutionEventCallbacks;
   resolve: () => void;
   reject: (reason?: Error) => void;
   language: string;

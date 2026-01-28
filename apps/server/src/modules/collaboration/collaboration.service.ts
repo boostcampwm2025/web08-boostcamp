@@ -29,7 +29,10 @@ import { FileService } from '../file/file.service';
 import { RoomService } from '../room/room.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { DocumentService } from '../document/document.service';
-import { CodeExecutionService } from '../code-execution/code-execution.service';
+import {
+  CodeExecutionService,
+  CodeExecutionEventCallbacks,
+} from '../code-execution';
 import { Room } from '../room/room.entity';
 import { Document } from '../document/document.entity';
 
@@ -370,7 +373,7 @@ export class CollaborationService {
     payload: ExecuteCodePayload,
   ): Promise<void> {
     const { docId } = client.data;
-    const { fileId, language, stdin, args } = payload;
+    const { fileId, language, stdin, args, interactive = false } = payload;
 
     // Get file info from Y.Doc
     const fileInfo = this.fileService.getFileInfo(docId, fileId);
@@ -383,22 +386,44 @@ export class CollaborationService {
       return;
     }
 
+    const executionDto = {
+      language,
+      version: '*',
+      files: [{ name: fileInfo.name, content: fileInfo.content }],
+      stdin,
+      args,
+    };
+
     try {
-      // Execute code
-      const result = await this.codeExecutionService.execute({
-        language,
-        version: '*',
-        files: [{ name: fileInfo.name, content: fileInfo.content }],
-        stdin,
-        args,
-      });
+      if (interactive) {
+        // Interactive mode: use callbacks to handle streaming events
 
-      // Send result back to client
-      client.emit(SOCKET_EVENTS.CODE_EXECUTION_RESULT, result);
+        const callbacks = this.getCodeExecutionEventCallbacks(client);
 
-      this.logger.log(
-        `[EXECUTE_CODE] Executed ${language} code for file ${fileInfo.name} in doc ${docId}`,
-      );
+        await this.codeExecutionService.execute(
+          executionDto,
+          interactive,
+          callbacks,
+        );
+
+        this.logger.log(
+          `[EXECUTE_CODE] Executed ${language} code for file ${fileInfo.name} (Interactive)`,
+        );
+      } else {
+        // Once mode: wait for complete result
+        const result = await this.codeExecutionService.execute(
+          executionDto,
+          false,
+        );
+
+        if (result) {
+          client.emit(SOCKET_EVENTS.CODE_EXECUTION_RESULT, result);
+        }
+
+        this.logger.log(
+          `[EXECUTE_CODE] Executed (once) ${language} code for file ${fileInfo.name} in doc ${docId}`,
+        );
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -410,6 +435,36 @@ export class CollaborationService {
         message: '코드 실행 중 오류가 발생했습니다.',
       });
     }
+  }
+
+  private getCodeExecutionEventCallbacks(
+    client: CollabSocket,
+  ): CodeExecutionEventCallbacks {
+    const onStarted = (data) => {
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_STARTED, data);
+    };
+    const onStage = (data) => {
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_STAGE, data);
+    };
+    const onData = (data) => {
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_DATA, data);
+    };
+    const onCompleted = (data) => {
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_COMPLETED, data);
+    };
+    const onError = (data) => {
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_ERROR, data);
+    };
+
+    const callbacks: CodeExecutionEventCallbacks = {
+      onStarted,
+      onStage,
+      onData,
+      onCompleted,
+      onError,
+    };
+
+    return callbacks;
   }
 
   /** 소켓 데이터 설정 */

@@ -1,8 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Terminal as XTerm } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
-import { type TerminalVariant, getTheme } from './theme';
-import { Terminal as TerminalIcon, Eraser } from 'lucide-react';
+import { type TerminalVariant, getTheme } from '../styles/theme';
+import { Terminal as TerminalIcon } from 'lucide-react';
+import { useCodeExecutionStore } from '@/stores/code-execution';
+import {
+  useExecutionStream,
+  useExecutionResult,
+  useExecutionError,
+} from '../hooks';
 import 'xterm/css/xterm.css';
 
 export interface TerminalProps {
@@ -14,6 +20,10 @@ export function Terminal({ variant }: TerminalProps) {
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
 
+  const { isExecuting, runtime, stage, data, exit, error, result } =
+    useCodeExecutionStore();
+
+  // Initialization
   useEffect(() => {
     if (!terminalRef.current) return;
 
@@ -25,6 +35,8 @@ export function Terminal({ variant }: TerminalProps) {
       fontSize: 14,
       fontFamily: "'Roboto Mono', 'Space Mono', monospace",
       theme,
+      cursorBlink: false,
+      disableStdin: true, // Read-only
     });
 
     // Load Addons
@@ -34,25 +46,21 @@ export function Terminal({ variant }: TerminalProps) {
     // Open terminal
     xterm.open(terminalRef.current);
 
-    // Fit terminal
-    try {
-      fitAddon.fit();
-    } catch (e) {
-      console.warn('Failed to fit terminal', e);
-    }
-
-    // Store references
+    // Store references first
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
 
-    // Handle resize
-    const handleResize = () => {
+    // Fit terminal
+    const fit = () => {
       try {
         fitAddon.fit();
       } catch (e) {
-        console.warn('Failed to fit terminal on resize', e);
+        console.warn('Failed to fit terminal', e);
       }
     };
+
+    // Handle resize
+    const handleResize = () => fit();
     window.addEventListener('resize', handleResize);
 
     // Cleanup
@@ -60,13 +68,43 @@ export function Terminal({ variant }: TerminalProps) {
       window.removeEventListener('resize', handleResize);
       xterm.dispose();
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Update theme when variant changes
+  useEffect(() => {
+    if (!xtermRef.current) return;
+
+    const theme = getTheme(variant);
+    xtermRef.current.options.theme = theme;
   }, [variant]);
 
-  const handleClear = () => {
-    if (xtermRef.current) {
-      xtermRef.current.clear();
-    }
-  };
+  // Control cursor based on execution state
+  useEffect(() => {
+    if (!xtermRef.current) return;
+
+    xtermRef.current.options.cursorBlink = !isExecuting;
+    xtermRef.current.options.cursorStyle = isExecuting ? 'bar' : 'block';
+  }, [isExecuting]);
+
+  // Clear terminal when new execution starts
+  useEffect(() => {
+    if (!xtermRef.current) return;
+    if (isExecuting) xtermRef.current.clear();
+  }, [isExecuting]);
+
+  // Use custom hooks for handling code execution output
+  useExecutionStream({
+    xterm: xtermRef.current,
+    runtime,
+    stage,
+    data,
+    exit,
+    isExecuting,
+  });
+  useExecutionResult(xtermRef.current, result);
+  useExecutionError(xtermRef.current, error);
 
   return (
     <div className={`flex h-full w-full flex-col`}>
@@ -80,13 +118,6 @@ export function Terminal({ variant }: TerminalProps) {
             Terminal
           </span>
         </div>
-        <button
-          onClick={handleClear}
-          className="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-800"
-          title="Clear terminal"
-        >
-          <Eraser size={16} className="text-gray-600 dark:text-gray-400" />
-        </button>
       </div>
       <div ref={terminalRef} className="flex-1 overflow-hidden p-2" />
     </div>

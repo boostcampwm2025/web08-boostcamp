@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
-import WebSocket from 'ws';
+import { WebSocket, Data as WebSocketData } from 'ws';
 import {
   ERROR_CODE,
   ERROR_MESSAGES,
@@ -234,7 +234,7 @@ export class CodeExecutionService {
    */
   private handleWsMessage(
     context: WebSocketHandlerContext,
-    data: WebSocket.Data,
+    data: WebSocketData,
   ): void {
     try {
       const messageString = this.convertWebSocketDataToString(data);
@@ -342,7 +342,7 @@ export class CodeExecutionService {
   private mapPistonErrorCode(
     code: number,
   ): { code: string; message: string } | null {
-    switch (code) {
+    switch (code as PistonErrorCode) {
       case PistonErrorCode.ALREADY_INITIALIZED:
         return {
           code: ERROR_CODE.CODE_EXECUTION_ALREADY_INITIALIZED,
@@ -381,7 +381,7 @@ export class CodeExecutionService {
   /**
    * Convert WebSocket.Data to string
    */
-  private convertWebSocketDataToString(data: WebSocket.Data): string {
+  private convertWebSocketDataToString(data: WebSocketData): string {
     if (typeof data === 'string') {
       return data;
     } else if (Buffer.isBuffer(data)) {
