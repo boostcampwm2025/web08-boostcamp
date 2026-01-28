@@ -29,7 +29,7 @@ export function Terminal({ variant }: TerminalProps) {
     // Theme configuration
     const theme = getTheme(variant);
 
-    // Initialize terminal
+    // Terminal configuration
     const xterm = new XTerm({
       fontSize: 14,
       fontFamily: "'Roboto Mono', 'Space Mono', monospace",
@@ -38,33 +38,37 @@ export function Terminal({ variant }: TerminalProps) {
       disableStdin: true, // Read-only
     });
 
-    // Load Addons
+    // Create and load FitAddon
     const fitAddon = new FitAddon();
     xterm.loadAddon(fitAddon);
 
-    // Open terminal
-    xterm.open(terminalRef.current);
-
-    // Store references first
+    // Store references
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
 
+    // Open terminal
+    const openTerminal = () => {
+      if (!terminalRef.current) return;
+
+      xterm.open(terminalRef.current);
+      fitTerminal();
+    };
+
     // Fit terminal
-    const fit = () => {
+    const fitTerminal = () => {
       try {
         fitAddon.fit();
       } catch (e) {
-        console.warn('Failed to fit terminal', e);
+        console.warn('Failed to fit terminal:', e);
       }
     };
 
-    // Handle resize
-    const handleResize = () => fit();
-    window.addEventListener('resize', handleResize);
+    // Initialize terminal
+    const frame = requestAnimationFrame(openTerminal);
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(frame);
       xterm.dispose();
     };
 
@@ -105,5 +109,7 @@ export function Terminal({ variant }: TerminalProps) {
   useExecutionResult(xtermRef.current, result);
   useExecutionError(xtermRef.current, error);
 
-  return <div ref={terminalRef} className="h-full w-full overflow-hidden p-2" />;
+  return (
+    <div ref={terminalRef} className="h-full w-full overflow-hidden p-2" />
+  );
 }
