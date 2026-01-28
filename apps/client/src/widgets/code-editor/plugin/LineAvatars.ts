@@ -1,18 +1,19 @@
-import { createAvatarElement } from '@codejam/ui';
+import { LucideAvatarProvider } from '@codejam/ui';
 import { gutter, GutterMarker } from '@codemirror/view';
 import * as Y from 'yjs';
 
-// React에서 넘겨줄 데이터 타입 (위치 정보 포함)
+const provider = new LucideAvatarProvider();
+
 export interface RemoteUser {
   hash: string;
-  color: string;
+  color?: string;
   name?: string;
-  cursor: Y.RelativePosition; // 위치 계산을 위해 필요
+  cursor: Y.RelativePosition;
 }
 
 export interface AvatarUser {
   hash: string;
-  color: string;
+  color?: string;
   name?: string;
 }
 
@@ -68,24 +69,29 @@ class AvatarMarker extends GutterMarker {
     avatarContainer.style.height = `${avatarSize}px`;
     avatarContainer.style.borderRadius = '50%';
     avatarContainer.style.overflow = 'hidden'; // 둥근 테두리 밖으로 나가는 것 방지
-    avatarContainer.style.border = '1px solid rgba(255, 255, 255, 0.5)'; // 테두리 살짝
 
-    const avatarEl = createAvatarElement(
-      firstUser.hash,
-      firstUser.color,
-      avatarSize,
-    );
-    avatarEl.style.width = '100%';
-    avatarEl.style.height = '100%';
+    // const borderColor = firstUser.color || 'rgba(255, 255, 255, 0.5)';
+    // avatarContainer.style.border = `1px solid ${borderColor}`;
 
-    avatarContainer.appendChild(avatarEl);
+    const svgString = provider.toSvgString(firstUser.hash, avatarSize);
+
+    avatarContainer.innerHTML = svgString;
+
+    const svg = avatarContainer.querySelector('svg');
+    if (svg) {
+      svg.style.display = 'block';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+    }
 
     if (userCount > 1) {
       const extraCount = userCount - 1;
 
       // 베이스 아바타를 흐리게/어둡게 처리
-      avatarEl.style.filter = 'brightness(0.6) contrast(1.2)'; // 밝기를 낮추고 대비를 높임
-      avatarEl.style.opacity = '0.9';
+      if (svg) {
+        svg.style.filter = 'brightness(0.6) contrast(1.2)';
+        svg.style.opacity = '0.9';
+      }
 
       // 오버레이 텍스트 컨테이너 생성
       const overlayEl = document.createElement('div');
