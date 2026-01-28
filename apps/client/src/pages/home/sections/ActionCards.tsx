@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Hash, Settings2 } from 'lucide-react';
 import { ActionCard } from '../cards/ActionCard';
 import { RoomCodeInput, ROOM_CODE_LENGTH } from '../components/RoomCodeInput';
-import { Button } from '@/shared/ui/button';
+import { RadixButton as Button } from '@codejam/ui';
 import {
   createQuickRoom,
-  checkRoomExists,
+  checkRoomJoinable,
   createCustomRoom,
-  type CustomRoomData,
 } from '@/shared/api/room';
-import { getRoomUrl } from '@/shared/lib/routes';
-import { setRoomToken } from '@/shared/lib/storage';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { ROUTES, type CreateCustomRoomRequest } from '@codejam/common';
+import {
+  RadixPopover as Popover,
+  RadixPopoverContent as PopoverContent,
+  RadixPopoverTrigger as PopoverTrigger,
+} from '@codejam/ui';
 import { CustomStartPopover } from '../components/CustomStartPopover';
 
 interface ErrorMessageProps {
@@ -21,9 +23,9 @@ interface ErrorMessageProps {
 
 function ErrorMessage({ message }: ErrorMessageProps) {
   return (
-    <div className="min-h-5 -mt-2 w-full">
+    <div className="-mt-2 min-h-5 w-full">
       {message && (
-        <p className="font-mono text-sm text-red-500 text-center wrap-break-words">
+        <p className="wrap-break-words text-center font-mono text-sm text-red-500">
           {message}
         </p>
       )}
@@ -56,7 +58,7 @@ export function ActionCards() {
       const { roomCode } = await createQuickRoom();
 
       // Then join the room
-      const url = getRoomUrl(roomCode);
+      const url = ROUTES.ROOM(roomCode);
       navigate(url);
     } catch (e) {
       const error = e as Error;
@@ -66,16 +68,15 @@ export function ActionCards() {
     }
   };
 
-  const handleCustomStart = async (data: CustomRoomData) => {
+  const handleCustomStart = async (data: CreateCustomRoomRequest) => {
     if (isCreating) return;
 
     setIsCreating(true);
     setCreateRoomError('');
 
     try {
-      const { roomCode, token } = await createCustomRoom(data);
-      setRoomToken(roomCode, token);
-      navigate(getRoomUrl(roomCode));
+      const { roomCode } = await createCustomRoom(data);
+      navigate(ROUTES.ROOM(roomCode));
     } catch (e) {
       setCreateRoomError((e as Error).message);
     } finally {
@@ -93,11 +94,11 @@ export function ActionCards() {
     setJoinRoomError('');
 
     try {
-      const status = await checkRoomExists(code);
+      const status = await checkRoomJoinable(code);
       if (status === 'FULL') {
         setJoinRoomError('방의 정원이 초과되었습니다.');
       } else {
-        const roomUrl = getRoomUrl(code);
+        const roomUrl = ROUTES.ROOM(code);
         navigate(roomUrl);
       }
     } catch (e) {
@@ -110,7 +111,7 @@ export function ActionCards() {
 
   return (
     <section className="w-full px-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 w-full">
+      <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
         {/* === 방 만들기 카드 === */}
         <ActionCard
           icon={Users}
@@ -118,33 +119,28 @@ export function ActionCards() {
           description="새로운 협업 공간을 생성하고 팀원들을 초대하세요"
           colorKey="blue"
         >
-          <div className="flex flex-col items-center gap-4 w-full">
+          <div className="flex w-full flex-col items-center gap-4">
             {/* Quick Start 버튼 */}
             <Button
               onClick={handleQuickStart}
               disabled={isCreating}
-              className={`w-full h-14 text-lg shadow-md transition-all duration-200 
-                ${createRoomError ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5'} 
-                text-white rounded-xl flex items-center justify-center gap-2 font-mono`}
+              className={`h-14 w-full text-lg shadow-md transition-all duration-200 ${createRoomError ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg'} flex items-center justify-center gap-2 rounded-xl font-mono text-white`}
             >
               {isCreating ? 'Creating...' : 'Quick Start'}
             </Button>
 
             {/* Custom Start Popover Trigger */}
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  disabled={isCreating}
-                  className="w-full text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors h-10 text-sm font-mono"
-                >
-                  <Settings2 className="w-4 h-4 mr-2" />
-                  Custom Start
-                </Button>
+              <PopoverTrigger
+                disabled={isCreating}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md font-mono text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 disabled:pointer-events-none disabled:opacity-50"
+              >
+                <Settings2 className="h-4 w-4" />
+                Custom Start
               </PopoverTrigger>
 
               <PopoverContent
-                className="w-80 p-0 bg-white shadow-2xl border-gray-100 rounded-xl overflow-hidden"
+                className="w-80 overflow-hidden rounded-xl border-gray-100 bg-white p-0 shadow-2xl"
                 align="center"
                 sideOffset={12}
               >
@@ -166,7 +162,7 @@ export function ActionCards() {
           description="공유받은 6자리 방 코드를 입력하여 참여하세요"
           colorKey="green"
         >
-          <div className="flex flex-col items-center gap-6 w-full">
+          <div className="flex w-full flex-col items-center gap-6">
             <RoomCodeInput
               value={roomCode}
               onChange={setRoomCode}
@@ -179,16 +175,7 @@ export function ActionCards() {
               <Button
                 onClick={handleJoinRoom}
                 disabled={roomCode.some((digit) => digit === '') || isJoining}
-                className={`
-                  group relative w-full h-14 overflow-hidden rounded-xl text-lg font-bold transition-all duration-300 flex items-center justify-center gap-2
-                  disabled:bg-none disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:translate-y-0 disabled:cursor-not-allowed
-                  bg-gradient-to-br from-brand-green to-emerald-600 
-                  text-white 
-                  shadow-lg shadow-brand-green/20
-                  hover:to-brand-green 
-                  hover:shadow-brand-green/40 
-                  hover:-translate-y-0.5
-                `}
+                className={`group from-brand-green shadow-brand-green/20 hover:to-brand-green hover:shadow-brand-green/40 relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-br to-emerald-600 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:bg-none disabled:text-gray-400 disabled:shadow-none`}
               >
                 {isJoining ? '입장 중...' : '입장하기'}
               </Button>

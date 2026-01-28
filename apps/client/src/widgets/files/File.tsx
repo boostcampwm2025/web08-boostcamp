@@ -1,15 +1,15 @@
 import { extname, purename } from '@/shared/lib/file';
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/shared/ui/context-menu';
+  RadixContextMenu as ContextMenu,
+  RadixContextMenuContent as ContextMenuContent,
+  RadixContextMenuItem as ContextMenuItem,
+  RadixContextMenuTrigger as ContextMenuTrigger,
+} from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { Edit2, Trash2 } from 'lucide-react';
 import { memo, useState } from 'react';
 import { RenameDialog } from '../dialog/RenameDialog';
-import { Dialog } from '@/shared/ui';
+import { RadixDialog as Dialog } from '@codejam/ui';
 import { DeleteDialog } from '../dialog/DeleteDialog';
 
 type DialogType = 'RENAME' | 'DELETE' | undefined;
@@ -48,8 +48,7 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
       <ContextMenu>
         <ContextMenuTrigger disabled={!hasPermission}>
           <div
-            className={`flex items-center justify-between p-2 transition-all duration-200
-              select-none ${isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER}`}
+            className={`flex items-center justify-between p-2 transition-all duration-200 select-none ${isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER}`}
             onClick={handleClick}
           >
             <div className="flex items-center space-x-3">

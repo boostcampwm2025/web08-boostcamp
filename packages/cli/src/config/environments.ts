@@ -20,7 +20,7 @@ export const environments: Record<string, EnvironmentConfig> = {
 };
 
 export function getConfig(env?: string): EnvironmentConfig {
-  const environment = env || process.env.CODEJAM_ENV || 'production';
+  const environment = env || 'production';
   const config = environments[environment];
 
   if (!config) {

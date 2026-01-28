@@ -5,13 +5,13 @@ import { ParticipantInfo } from './ParticipantInfo';
 import type { ParticipantProps, PermissionPtProps } from '../lib/types';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, ROLE, PRESENCE } from '@codejam/common';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@radix-ui/react-popover';
-import { ThreeDot } from '@/shared/ui/three-dot';
+  RadixPopover as Popover,
+  RadixPopoverContent as PopoverContent,
+  RadixPopoverTrigger as PopoverTrigger,
+} from '@codejam/ui';
+import { MoreHorizontal } from 'lucide-react';
 
 /**
  * 참가자 정보를 표시하는 컴포넌트
@@ -29,11 +29,11 @@ export const Participant = memo(
 
     if (!pt) return null;
 
-    const isOnline = pt.presence === 'online';
+    const isOnline = pt.presence === PRESENCE.ONLINE;
     const opacity = isOnline ? 'opacity-100' : 'opacity-40';
     const isMe = ptId === myPtId;
 
-    const isTargetHost = pt.role === 'host';
+    const isTargetHost = pt.role === ROLE.HOST;
     const canToggle = hasPermission && !isMe && !isTargetHost;
 
     const handleToggleRole = () => {
@@ -41,7 +41,7 @@ export const Participant = memo(
         return;
       }
 
-      const newRole = pt.role === 'editor' ? 'viewer' : 'editor';
+      const newRole = pt.role === ROLE.EDITOR ? ROLE.VIEWER : ROLE.EDITOR;
 
       socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
         roomCode,
@@ -56,10 +56,7 @@ export const Participant = memo(
     };
 
     return (
-      <div
-        className="flex items-center justify-between p-2 transition-colors
-        select-none group hover:bg-gray-100 dark:hover:bg-gray-700"
-      >
+      <div className="group flex items-center justify-between p-2 transition-colors select-none hover:bg-gray-100 dark:hover:bg-gray-700">
         <div className={`flex items-center space-x-5 ${opacity}`}>
           <ParticipantAvatar ptId={ptId} />
           <ParticipantInfo
@@ -72,16 +69,17 @@ export const Participant = memo(
         </div>
         {isMe && (
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger>
-              <ThreeDot />
+            <PopoverTrigger asChild>
+              <MoreHorizontal className="size-4" />
             </PopoverTrigger>
-            <PopoverContent className="z-9999">
-              <div
+            <PopoverContent className="z-50 w-32 p-1" align="start">
+              <button
+                type="button"
                 onClick={handleRenamePopover}
-                className="absolute border w-45 p-4 rounded-md bg-white text-black dark:bg-black dark:hover:bg-gray-800 dark:text-white hover:bg-gray-50 hover:cursor-pointer"
+                className="flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <span>이름 변경</span>
-              </div>
+              </button>
             </PopoverContent>
           </Popover>
         )}

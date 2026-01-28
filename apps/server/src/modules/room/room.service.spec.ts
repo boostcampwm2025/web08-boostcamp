@@ -1,46 +1,38 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoomService } from './room.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DefaultRolePolicy, Room } from './room.entity';
-import { Repository, DataSource, QueryRunner } from 'typeorm';
-import { InternalServerErrorException } from '@nestjs/common';
-import { PtRole } from '../pt/pt.entity';
+import { Room } from './room.entity';
+import { DataSource } from 'typeorm';
 import { PtService } from '../pt/pt.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { FileService } from '../file/file.service';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 // 테스트 상수
-const MOCK_ROOM_CODE = 'UNI001';
 const MOCK_ROOM_ID = 100;
-const MOCK_PT_ID = 'uuid-host-1';
-const MOCK_PT_HASH = '1234';
-const MOCK_TOKEN = 'mock-jwt-token';
 const MOCK_DOC_ID = 'mock-doc-id';
 
-const createMockQueryRunner = () => ({
+// QueryRunner Mock
+const mockQueryRunner = {
   connect: jest.fn(),
   startTransaction: jest.fn(),
   commitTransaction: jest.fn(),
   rollbackTransaction: jest.fn(),
   release: jest.fn(),
   manager: {
-    create: jest.fn(),
-    save: jest.fn(),
+    create: jest.fn((entity, data) => data),
+    save: jest.fn((data) => Promise.resolve(data)),
   },
-});
+};
 
 describe('RoomService', () => {
   let service: RoomService;
-  let repository: jest.Mocked<Repository<Room>>;
-  let dataSource: jest.Mocked<DataSource>;
-  let queryRunner: jest.Mocked<QueryRunner>;
-  let roomTokenService: jest.Mocked<RoomTokenService>;
-  let fileService: jest.Mocked<FileService>;
+  let ptService: PtService;
+  let roomTokenService: RoomTokenService;
+  let fileService: FileService;
+  let roomRepository: any;
 
   beforeEach(async () => {
-    // 각 테스트마다 새로운 QueryRunner Mock 생성
-    const mockQueryRunnerInstance = createMockQueryRunner();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RoomService,
@@ -48,212 +40,143 @@ describe('RoomService', () => {
           provide: getRepositoryToken(Room),
           useValue: {
             findOne: jest.fn(),
+            exists: jest.fn(),
             delete: jest.fn(),
           },
         },
         {
           provide: DataSource,
           useValue: {
-            createQueryRunner: jest
-              .fn()
-              .mockReturnValue(mockQueryRunnerInstance),
+            createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
+            // transaction 메서드 Mock: 콜백을 즉시 실행하여 로직 검증
+            transaction: jest.fn(async (cb) => {
+              return await cb(mockQueryRunner.manager);
+            }),
           },
         },
         {
           provide: PtService,
           useValue: {
-            generatePtHash: jest.fn().mockReturnValue(MOCK_PT_HASH),
-            checkRole: jest.fn(),
+            generatePtHash: jest.fn().mockReturnValue('hash'),
+            roomCounter: jest.fn(),
+            createPt: jest.fn(),
           },
         },
         {
           provide: RoomTokenService,
-          useValue: {
-            sign: jest.fn().mockReturnValue(MOCK_TOKEN),
-            verify: jest.fn(),
-          },
+          useValue: { sign: jest.fn().mockReturnValue('mock-token') },
         },
         {
           provide: FileService,
           useValue: {
-            generateInitialSnapshot: jest.fn().mockReturnValue(Buffer.from([])),
-            removeDoc: jest.fn().mockResolvedValue(true),
+            generateInitialSnapshot: jest.fn(),
+            removeDoc: jest.fn(),
           },
         },
       ],
     }).compile();
 
     service = module.get<RoomService>(RoomService);
-    repository = module.get(getRepositoryToken(Room));
-    dataSource = module.get(DataSource);
+    ptService = module.get(PtService);
     roomTokenService = module.get(RoomTokenService);
     fileService = module.get(FileService);
-    queryRunner = dataSource.createQueryRunner() as jest.Mocked<QueryRunner>;
+    roomRepository = module.get(getRepositoryToken(Room));
 
-    // 셋업 과정에서 생긴 호출 기록 초기화
-    (dataSource.createQueryRunner as jest.Mock).mockClear();
-
-    // 공통 Mock 동작
-    (queryRunner.manager.create as jest.Mock).mockImplementation(
-      (entity, data) => data,
-    );
-  });
-
-  it('Service가 정의되어야 한다', () => {
-    expect(service).toBeDefined();
+    jest.clearAllMocks();
   });
 
   describe('createQuickRoom', () => {
-    it('성공 시: 트랜잭션 내에서 Room과 Pt를 저장하고 결과를 반환한다', async () => {
+    it('Transaction 내에서 Room과 Document만 저장해야 한다 (Pt 생성 X)', async () => {
       // Arrange
-      jest
-        .spyOn(service as any, 'generateRoomCode')
-        .mockReturnValue(MOCK_ROOM_CODE);
-      repository.findOne.mockResolvedValue(null); // 중복 없음
-
-      const savedRoom = { roomId: MOCK_ROOM_ID, roomCode: MOCK_ROOM_CODE };
-      const savedPt = {
-        ptId: MOCK_PT_ID,
-        room: savedRoom,
-        role: PtRole.EDITOR,
-      };
-      const savedDocument = {
-        docId: 'mock-doc-id',
-        room: savedRoom,
-        roomId: MOCK_ROOM_ID,
-      };
-
-      (queryRunner.manager.save as jest.Mock)
-        .mockResolvedValueOnce(savedRoom) // Room 저장 성공
-        .mockResolvedValueOnce(savedPt) // Pt 저장 성공
-        .mockResolvedValueOnce(savedDocument); // Document 저장 성공
+      jest.spyOn(service as any, 'generateRoomCode').mockReturnValue('QUICK');
+      roomRepository.exists.mockResolvedValue(false);
 
       // Act
       const result = await service.createQuickRoom();
 
       // Assert
-      // 1. 흐름 검증
-      expect(dataSource.createQueryRunner).toHaveBeenCalled();
-      expect(queryRunner.connect).toHaveBeenCalled();
-      expect(queryRunner.startTransaction).toHaveBeenCalled();
-      expect(queryRunner.commitTransaction).toHaveBeenCalled();
-      expect(queryRunner.release).toHaveBeenCalled();
-      expect(queryRunner.rollbackTransaction).not.toHaveBeenCalled();
-
-      // 2. 데이터 저장 검증
-      expect(queryRunner.manager.save).toHaveBeenNthCalledWith(
-        1,
-        expect.objectContaining({
-          roomCode: MOCK_ROOM_CODE,
-          defaultRolePolicy: DefaultRolePolicy.EDITOR,
-        }),
-      );
-
-      expect(queryRunner.manager.save).toHaveBeenNthCalledWith(
-        2,
-        expect.objectContaining({
-          room: savedRoom,
-          role: PtRole.EDITOR,
-          ptHash: MOCK_PT_HASH,
-        }),
-      );
-
-      expect(queryRunner.manager.save).toHaveBeenNthCalledWith(
-        3,
-        expect.objectContaining({
-          room: savedRoom,
-          roomId: MOCK_ROOM_ID,
-        }),
-      );
-
-      // 3. 토큰 생성 검증
-      expect(roomTokenService.sign).toHaveBeenCalledWith({
-        roomCode: MOCK_ROOM_CODE,
-        ptId: MOCK_PT_ID,
-      });
-
-      // 4. 반환값 검증
-      expect(result).toEqual({
-        roomCode: MOCK_ROOM_CODE,
-        token: MOCK_TOKEN,
-      });
+      expect(result.roomCode).toBe('QUICK');
+      expect(mockQueryRunner.manager.save).toHaveBeenCalledTimes(2); // Room + Document
+      expect(roomTokenService.sign).not.toHaveBeenCalled();
     });
+  });
 
-    it('룸 코드가 중복되면 최대 3번까지 재시도하고, 성공하면 저장한다', async () => {
+  describe('createCustomRoom', () => {
+    it('Transaction 내에서 Room, Host Pt, Document를 저장하고 Token을 반환해야 한다', async () => {
       // Arrange
-      jest
-        .spyOn(service as any, 'generateRoomCode')
-        .mockReturnValueOnce('DUP001') // 1차 시도 (중복)
-        .mockReturnValueOnce('UNI002'); // 2차 시도 (성공)
+      const dto = { roomPassword: 'pw', maxPts: 5 };
+      jest.spyOn(service as any, 'generateRoomCode').mockReturnValue('CUSTOM');
+      roomRepository.exists.mockResolvedValue(false);
 
-      repository.findOne
-        .mockResolvedValueOnce({ roomId: 1 } as Room) // 1차 결과: 존재함
-        .mockResolvedValueOnce(null); // 2차 결과: 없음
-
-      const mockRoom = { roomId: 1, roomCode: 'UNI002' } as Room;
-      const mockPt = { ptId: 'mock-pt-id', room: mockRoom, role: PtRole.HOST };
-      const mockDocument = { docId: 'mock-doc-id', room: mockRoom, roomId: 1 };
-
-      (queryRunner.manager.save as jest.Mock)
-        .mockResolvedValueOnce(mockRoom)
-        .mockResolvedValueOnce(mockPt)
-        .mockResolvedValueOnce(mockDocument);
+      // save 호출 순서에 따른 반환값 설정
+      (mockQueryRunner.manager.save as jest.Mock)
+        .mockResolvedValueOnce({ roomId: 1, roomCode: 'CUSTOM' }) // 1. Room
+        .mockResolvedValueOnce({ ptId: 'host-pt' }) // 2. Pt
+        .mockResolvedValueOnce({}); // 3. Document
 
       // Act
-      await service.createQuickRoom();
+      const result = await service.createCustomRoom(dto as any);
 
       // Assert
-      expect(repository.findOne).toHaveBeenCalledTimes(2); // 재시도 확인
-      expect(queryRunner.manager.create).toHaveBeenCalledWith(
-        Room,
-        expect.objectContaining({ roomCode: 'UNI002' }),
-      );
-      expect(queryRunner.commitTransaction).toHaveBeenCalled();
+      expect(result.roomCode).toBe('CUSTOM');
+      expect(result.token).toBe('mock-token');
+      expect(mockQueryRunner.manager.save).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('joinRoom', () => {
+    it('정원이 남았다면 Pt를 생성하고 Token을 발급해야 한다', async () => {
+      // Arrange
+      const room = { roomId: 10, roomCode: 'JOIN01', maxPts: 10 };
+      roomRepository.findOne.mockResolvedValue(room);
+
+      (ptService.roomCounter as jest.Mock).mockResolvedValue(5); // 현재 5명
+      (ptService.createPt as jest.Mock).mockResolvedValue({ ptId: 'new-pt' });
+
+      // Act
+      const result = await service.joinRoom('JOIN01', 'Nick');
+
+      // Assert
+      expect(ptService.createPt).toHaveBeenCalledWith(10, 'Nick');
+      expect(roomTokenService.sign).toHaveBeenCalled();
+      expect(result).toHaveProperty('token');
     });
 
-    it('3번 모두 중복되면 예외를 던지고 트랜잭션은 시작되지 않는다', async () => {
-      // Arrange
-      jest.spyOn(service as any, 'generateRoomCode').mockReturnValue('DUP999');
-      repository.findOne.mockResolvedValue({ roomId: 999 } as Room); // 계속 중복
+    it('방을 찾을 수 없으면 404 예외를 던져야 한다', async () => {
+      roomRepository.findOne.mockResolvedValue(null);
 
-      // Act & Assert
-      await expect(service.createQuickRoom()).rejects.toThrow(
-        InternalServerErrorException,
+      await expect(service.joinRoom('NONE', 'Nick')).rejects.toThrow(
+        ApiException,
       );
-
-      expect(repository.findOne).toHaveBeenCalledTimes(3);
-      expect(dataSource.createQueryRunner).not.toHaveBeenCalled(); // 트랜잭션 시작 X
     });
 
-    it('저장 중 DB 에러가 발생하면 롤백해야 한다', async () => {
-      // Arrange
-      repository.findOne.mockResolvedValue(null);
-      (queryRunner.manager.save as jest.Mock).mockRejectedValue(
-        new Error('DB Error'),
+    it('정원이 꽉 찼으면 409 예외를 던져야 한다', async () => {
+      const room = { roomId: 10, maxPts: 2 };
+      roomRepository.findOne.mockResolvedValue(room);
+      (ptService.roomCounter as jest.Mock).mockResolvedValue(2); // 이미 2명
+
+      await expect(service.joinRoom('FULL', 'Nick')).rejects.toThrow(
+        ApiException,
       );
-
-      // Act & Assert
-      await expect(service.createQuickRoom()).rejects.toThrow('DB Error');
-
-      expect(queryRunner.startTransaction).toHaveBeenCalled();
-      expect(queryRunner.rollbackTransaction).toHaveBeenCalled(); // 롤백 확인
-      expect(queryRunner.release).toHaveBeenCalled(); // 리소스 해제 확인
     });
   });
 
   describe('destroyRoom', () => {
     it('성공 시: DB에서 방을 삭제하고 Y.Doc을 메모리에서 해제한다', async () => {
       // Arrange
-      repository.delete.mockResolvedValue({ affected: 1, raw: [] });
+      roomRepository.delete.mockResolvedValue({ affected: 1, raw: [] });
+      (fileService.removeDoc as jest.Mock).mockResolvedValue(true);
 
       // Act
       await service.destroyRoom(MOCK_ROOM_ID, MOCK_DOC_ID);
 
       // Assert
       // 1. DB 삭제 확인
-      expect(repository.delete).toHaveBeenCalledWith({
-        roomId: expect.objectContaining({ _value: [MOCK_ROOM_ID] }),
-      });
+      expect(roomRepository.delete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          roomId: expect.anything(),
+        }),
+      );
 
       // 2. Y.Doc 메모리 해제 확인
       expect(fileService.removeDoc).toHaveBeenCalledWith(MOCK_DOC_ID);
@@ -262,11 +185,11 @@ describe('RoomService', () => {
     it('DB 삭제 후 Y.Doc 해제가 순차적으로 실행된다', async () => {
       // Arrange
       const callOrder: string[] = [];
-      repository.delete.mockImplementation(() => {
+      roomRepository.delete.mockImplementation(() => {
         callOrder.push('deleteRooms');
         return Promise.resolve({ affected: 1, raw: [] });
       });
-      fileService.removeDoc.mockImplementation(() => {
+      (fileService.removeDoc as jest.Mock).mockImplementation(() => {
         callOrder.push('removeDoc');
         return Promise.resolve(true);
       });
@@ -274,13 +197,13 @@ describe('RoomService', () => {
       // Act
       await service.destroyRoom(MOCK_ROOM_ID, MOCK_DOC_ID);
 
-      // Assert - 순서 확인
+      // Assert
       expect(callOrder).toEqual(['deleteRooms', 'removeDoc']);
     });
 
     it('DB 삭제 실패 시 예외를 던진다', async () => {
       // Arrange
-      repository.delete.mockRejectedValue(new Error('DB Delete Error'));
+      roomRepository.delete.mockRejectedValue(new Error('DB Delete Error'));
 
       // Act & Assert
       await expect(

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { sortByTime, sortByNickname } from '../lib/sorter';
-import type { Pt } from '@codejam/common';
+import { ROLE, type Pt } from '@codejam/common';
 import type { SortState } from '../lib/types';
 
 interface UseParticipantsFilterProps {
@@ -56,8 +56,8 @@ export function useParticipantsFilter({
     // 나머지 정렬 로직
     otherPts.sort((a, b) => {
       // 호스트는 맨 위로
-      if (a.role === 'host') return -1;
-      if (b.role === 'host') return 1;
+      if (a.role === ROLE.HOST) return -1;
+      if (b.role === ROLE.HOST) return 1;
 
       if (sortState.key === 'time') {
         return sortByTime(a, b, sortState.order);

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type DragEvent } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
 import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
@@ -7,16 +7,18 @@ import { useSocket } from '@/shared/lib/hooks/useSocket';
 import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
-import { Toaster } from '@/shared/ui/sonner';
+import { RadixToaster as Toaster } from '@codejam/ui';
 import { FileList } from '@/widgets/files';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import { HostClaimRequestDialog } from '@/widgets/dialog/HostClaimRequestDialog';
-import type { RoomJoinStatus } from '@codejam/common';
+import { ROLE, type RoomJoinStatus } from '@codejam/common';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
+import { useFileRename } from '@/shared/lib/hooks/useFileRename';
+import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 
 function RoomPage() {
   const {
@@ -30,6 +32,9 @@ function RoomPage() {
     handleNicknameConfirm,
     handlePasswordConfirm,
   } = useRoomJoin();
+  const { setIsDuplicated, isDuplicated, handleFileChange } = useFileRename(
+    paramCode || '',
+  );
 
   useAwarenessSync();
   useInitialFileSelection();
@@ -51,20 +56,34 @@ function RoomPage() {
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || '');
-  const isViewer = myPt?.role === 'viewer';
+  const isViewer = myPt?.role === ROLE.VIEWER;
+
+  const handleDragPrevent = (ev: DragEvent) => {
+    ev.preventDefault();
+  };
+
+  const handleFileDrop = (ev: DragEvent) => {
+    ev.preventDefault();
+    const files = ev.dataTransfer.files;
+    handleFileChange(files);
+  };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex h-screen flex-col">
       <Header roomCode={paramCode!} />
       {roomError && (
-        <div className="bg-red-500 text-white p-4 text-center">{roomError}</div>
+        <div className="bg-red-500 p-4 text-center text-white">{roomError}</div>
       )}
-      <main className="flex-1 overflow-hidden flex">
-        <div className="border-r border-border h-full overflow-y-auto scrollbar-thin flex flex-col bg-sidebar w-72 shrink-0">
+      <main className="flex flex-1 overflow-hidden">
+        <div className="border-border scrollbar-thin bg-background flex h-full w-72 shrink-0 flex-col overflow-y-auto border-r">
           <Participants />
           <FileList />
         </div>
-        <div className="flex-1 h-full bg-background">
+        <div
+          className="bg-background h-full flex-1"
+          onDragOver={handleDragPrevent}
+          onDrop={handleFileDrop}
+        >
           <FileViewer fileId={activeFileId} readOnly={isViewer} />
         </div>
       </main>
@@ -89,6 +108,7 @@ function RoomPage() {
         />
       )}
       <Toaster />
+      <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
       <HostClaimRequestDialog />
     </div>
   );

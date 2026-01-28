@@ -1,13 +1,13 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { DialogClose } from '@radix-ui/react-dialog';
+  RadixDialog as Dialog,
+  RadixDialogClose as DialogClose,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
 
 interface LeaveRoomDialogProps {
   open: boolean;
@@ -52,7 +52,7 @@ export function LeaveRoomDialog({
             type="submit"
             variant="ghost"
             size="sm"
-            className="text-destructive hover:text-red-500 hover:bg-destructive/10"
+            className="text-destructive hover:bg-destructive/10 hover:text-red-500"
             onClick={handleConfirm}
           >
             나가기

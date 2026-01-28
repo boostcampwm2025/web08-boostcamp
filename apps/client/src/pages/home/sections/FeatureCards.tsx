@@ -1,19 +1,20 @@
 import { Zap, MousePointer2, FileCode } from 'lucide-react';
+import { PROJECT_NAME } from '@codejam/common';
 import { FeatureCard } from '../cards/FeatureCard';
 
 export function FeatureCards() {
   return (
     <section className="mb-16 border-t border-gray-100">
-      <div className="py-12 flex flex-col items-center text-center gap-2">
-        <h2 className="text-3xl font-bold font-mono text-gray-900">
-          Why CodeJam?
+      <div className="flex flex-col items-center gap-2 py-12 text-center">
+        <h2 className="font-mono text-3xl font-bold text-gray-900">
+          Why {PROJECT_NAME}?
         </h2>
-        <p className="text-gray-500 font-medium">
+        <p className="font-medium text-gray-500">
           복잡한 설정은 걷어내고, 핵심 기능만 담았습니다
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+      <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-3">
         {/* 1. Zero-Config */}
         <FeatureCard
           icon={Zap}

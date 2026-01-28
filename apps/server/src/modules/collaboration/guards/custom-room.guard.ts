@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   Logger,
 } from '@nestjs/common';
-import { RoomType } from '../../room/room.entity';
+import { ERROR_CODE, ROOM_TYPE } from '@codejam/common';
 import type { CollabSocket } from '../collaboration.types';
 
 @Injectable()
@@ -21,13 +21,13 @@ export class CustomRoomGuard implements CanActivate {
         `Missing data: roomCode=${roomCode}, ptId=${ptId}, roomType=${roomType}`,
       );
       client.emit('error', {
-        type: 'PERMISSION_DENIED',
+        type: ERROR_CODE.PERMISSION_DENIED,
         message: '방 정보가 없습니다',
       });
       return false;
     }
 
-    if (roomType !== RoomType.CUSTOM) {
+    if (roomType !== ROOM_TYPE.CUSTOM) {
       this.logger.warn(
         `Custom room only: roomCode=${roomCode}, ptId=${ptId}, roomType=${roomType}`,
       );

@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/dialog';
-import { Label } from '@/shared/ui/label';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Slider } from '@/shared/ui/slider';
-import { Switch } from '@/shared/ui/switch';
+  RadixDialog as Dialog,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+  RadixDialogTrigger as DialogTrigger,
+} from '@codejam/ui';
+import { RadixLabel as Label } from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
+import { RadixInput as Input } from '@codejam/ui';
+import { RadixSlider as Slider } from '@codejam/ui';
+import { RadixSwitch as Switch } from '@codejam/ui';
 import {
   Settings,
   RotateCcw,
@@ -20,7 +20,7 @@ import {
   Type,
 } from 'lucide-react';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 
 export function SettingsDialog() {
   const {
@@ -71,7 +71,7 @@ export function SettingsDialog() {
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+          className="h-8 gap-1.5 px-2 text-xs sm:px-3"
         >
           <Settings className="h-4 w-4" />
           <span className="hidden lg:inline">Settings</span>
@@ -86,14 +86,14 @@ export function SettingsDialog() {
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
-          <h4 className="font-medium text-sm text-muted-foreground mb-1">
-            Editor & Theme
+          <h4 className="text-muted-foreground mb-1 text-sm font-medium">
+            폰트
           </h4>
           {/* 폰트 크기 설정 */}
           <div className="grid gap-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="fontSize">Font Size</Label>
-              <span className="text-xs text-muted-foreground">10px - 30px</span>
+              <Label htmlFor="fontSize">폰트 크기</Label>
+              <span className="text-muted-foreground text-xs">10px - 30px</span>
             </div>
 
             <div className="flex items-center gap-4">
@@ -107,33 +107,33 @@ export function SettingsDialog() {
                 className="flex-1"
               />
 
-              <div className="flex items-center gap-2 min-w-[4.5rem]">
+              <div className="flex min-w-[4.5rem] items-center gap-2">
                 <Input
                   id="fontSize"
                   type="number"
                   value={inputValue}
                   onChange={handleInputChange}
-                  className="h-8 w-14 text-center px-1"
+                  className="h-8 w-14 px-1 text-center"
                 />
-                <span className="text-sm text-muted-foreground">px</span>
+                <span className="text-muted-foreground text-sm">px</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-border my-2" />
+        <div className="border-border my-2 border-t" />
 
         <div className="grid gap-4">
-          <h4 className="font-medium text-sm text-muted-foreground mb-1">
-            Cursor & Appearance
+          <h4 className="text-muted-foreground mb-1 text-sm font-medium">
+            커서 & 외관
           </h4>
 
           {/* 원격 커서 보이기/숨기기 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MousePointer2 className="w-4 h-4 text-muted-foreground" />
+              <MousePointer2 className="text-muted-foreground h-4 w-4" />
               <Label htmlFor="show-cursor" className="cursor-pointer">
-                Show Remote Cursors
+                다른 사용자의 커서 보기
               </Label>
             </div>
             <Switch
@@ -146,9 +146,9 @@ export function SettingsDialog() {
           {/* Gutter 아바타 보이기/숨기기 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <UserCircle className="w-4 h-4 text-muted-foreground" />
+              <UserCircle className="text-muted-foreground h-4 w-4" />
               <Label htmlFor="show-gutter" className="cursor-pointer">
-                Show Gutter Avatars
+                줄 번호 옆 프로필 표시
               </Label>
             </div>
             <Switch
@@ -161,9 +161,9 @@ export function SettingsDialog() {
           {/* 커서 이름 항상 보이기 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Type className="w-4 h-4 text-muted-foreground" />
+              <Type className="text-muted-foreground h-4 w-4" />
               <Label htmlFor="show-labels" className="cursor-pointer">
-                Always Show Labels
+                커서 이름표 항상 보기
               </Label>
             </div>
             <Switch
@@ -182,8 +182,8 @@ export function SettingsDialog() {
             onClick={resetSettings}
             className="text-muted-foreground hover:text-red-500"
           >
-            <RotateCcw className="w-3 h-3 mr-1" />
-            Reset to Default
+            <RotateCcw className="mr-1 h-3 w-3" />
+            초기화
           </Button>
         </div>
       </DialogContent>

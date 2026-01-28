@@ -1,7 +1,8 @@
 import { useRef } from 'react';
 import type { KeyboardEvent, ClipboardEvent } from 'react';
+import { LIMITS } from '@codejam/common';
 
-export const ROOM_CODE_LENGTH = 6;
+export const ROOM_CODE_LENGTH = LIMITS.ROOM_CODE_LENGTH;
 
 type ColorKey = 'blue' | 'green' | 'purple';
 
@@ -117,12 +118,7 @@ export function RoomCodeInput({
 
   return (
     <div
-      className="
-        grid
-        justify-center
-        w-full
-        gap-[clamp(0.25rem,2vw,0.75rem)]
-      "
+      className="grid w-full justify-center gap-[clamp(0.25rem,2vw,0.75rem)]"
       style={{
         gridTemplateColumns: 'repeat(auto-fit, minmax(2.5rem, 1fr))',
         maxWidth: '22rem',
@@ -140,20 +136,11 @@ export function RoomCodeInput({
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={(e) => handlePaste(index, e)}
-          className={`
-            w-full aspect-[3/4]
-            text-[clamp(1.25rem,4vw,2rem)]
-            text-center font-bold font-mono
-            border-2 rounded-xl shadow-sm
-            transition-all duration-200
-            uppercase caret-transparent
-            ${
-              hasError
-                ? 'border-red-300 bg-red-50 text-red-600 focus:border-red-500 focus:ring-4 focus:ring-red-100 caret-red-500'
-                : `border-gray-200 bg-white text-gray-800 focus:ring-4 focus:-translate-y-1 ${activeColorStyle}`
-            }
-            focus:outline-none
-          `}
+          className={`aspect-[3/4] w-full rounded-xl border-2 text-center font-mono text-[clamp(1.25rem,4vw,2rem)] font-bold uppercase caret-transparent shadow-sm transition-all duration-200 ${
+            hasError
+              ? 'border-red-300 bg-red-50 text-red-600 caret-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-100'
+              : `border-gray-200 bg-white text-gray-800 focus:-translate-y-1 focus:ring-4 ${activeColorStyle}`
+          } focus:outline-none`}
         />
       ))}
     </div>

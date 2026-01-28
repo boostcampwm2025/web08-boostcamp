@@ -10,6 +10,7 @@ import {
   type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
+  type ExecuteCodePayload,
 } from '@codejam/common';
 import { UseGuards } from '@nestjs/common';
 import {
@@ -29,6 +30,7 @@ import { HostGuard } from './guards/host.guard';
 import { DestroyRoomGuard } from './guards/destroy-room.guard';
 import { CustomRoomGuard } from './guards/custom-room.guard';
 import { NotHostGuard } from './guards/not-host.guard';
+import { WsToken } from '../../common/decorators/ws-token.decorator';
 
 @WebSocketGateway({
   cors: {
@@ -58,12 +60,14 @@ export class CollaborationGateway
   async handleJoinRoom(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: JoinRoomPayload,
+    @WsToken() token: string | null,
   ) {
     try {
       await this.collaborationService.handleJoinRoom(
         client,
         this.server,
         payload,
+        token,
       );
     } catch (error) {
       const errorMessage =
@@ -207,6 +211,20 @@ export class CollaborationGateway
   @SubscribeMessage(SOCKET_EVENTS.REJECT_HOST_CLAIM)
   handleRejectHostClaim(@ConnectedSocket() client: CollabSocket) {
     this.collaborationService.handleRejectHostClaim(client, this.server);
+  }
+
+  /** C -> S 코드 실행 요청 */
+  @UseGuards(PermissionGuard)
+  @SubscribeMessage(SOCKET_EVENTS.EXECUTE_CODE)
+  async handleExecuteCode(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: ExecuteCodePayload,
+  ) {
+    await this.collaborationService.handleExecuteCode(
+      client,
+      this.server,
+      payload,
+    );
   }
 
   /**

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FileService } from './file.service';
 import { YRedisService } from '../y-redis/y-redis.service';
 import { DocumentService } from '../document/document.service';
+import { DEFAULT_LANGUAGE, DEFAULT_FILE_NAME } from '@codejam/common';
 
 const mockYRedisService = {
   bind: jest.fn().mockReturnValue({
@@ -91,7 +92,7 @@ describe('FileService', () => {
       const fileName = 'test.js';
 
       // Act
-      service.createFile(docId, fileId, fileName, 'javascript');
+      service.createFile(docId, fileId, fileName, DEFAULT_LANGUAGE);
 
       // Assert
       const roomDoc = service.getDoc(docId);
@@ -110,7 +111,12 @@ describe('FileService', () => {
       const fileId = 'test-uuid-456';
 
       // Act
-      service.createFile(docId, fileId, 'main.js', 'javascript');
+      service.createFile(
+        docId,
+        fileId,
+        DEFAULT_FILE_NAME.javascript,
+        DEFAULT_LANGUAGE,
+      );
 
       // Assert
       const roomDoc = service.getDoc(docId);
@@ -128,7 +134,7 @@ describe('FileService', () => {
       const fileId = 'test-uuid-789';
 
       // Act
-      service.createFile(docId, fileId, 'style.css', 'css');
+      service.createFile(docId, fileId, DEFAULT_FILE_NAME.css, 'css');
 
       // Assert
       const roomDoc = service.getDoc(docId);
@@ -167,9 +173,14 @@ describe('FileService', () => {
       await service.createDoc(docId);
 
       // Act
-      service.createFile(docId, 'file-1', 'main.js', 'javascript');
-      service.createFile(docId, 'file-2', 'style.css', 'css');
-      service.createFile(docId, 'file-3', 'index.html', 'html');
+      service.createFile(
+        docId,
+        'file-1',
+        DEFAULT_FILE_NAME.javascript,
+        DEFAULT_LANGUAGE,
+      );
+      service.createFile(docId, 'file-2', DEFAULT_FILE_NAME.css, 'css');
+      service.createFile(docId, 'file-3', DEFAULT_FILE_NAME.html, 'html');
 
       // Assert
       const roomDoc = service.getDoc(docId);
@@ -185,7 +196,7 @@ describe('FileService', () => {
       const fileName = 'app.js';
 
       // Act
-      service.createFile(docId, fileId, fileName, 'javascript');
+      service.createFile(docId, fileId, fileName, DEFAULT_LANGUAGE);
 
       // Assert
       const roomDoc = service.getDoc(docId);

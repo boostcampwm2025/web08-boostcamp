@@ -1,10 +1,14 @@
 import {
   SOCKET_EVENTS,
+  ERROR_CODE,
+  ROLE,
+  UPDATABLE_PT_ROLES,
+  EXT_TYPES,
+  FILENAME_CHECK_RESULT_TYPES,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type Pt,
-  type RoomToken,
   type PtUpdateRolePayload,
   type FilenameCheckResultPayload,
   type FilenameCheckPayload,
@@ -12,6 +16,9 @@ import {
   type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
+  type PtRole,
+  type PtId,
+  type ExecuteCodePayload,
 } from '@codejam/common';
 import { WsException } from '@nestjs/websockets';
 import { Injectable, Logger } from '@nestjs/common';
@@ -22,13 +29,13 @@ import { FileService } from '../file/file.service';
 import { RoomService } from '../room/room.service';
 import { RoomTokenService } from '../auth/room-token.service';
 import { DocumentService } from '../document/document.service';
-import { PtRole } from '../pt/pt.entity';
+import { CodeExecutionService } from '../code-execution/code-execution.service';
 import { Room } from '../room/room.entity';
 import { Document } from '../document/document.entity';
 
-/** 호스트 권한 요청 대기 상태 (Service 내부용) */
+// 호스트 권한 요청 대기 상태 (Service 내부용)
 interface PendingClaim {
-  requesterId: string;
+  requesterId: PtId;
   requesterSocketId: string;
   requesterRole: PtRole;
   timeoutId: NodeJS.Timeout;
@@ -45,6 +52,7 @@ export class CollaborationService {
     private readonly roomService: RoomService,
     private readonly roomTokenService: RoomTokenService,
     private readonly documentService: DocumentService,
+    private readonly codeExecutionService: CodeExecutionService,
   ) {}
 
   /** 클라이언트 연결 시 초기화 */
@@ -83,74 +91,71 @@ export class CollaborationService {
     client: CollabSocket,
     server: Server,
     payload: JoinRoomPayload,
+    token: string | null,
   ): Promise<void> {
-    const { roomCode: rawRoomCode, token, nickname, password } = payload;
-    const roomCode = rawRoomCode.toUpperCase(); // 대문자 변환
+    const { roomCode: rawRoomCode } = payload;
+    const roomCode = rawRoomCode.toUpperCase();
 
-    // 방 유효성 검사
+    // 방 존재 확인
     const room = await this.roomService.findRoomByCode(roomCode);
-    if (!room) throw new Error('ROOM_NOT_FOUND');
+    if (!room) throw new Error(ERROR_CODE.ROOM_NOT_FOUND);
 
-    const roomId = room.roomId;
-
-    // 토큰 검증 및 ptId 추출
-    let ptId: string | null = null;
-
+    // ============================================================
+    // 쿠키(토큰)가 있다 -> 복원 시도
+    // ============================================================
     if (token) {
-      const tokenPayload = this.roomTokenService.verify(token);
-      if (!tokenPayload) {
-        throw new Error('INVALID_TOKEN');
+      try {
+        const decoded = this.roomTokenService.verify(token);
+
+        if (decoded && decoded.roomCode.toUpperCase() === roomCode) {
+          const pt = await this.ptService.restorePt(room.roomId, decoded.ptId);
+
+          if (pt) {
+            await this.completeJoinRoom(client, server, room, pt);
+            return;
+          }
+        }
+      } catch (e) {
+        this.logger.warn(`Token verification failed: ${e.message}`);
       }
-      // 토큰의 roomCode와 요청 roomCode 일치 여부 확인
-      if (tokenPayload.roomCode.toUpperCase() !== roomCode) {
-        throw new Error('TOKEN_ROOM_MISMATCH');
-      }
-      ptId = tokenPayload.ptId;
     }
 
-    // 참가자 조회 또는 생성
-    let pt: Pt | null = null;
-
-    // ptId가 있으면 DB에서 조회 (호스트 또는 재접속 유저)
-    if (ptId) {
-      pt = await this.ptService.restorePt(roomId, ptId);
+    // ============================================================
+    // 토큰 없음 -> 에러 -> HTTP join 유도
+    // ============================================================
+    if (room.roomPassword) {
+      throw new Error(ERROR_CODE.PASSWORD_REQUIRED);
+    } else {
+      throw new Error(ERROR_CODE.NICKNAME_REQUIRED);
     }
+  }
 
-    // 신규 유저는 패스워드와 닉네임 필수
-    if (!pt) {
-      if (room.roomPassword && !password) {
-        throw new Error('PASSWORD_REQUIRED');
-      }
-      if (room.roomPassword && room.roomPassword !== password) {
-        throw new Error('PASSWORD_UNCORRECT');
-      }
-      if (!nickname) {
-        throw new Error('NICKNAME_REQUIRED');
-      }
-      pt = await this.ptService.createPt(roomId, nickname);
-    }
-
-    // 새 토큰 발급
-    const newToken = this.roomTokenService.sign({
-      roomCode,
-      ptId: pt.ptId,
-    });
-
-    // 문서 조회
-    const doc = await this.documentService.getDocByRoomId(roomId);
+  /**
+   * 입장 완료 처리
+   */
+  private async completeJoinRoom(
+    client: CollabSocket,
+    server: Server,
+    room: Room,
+    pt: Pt,
+  ) {
+    const doc = await this.documentService.getDocByRoomId(room.roomId);
     if (!doc) throw new Error('DOCUMENT_NOT_FOUND');
 
-    // socket.data 설정
+    // 소켓 데이터 세팅
     this.setupSocketData(client, room, pt, doc);
-    await client.join(roomCode);
 
-    // Y.Doc 준비
+    // 실제 소켓 룸 조인
+    await client.join(room.roomCode);
+
+    // Yjs 동기화
     await this.fileService.prepareDoc(client, server);
 
-    await this.notifyParticipantJoined(client, server, pt, newToken, room);
+    // 알림 전송
+    await this.notifyParticipantJoined(client, server, pt, room);
 
     this.logger.log(
-      `[JOIN_ROOM] ${pt.ptId} joined room ${roomCode} as ${pt.role}`,
+      `[JOIN_ROOM] ${pt.nickname}(${pt.ptId}) restored/joined ${room.roomCode}`,
     );
   }
 
@@ -188,7 +193,7 @@ export class CollaborationService {
     this.logger.log(`[LEFT_ROOM] ptId: ${ptId} left room ${roomCode}`);
 
     // Host가 나갔다면 다른 참가자에게 호스트 권한 양도
-    if (role === PtRole.HOST) {
+    if (role === ROLE.HOST) {
       await this.handleAutoTransferHost(client, server);
     }
 
@@ -248,10 +253,16 @@ export class CollaborationService {
     const { roomId } = client.data;
     const { ptId, role } = payload;
 
-    if (client.data.role === PtRole.HOST) {
-      await this.ptService.updatePt(client, server, ptId, {
-        role: role === 'editor' ? PtRole.EDITOR : PtRole.VIEWER,
-      });
+    if (client.data.role === ROLE.HOST) {
+      if (!UPDATABLE_PT_ROLES.includes(role)) {
+        client.emit('error', {
+          type: ERROR_CODE.INVALID_INPUT,
+          message: '호스트 권한은 양도를 통해서만 변경할 수 있습니다',
+        });
+        return;
+      }
+
+      await this.ptService.updatePt(client, server, ptId, { role });
 
       const pt = await this.ptService.getPt(roomId, ptId);
       if (!pt) return;
@@ -282,20 +293,10 @@ export class CollaborationService {
     client: CollabSocket,
     payload: FilenameCheckPayload,
   ): Promise<FilenameCheckResultPayload> {
-    const currentExts = [
-      'mjs',
-      'cjs',
-      'js',
-      'ts',
-      'tsx',
-      'jsx',
-      'htm',
-      'html',
-      'css',
-    ];
+    const currentExts = [...EXT_TYPES, 'htm'];
     const extResult = {
       error: true,
-      type: 'ext',
+      type: FILENAME_CHECK_RESULT_TYPES[0], // 'ext'
       message: '유효하지 않는 확장자입니다.',
     } as FilenameCheckResultPayload;
 
@@ -307,7 +308,7 @@ export class CollaborationService {
     if (!room) {
       return {
         error: true,
-        type: 'no_room',
+        type: FILENAME_CHECK_RESULT_TYPES[2], // 'no_room'
         message: '유효하지 않는 방입니다.',
       };
     }
@@ -330,7 +331,7 @@ export class CollaborationService {
     if (this.fileService.checkDuplicate(docId, filename)) {
       return {
         error: true,
-        type: 'duplicate',
+        type: FILENAME_CHECK_RESULT_TYPES[1], // 'duplicate'
         message: '중복되는 파일명입니다.',
       };
     }
@@ -362,6 +363,55 @@ export class CollaborationService {
     this.fileService.deleteFile(docId, fileId, client, server);
   }
 
+  /** 코드 실행 */
+  async handleExecuteCode(
+    client: CollabSocket,
+    server: Server,
+    payload: ExecuteCodePayload,
+  ): Promise<void> {
+    const { docId } = client.data;
+    const { fileId, language, stdin, args } = payload;
+
+    // Get file info from Y.Doc
+    const fileInfo = this.fileService.getFileInfo(docId, fileId);
+
+    if (!fileInfo) {
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_ERROR, {
+        error: ERROR_CODE.FILE_NOT_FOUND,
+        message: '파일을 찾을 수 없습니다.',
+      });
+      return;
+    }
+
+    try {
+      // Execute code
+      const result = await this.codeExecutionService.execute({
+        language,
+        version: '*',
+        files: [{ name: fileInfo.name, content: fileInfo.content }],
+        stdin,
+        args,
+      });
+
+      // Send result back to client
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_RESULT, result);
+
+      this.logger.log(
+        `[EXECUTE_CODE] Executed ${language} code for file ${fileInfo.name} in doc ${docId}`,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      this.logger.error(`[EXECUTE_CODE] Error: ${errorMessage}`);
+
+      client.emit(SOCKET_EVENTS.CODE_EXECUTION_ERROR, {
+        error: errorMessage,
+        message: '코드 실행 중 오류가 발생했습니다.',
+      });
+    }
+  }
+
   /** 소켓 데이터 설정 */
   private setupSocketData(
     client: CollabSocket,
@@ -374,7 +424,7 @@ export class CollaborationService {
     client.data.roomType = room.roomType;
     client.data.docId = doc.docId;
     client.data.ptId = pt.ptId;
-    client.data.role = pt.role as PtRole;
+    client.data.role = pt.role;
     client.data.nickname = pt.nickname;
     client.data.color = pt.color;
     client.data.createdAt = pt.createdAt;
@@ -385,7 +435,6 @@ export class CollaborationService {
     client: CollabSocket,
     server: Server,
     pt: Pt,
-    token: RoomToken,
     room: Room,
   ): Promise<void> {
     const { roomId, roomCode } = client.data;
@@ -393,7 +442,6 @@ export class CollaborationService {
     // 본인에게: 내 ptId 및 토큰 전달
     client.emit(SOCKET_EVENTS.WELCOME, {
       myPtId: pt.ptId,
-      token,
       roomType: room.roomType,
       whoCanDestroyRoom: room.whoCanDestroyRoom,
       hasHostPassword: !!room.hostPassword,
@@ -436,7 +484,7 @@ export class CollaborationService {
 
     // 2. 새 호스트로 역할 변경
     await this.ptService.updatePt(client, server, nextHost.ptId, {
-      role: PtRole.HOST,
+      role: ROLE.HOST,
     });
 
     // 3. 변경된 참가자 정보 브로드캐스트
@@ -514,7 +562,7 @@ export class CollaborationService {
     const room = await this.roomService.findRoomById(roomId);
     if (!room) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'ROOM_NOT_FOUND',
+        reason: ERROR_CODE.ROOM_NOT_FOUND,
       });
       return;
     }
@@ -522,7 +570,7 @@ export class CollaborationService {
     // hostPassword 검증
     if (room.hostPassword !== hostPassword) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'INVALID_PASSWORD',
+        reason: ERROR_CODE.INVALID_PASSWORD,
       });
       return;
     }
@@ -530,7 +578,7 @@ export class CollaborationService {
     // 동시 요청 체크
     if (this.pendingClaims.has(roomId)) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'CLAIM_ALREADY_PENDING',
+        reason: ERROR_CODE.CLAIM_ALREADY_PENDING,
       });
       return;
     }
@@ -539,7 +587,7 @@ export class CollaborationService {
     const hostSocket = await this.findHostSocket(server, roomCode);
     if (!hostSocket) {
       client.emit(SOCKET_EVENTS.HOST_CLAIM_FAILED, {
-        reason: 'HOST_NOT_FOUND',
+        reason: ERROR_CODE.HOST_NOT_FOUND,
       });
       return;
     }
@@ -608,9 +656,9 @@ export class CollaborationService {
         requesterSocket as CollabSocket,
         server,
         requesterId,
-        { role: PtRole.HOST },
+        { role: ROLE.HOST },
       );
-      (requesterSocket as CollabSocket).data.role = PtRole.HOST;
+      (requesterSocket as CollabSocket).data.role = ROLE.HOST;
     }
 
     const newHostPt = await this.ptService.getPt(roomId, requesterId);
@@ -698,7 +746,7 @@ export class CollaborationService {
   ): Promise<CollabSocket | null> {
     const sockets = await server.in(roomCode).fetchSockets();
     for (const socket of sockets) {
-      if ((socket as unknown as CollabSocket).data.role === PtRole.HOST) {
+      if ((socket as unknown as CollabSocket).data.role === ROLE.HOST) {
         return socket as unknown as CollabSocket;
       }
     }

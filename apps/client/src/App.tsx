@@ -7,8 +7,9 @@ import RoomPage from '@/pages/room/RoomPage';
 import NotFoundPage from '@/pages/not-found/NotFoundPage';
 import HomePage from '@/pages/home/HomePage';
 import JoinPage from '@/pages/join/JoinPage';
-import { checkRoomExists } from '@/shared/api/room';
+import { checkRoomJoinable } from '@/shared/api/room';
 import type { RoomJoinStatus } from '@codejam/common';
+import { HTTP_STATUS, ROOM_JOIN_STATUS, ROUTE_PATTERNS } from '@codejam/common';
 
 async function joinLoader({
   params,
@@ -16,13 +17,17 @@ async function joinLoader({
 }: LoaderFunctionArgs): Promise<{ roomCode: string; token: string }> {
   const { roomCode } = params;
   if (!roomCode) {
-    throw new Response('Room code is required', { status: 400 });
+    throw new Response('Room code is required', {
+      status: HTTP_STATUS.BAD_REQUEST,
+    });
   }
 
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
   if (!token) {
-    throw new Response('Token is required', { status: 400 });
+    throw new Response('Token is required', {
+      status: HTTP_STATUS.BAD_REQUEST,
+    });
   }
 
   return { roomCode, token };
@@ -33,11 +38,13 @@ async function roomLoader({
 }: LoaderFunctionArgs): Promise<RoomJoinStatus> {
   const { roomCode } = params;
   if (!roomCode) {
-    throw new Response('Room code is required', { status: 400 });
+    throw new Response('Room code is required', {
+      status: HTTP_STATUS.BAD_REQUEST,
+    });
   }
-  const status = await checkRoomExists(roomCode);
-  if (status === 'NOT_FOUND') {
-    throw new Response('Room not found', { status: 404 });
+  const status = await checkRoomJoinable(roomCode);
+  if (status === ROOM_JOIN_STATUS.NOT_FOUND) {
+    throw new Response('Room not found', { status: HTTP_STATUS.NOT_FOUND });
   }
 
   return status;
@@ -48,16 +55,16 @@ const router = createBrowserRouter([
     errorElement: <NotFoundPage />,
     children: [
       {
-        path: '/',
+        path: ROUTE_PATTERNS.HOME,
         element: <HomePage />,
       },
       {
-        path: '/join/:roomCode',
+        path: ROUTE_PATTERNS.JOIN,
         element: <JoinPage />,
         loader: joinLoader,
       },
       {
-        path: '/rooms/:roomCode',
+        path: ROUTE_PATTERNS.ROOM,
         element: <RoomPage />,
         loader: roomLoader,
       },

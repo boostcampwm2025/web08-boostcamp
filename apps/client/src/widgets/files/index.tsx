@@ -1,3 +1,4 @@
+import { ROLE } from '@codejam/common';
 import { useFileStore } from '@/stores/file';
 import { File } from './File';
 import { useRoomStore } from '@/stores/room';
@@ -15,7 +16,7 @@ export function FileList() {
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const me = usePt(myPtId);
-  const hasPermission = me?.role === 'host' || me?.role === 'editor';
+  const hasPermission = me?.role === ROLE.HOST || me?.role === ROLE.EDITOR;
 
   useEffect(() => {
     const fileMap = getFileIdMap();

@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import type { EditableProps } from '../lib/types';
-import { Input } from '@/shared/ui';
+import { RadixInput as Input } from '@codejam/ui';
 import { usePtsStore } from '@/stores/pts';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS } from '@codejam/common';
@@ -60,7 +60,7 @@ export function ParticipantName({
           type="text"
           minLength={1}
           maxLength={5}
-          className="text-sm font-semibold w-24"
+          className="w-24 text-sm font-semibold"
           value={rename}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -68,17 +68,17 @@ export function ParticipantName({
           autoFocus
         />
       ) : (
-        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+        <span className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
           {nickname}
         </span>
       )}
       {ptHash && (
-        <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
+        <span className="font-mono text-xs text-gray-400 dark:text-gray-500">
           #{ptHash}
         </span>
       )}
       {isMe && (
-        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300">
+        <span className="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300">
           YOU
         </span>
       )}

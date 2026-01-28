@@ -1,4 +1,4 @@
-import { MenuButton } from '@/shared/ui';
+import { MenuButton } from '@codejam/ui';
 
 /**
  * 참가자 옵션 메뉴 버튼

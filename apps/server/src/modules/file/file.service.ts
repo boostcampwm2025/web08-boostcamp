@@ -15,27 +15,23 @@ import {
   AwarenessUpdatePayload,
   FileUpdatePayload,
   SOCKET_EVENTS,
+  type AwarenessUpdate,
+  LIMITS,
+  type Language,
+  getDefaultFileName,
+  getDefaultFileTemplate,
+  type FileId,
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
 import { v7 as uuidv7 } from 'uuid';
-import {
-  Language,
-  getDefaultFileName,
-  getDefaultFileTemplate,
-} from './file.constants';
-
-export type AwarenessUpdate = {
-  added: number[];
-  updated: number[];
-  removed: number[];
-};
+import type { FileInfo } from './file.types';
 
 export type RoomDoc = {
   docId: string;
   doc: Doc;
   awareness: Awareness;
-  files: Set<string>;
+  files: Set<FileId>;
 
   docListener: (update: Uint8Array, origin: unknown) => void;
   awarenessListener: (changes: AwarenessUpdate, origin: unknown) => void;
@@ -54,7 +50,7 @@ export class FileService {
   private readonly logger = new Logger(FileService.name);
 
   // Doc size limit
-  private readonly MAX_DOC_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly MAX_DOC_SIZE = LIMITS.MAX_DOC_SIZE_SERVER;
 
   // One Y.Doc per room and document
   private docs: Map<string, RoomDoc> = new Map();
@@ -348,6 +344,27 @@ export class FileService {
     }
 
     return fileIdMap.has(fileName);
+  }
+
+  /**
+   * 파일 정보 가져오기
+   */
+  getFileInfo(docId: string, fileId: string): FileInfo | null {
+    const roomDoc = this.getDoc(docId);
+    const { doc } = roomDoc;
+
+    const files = doc.getMap('files');
+    if (!files) return null;
+
+    const file = files.get(fileId) as YMap<unknown>;
+    if (!file) return null;
+
+    const name = file.get('name') as string;
+    const text = file.get('content') as YText;
+    if (!name || !text) return null;
+
+    const content = text.toJSON();
+    return { name, content };
   }
 
   // ==================================================================

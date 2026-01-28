@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { nicknameSchema } from '@codejam/common';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
+  RadixDialog as Dialog,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
+import { RadixInput as Input } from '@codejam/ui';
+import { RadixLabel as Label } from '@codejam/ui';
 
 interface NicknameInputDialogProps {
   open: boolean;
@@ -75,8 +75,9 @@ export function NicknameInputDialog({
                 autoFocus
                 aria-invalid={!!error}
                 maxLength={6}
+                className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/50"
               />
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {error && <p className="text-destructive text-sm">{error}</p>}
             </div>
           </div>
           <DialogFooter>

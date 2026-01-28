@@ -1,4 +1,4 @@
-import { Progress } from '@/shared/ui/progress';
+import { RadixProgress as Progress } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 
 function formatBytes(bytes: number): string {
@@ -21,18 +21,18 @@ export function CapacityGauge() {
   const tooltipText = `${formatBytes(capacityBytes)} / 1 MB`;
 
   return (
-    <div className="relative flex items-center gap-2 group font-sans">
+    <div className="group relative flex items-center gap-2 font-sans">
       <div className="flex items-center gap-2">
         <Progress
           value={capacityPercentage}
-          className="w-16 h-2 border border-gray-300 dark:border-gray-600"
+          className="h-2 w-16 border border-gray-300 dark:border-gray-600"
           indicatorClassName={getIndicatorColor()}
         />
         <span className="text-xs text-gray-500 dark:text-gray-400">
           {capacityPercentage.toFixed(0)}%
         </span>
       </div>
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-primary-foreground bg-white dark:bg-gray-800 border-[0.5px] border-gray-300 dark:border-gray-600 rounded shadow-lg whitespace-nowrap z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
+      <div className="text-primary invisible absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded border-[0.5px] border-gray-300 bg-white px-2 py-1 text-xs whitespace-nowrap opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 dark:border-gray-600 dark:bg-gray-800">
         {tooltipText}
       </div>
     </div>

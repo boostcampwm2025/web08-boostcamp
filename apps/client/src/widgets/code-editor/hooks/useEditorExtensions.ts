@@ -7,7 +7,6 @@ import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';
 
 // Plugins
-import { safeInput } from '../plugin/SafeInput';
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import {
@@ -16,7 +15,7 @@ import {
   type RemoteUser,
 } from '../plugin/LineAvatars';
 import { getLanguageExtension } from '../lib/constants';
-import { type Language } from '../lib/types';
+import { type Language } from '@codejam/common';
 
 const cursorTheme = EditorView.theme({
   // 커서 이름표 스타일
@@ -93,9 +92,10 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
 
     return [
       basicSetup,
+      EditorView.lineWrapping,
       yCollab(yText, awareness),
       getLanguageExtension(language),
-      safeInput({ allowAscii: true }),
+      // safeInput({ allowAscii: true }),
       capacityLimitInputBlocker(),
 
       cursorTheme,

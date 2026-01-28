@@ -1,8 +1,12 @@
 import { DefaultEventsMap, Socket } from 'socket.io';
-import { PtRole } from '../pt/pt.entity';
-import { RoomType } from '../room/room.entity';
 import {
   SOCKET_EVENTS,
+  type RoomType,
+  type RoomCode,
+  type PtRole,
+  type PtId,
+  type Nickname,
+  type PtColor,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
@@ -18,13 +22,13 @@ import {
 
 export interface SocketData {
   roomId: number;
-  roomCode: string;
+  roomCode: RoomCode;
   roomType: RoomType;
   docId: string;
-  ptId: string;
+  ptId: PtId;
   role: PtRole;
-  nickname?: string;
-  color?: string;
+  nickname?: Nickname;
+  color?: PtColor;
   createdAt?: string;
 }
 

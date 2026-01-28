@@ -57,14 +57,11 @@ export function ParticipantsToolbar({
           e.stopPropagation();
           onChangeSort(key);
         }}
-        className={`
-          flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all
-          ${
-            isActive
-              ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-800'
-              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/50'
-          }
-        `}
+        className={`flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-all ${
+          isActive
+            ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-800'
+            : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/50'
+        } `}
         title={
           isActive && key === 'name'
             ? sortState.order === 'asc'
@@ -89,7 +86,7 @@ export function ParticipantsToolbar({
   };
 
   return (
-    <div className="flex items-center justify-between px-1 pb-2 mb-1 border-b border-gray-100 dark:border-gray-700/50">
+    <div className="mb-1 flex items-center justify-between border-b border-gray-100 px-1 pb-2 dark:border-gray-700/50">
       {/* 정렬 그룹 */}
       <div className="flex items-center gap-1">
         {renderSortBtn('name', '이름', CaseSensitive)}
@@ -102,14 +99,11 @@ export function ParticipantsToolbar({
           e.stopPropagation();
           onToggleSearch();
         }}
-        className={`
-          p-1.5 rounded-md transition-colors
-          ${
-            isSearchOpen
-              ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100'
-              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-          }
-        `}
+        className={`rounded-md p-1.5 transition-colors ${
+          isSearchOpen
+            ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100'
+            : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+        } `}
         title="검색 열기"
       >
         <Search size={16} />
