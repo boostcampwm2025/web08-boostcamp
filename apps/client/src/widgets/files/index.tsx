@@ -4,7 +4,8 @@ import { File } from './components/File';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
 import { useEffect, useState } from 'react';
-import { FileHeader } from './components/FileHeader';
+import { SidebarHeader } from '@codejam/ui';
+import { CapacityGauge } from '../capacity-gauge';
 
 export function FileList() {
   const getFileIdMap = useFileStore((state) => state.getFileIdMap);
@@ -46,7 +47,7 @@ export function FileList() {
 
   return (
     <div className="w-full px-4">
-      <FileHeader count={count} />
+      <SidebarHeader title="파일" count={count} action={<CapacityGauge />} />
 
       <div className={`flex flex-col overflow-hidden`}>
         {entries.map(([fileName, fileId]) => (

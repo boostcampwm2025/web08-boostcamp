@@ -1,11 +1,11 @@
-import { cn } from '@codejam/ui';
+import { cn, SidebarHeader } from '@codejam/ui';
 import { MORE_MENU_ITEMS } from '../lib/sidebar-data';
 import { ExternalLink } from 'lucide-react';
 
 export function MoreTabContent() {
   return (
-    <div className="flex flex-col p-4">
-      <h2 className="mx-1 mt-1 mb-4 font-semibold tracking-tight">더보기</h2>
+    <div className="flex flex-col px-4 pt-0 pb-4">
+      <SidebarHeader title="더보기" />
       <div className="flex flex-col gap-2">
         {MORE_MENU_ITEMS.map((item) => (
           <a

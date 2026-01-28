@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
-import { Participant, ParticipantsHeader } from './components';
+import { Participant } from './components';
 import { ParticipantsFilterBar } from './components/ParticipantsFilterBar';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
 import { SOCKET_EVENTS, ROLE } from '@codejam/common';
-import { toast } from '@codejam/ui';
+import { SidebarHeader, toast } from '@codejam/ui';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
 import { filterParticipants, sortParticipants } from './types';
@@ -95,10 +95,11 @@ export function Participants() {
 
   return (
     <div className="w-full px-4">
-      <ParticipantsHeader totalCount={totalCount} />
+      <SidebarHeader title="참가자" count={totalCount} />
+
       <div className={`flex flex-col overflow-hidden`}>
         {/* 필터 바 */}
-        <div className="mt-2 mb-1">
+        <div className="p-1">
           <ParticipantsFilterBar
             selectedFilters={selectedFilters}
             onFiltersChange={setSelectedFilters}
