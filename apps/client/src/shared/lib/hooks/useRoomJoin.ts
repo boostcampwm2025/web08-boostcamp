@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { socket } from '@/shared/api/socket';
-import { emitJoinRoom } from '@/stores/socket-events';
 import { useRoomStore } from '@/stores/room';
 import { ERROR_CODE } from '@codejam/common';
 import { joinRoom, verifyPassword } from '@/shared/api/room';
@@ -116,17 +115,10 @@ export function useRoomJoin() {
         await joinRoom(paramCode, nickname, password);
 
         // 2. [Socket] 재연결 시퀀스
+        // useSocket의 onConnect가 이미 emitJoinRoom을 처리하므로 connect()만 호출
         if (socket.connected) {
           socket.disconnect();
         }
-
-        // 연결이 맺어지면 즉시 입장 이벤트 발송 예약
-        socket.once('connect', () => {
-          console.log('🔄 Reconnected with Cookie, emitting joinRoom...');
-          emitJoinRoom(paramCode);
-        });
-
-        // 실제 연결 시작 (브라우저가 쿠키를 들고 감)
         socket.connect();
 
         passwordRef.current = '';
