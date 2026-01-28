@@ -6,6 +6,7 @@ import { FileList } from '@/widgets/files';
 import { SidebarButton } from './components/SidebarButton';
 import { MoreTabContent } from './components/MoreTabContent';
 import { SIDEBAR_TABS } from './lib/sidebar-data';
+import { SidebarProfile } from './components/SidebarProfile';
 
 export function RoomSidebar({ className }: { className?: string }) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('PARTICIPANTS');
@@ -26,6 +27,11 @@ export function RoomSidebar({ className }: { className?: string }) {
             label={tab.label}
           />
         ))}
+
+        <div className="mt-auto flex w-full flex-col items-center gap-3">
+          <SidebarProfile />
+          <div className="h-1" />
+        </div>
       </nav>
       <aside
         className={cn(
