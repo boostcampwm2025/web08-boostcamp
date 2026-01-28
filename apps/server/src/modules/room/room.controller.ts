@@ -104,7 +104,7 @@ export class RoomController {
     res.cookie(`auth_${roomCode.toUpperCase()}`, token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax',
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: ROOM_CONFIG.COOKIE_MAX_AGE,
       path: '/',
     });

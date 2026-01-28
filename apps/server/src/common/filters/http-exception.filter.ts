@@ -19,6 +19,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    // transport 레벨 요청은 패스
+    if (request.method === 'OPTIONS') {
+      response.sendStatus(204);
+      return;
+    }
+
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let code: string = ERROR_CODE.SERVER_ERROR;
     let message: string = ERROR_MESSAGES.SERVER_ERROR;

@@ -30,6 +30,8 @@ import {
   codeExecutionStagePayloadSchema,
   codeExecutionDataPayloadSchema,
   codeExecutionCompletedPayloadSchema,
+  // Chat socket schemas
+  chatSystemPayloadSchema,
 } from '../schemas/socket/index.js';
 
 // ==================== Room Socket Types ====================
@@ -133,3 +135,8 @@ export type CodeExecutionDataPayload = z.infer<
 export type CodeExecutionCompletedPayload = z.infer<
   typeof codeExecutionCompletedPayloadSchema
 >;
+
+// ==================== Chat Socket Types ====================
+
+/** 시스템 메시지 (S -> C) */
+export type ChatSystemPayload = z.infer<typeof chatSystemPayloadSchema>;

@@ -43,4 +43,6 @@ export const SOCKET_EVENTS = {
   CODE_EXECUTION_STAGE: 'code:execution:stage',
   CODE_EXECUTION_DATA: 'code:execution:data',
   CODE_EXECUTION_COMPLETED: 'code:execution:completed',
+
+  CHAT_SYSTEM: 'chat:system',
 } as const;

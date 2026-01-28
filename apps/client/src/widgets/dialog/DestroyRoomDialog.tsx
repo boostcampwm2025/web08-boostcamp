@@ -1,7 +1,7 @@
 import { RadixButton as Button } from '@codejam/ui';
 import {
   RadixDialog as Dialog,
-  DialogClose,
+  RadixDialogClose as DialogClose,
   RadixDialogContent as DialogContent,
   RadixDialogDescription as DialogDescription,
   RadixDialogFooter as DialogFooter,

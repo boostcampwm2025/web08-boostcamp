@@ -1,7 +1,10 @@
-import { Avatar, getAvatarIcon } from '@codejam/ui';
+import { createAvatarGenerator, LucideAvatarProvider } from '@codejam/ui';
 import { usePt } from '@/stores/pts';
 import type { ParticipantProps } from '../lib/types';
 import { ROLE } from '@codejam/common';
+
+const provider = new LucideAvatarProvider();
+const { Avatar } = createAvatarGenerator(provider);
 
 /**
  * 참가자의 아바타를 표시하는 컴포넌트
@@ -13,13 +16,11 @@ export function ParticipantAvatar({ ptId }: ParticipantProps) {
 
   if (!pt) return null;
 
-  const SelectedIcon = getAvatarIcon(pt.ptHash);
-
-  const { color, role } = pt;
+  const { ptHash, color, role } = pt;
   const badge =
     role === ROLE.HOST ? (
       <span className="text-yellow-500">👑</span>
     ) : undefined;
 
-  return <Avatar icon={SelectedIcon} color={color} badge={badge} size={32} />;
+  return <Avatar id={ptHash} color={color} badge={badge} size={32} />;
 }
