@@ -76,8 +76,14 @@ export const useCodeExecutionStore = create<CodeExecutionState>((set) => ({
   },
 
   setExit: (data: CodeExecutionExit) => {
-    const { stage } = data;
-    const isExecuting = stage !== 'run';
+    const { stage, code, signal } = data;
+
+    // Stop executing if:
+    // 1. Run stage completes
+    // 2. Compilation fails (compile stage with non-zero code or signal)
+    const isCompileFailed = stage === 'compile' && (code !== 0 || signal);
+    const isRunComplete = stage === 'run';
+    const isExecuting = !(isCompileFailed || isRunComplete);
 
     set({
       isExecuting,
