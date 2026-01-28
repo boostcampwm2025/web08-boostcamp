@@ -1,7 +1,7 @@
 import { socket } from '@/shared/api/socket';
 import { RadixButton as Button } from '@codejam/ui';
 import {
-  DialogClose,
+  RadixDialogClose as DialogClose,
   RadixDialogContent as DialogContent,
   RadixDialogDescription as DialogDescription,
   RadixDialogFooter as DialogFooter,
