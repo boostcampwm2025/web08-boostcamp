@@ -25,7 +25,9 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
 
   const setPt = usePtsStore((state) => state.setPt);
 
-  const bannerColor = adjustColor(me.color, -30);
+  const bannerBaseColor = adjustColor(me.color, -30);
+  const bannerEndColor = adjustColor(me.color, -50);
+  const bannerStyle = `linear-gradient(135deg, ${bannerBaseColor}, ${bannerEndColor})`;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setRename(e.target.value);
@@ -69,8 +71,8 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
   return (
     <div className="bg-card ring-border w-72 overflow-hidden rounded-xl shadow-xl ring-1">
       <div
-        className="h-20 w-full transition-colors"
-        style={{ backgroundColor: bannerColor }}
+        className="relative h-20 w-full overflow-hidden transition-colors"
+        style={{ background: bannerStyle }}
       />
 
       <div className="px-4 pb-4">
@@ -140,7 +142,13 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
 
         <div className="border-border/50 text-muted-foreground mt-3 flex items-center justify-between border-t pt-2 text-[10px]">
           <span>THEME COLOR</span>
-          <span className="font-mono uppercase">{me.color}</span>
+          <div className="flex items-center gap-1.5">
+            <div
+              className="h-3 w-3 rounded-[2px] ring-1 ring-black/10 ring-inset dark:ring-white/20"
+              style={{ backgroundColor: me.color }}
+            />
+            <span className="font-mono uppercase">{me.color}</span>
+          </div>
         </div>
       </div>
     </div>
