@@ -27,12 +27,36 @@ export class AvvvatarsProvider implements AvatarProvider {
   }
 
   toSvgString(id: string, size: number): string {
-    return renderToStaticMarkup(
+    const html = renderToStaticMarkup(
       createElement(Avvvatars, {
         value: id,
         size,
         style: this.variant,
       }),
     );
+
+    // 배경색 추출 (div의 color 속성)
+    const bgColorMatch = html.match(/<div[^>]*color="([^"]+)"/);
+    const bgColor = bgColorMatch ? `#${bgColorMatch[1]}` : '#ECFAFE';
+
+    // 전경색 추출 (span의 color 속성)
+    const fgColorMatch = html.match(/<span[^>]*color="([^"]+)"/);
+    const fgColor = fgColorMatch ? `#${fgColorMatch[1]}` : '#0FBBE6';
+
+    // 아이콘 path 추출 (원본 viewBox는 항상 32x32)
+    const pathMatch = html.match(/<path[^>]*><\/path>/);
+    const iconPath = pathMatch
+      ? pathMatch[0].replace(/fill="currentColor"/, `fill="${fgColor}"`)
+      : '';
+
+    // 새 SVG 조립: viewBox 32 기준, 배경 원 + 아이콘 (60% 크기로 가운데)
+    const svg = `<svg viewBox="0 0 32 32" fill="none" width="${size}" height="${size}">
+      <circle cx="16" cy="16" r="16" fill="${bgColor}"/>
+      <g transform="translate(6.4, 6.4) scale(0.6)">
+        ${iconPath}
+      </g>
+    </svg>`;
+
+    return svg;
   }
 }

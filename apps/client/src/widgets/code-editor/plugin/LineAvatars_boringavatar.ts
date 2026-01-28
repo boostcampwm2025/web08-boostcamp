@@ -1,8 +1,10 @@
-import { LucideAvatarProvider } from '@codejam/ui';
+import {
+  BoringAvatarProvider,
+  DEFAULT_BORING_AVATAR_COLORS,
+} from '@codejam/ui';
 import { gutter, GutterMarker } from '@codemirror/view';
 import * as Y from 'yjs';
-
-const provider = new LucideAvatarProvider();
+import { adjustColor } from '@/shared/lib/utils/color';
 
 export interface RemoteUser {
   hash: string;
@@ -70,20 +72,26 @@ class AvatarMarker extends GutterMarker {
     avatarContainer.style.borderRadius = '50%';
     avatarContainer.style.overflow = 'hidden'; // 둥근 테두리 밖으로 나가는 것 방지
 
-    const svgString = provider.toSvgString(
-      firstUser.hash,
-      avatarSize,
-      firstUser.color,
-    );
+    const borderColor = firstUser.color || 'rgba(255, 255, 255, 0.5)';
+    avatarContainer.style.border = `1px solid ${borderColor}`;
+
+    // 사용자 색상 기반 팔레트 생성 (없으면 기본값)
+    const colors = firstUser.color
+      ? [
+          firstUser.color,
+          adjustColor(firstUser.color, 30), // 30% Lighter
+          adjustColor(firstUser.color, 50), // 50% Lighter
+          adjustColor(firstUser.color, -20), // 20% Darker
+          adjustColor(firstUser.color, -40), // 40% Darker
+        ]
+      : DEFAULT_BORING_AVATAR_COLORS;
+
+    const provider = new BoringAvatarProvider({ variant: 'beam', colors });
+    const svgString = provider.toSvgString(firstUser.hash, avatarSize);
 
     avatarContainer.innerHTML = svgString;
 
     const svg = avatarContainer.querySelector('svg');
-    if (svg) {
-      svg.style.display = 'block';
-      svg.style.width = '100%';
-      svg.style.height = '100%';
-    }
 
     if (userCount > 1) {
       const extraCount = userCount - 1;
