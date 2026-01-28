@@ -27,7 +27,6 @@ export function Participants() {
   const iAmHost = meData?.role === ROLE.HOST;
 
   // 상태 관리
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<FilterOption[]>([]);
   const [sortKey, setSortKey] = useState<SortKey>('time');
 
@@ -96,14 +95,8 @@ export function Participants() {
 
   return (
     <div className="w-full px-4">
-      <ParticipantsHeader
-        totalCount={totalCount}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-      />
-      <div
-        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-150'}`}
-      >
+      <ParticipantsHeader totalCount={totalCount} />
+      <div className={`flex flex-col overflow-hidden`}>
         {/* 필터 바 */}
         <div className="mt-2 mb-1">
           <ParticipantsFilterBar

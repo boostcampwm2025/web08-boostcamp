@@ -1,9 +1,5 @@
-import { ChevronDown } from 'lucide-react';
-
 interface ParticipantsHeaderProps {
   totalCount: number;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
 }
 
 /**
@@ -11,23 +7,10 @@ interface ParticipantsHeaderProps {
  * - 접기/펼치기 토글 기능
  * - 전체 참가자 수 표시
  */
-export function ParticipantsHeader({
-  totalCount,
-  isCollapsed,
-  onToggleCollapse,
-}: ParticipantsHeaderProps) {
+export function ParticipantsHeader({ totalCount }: ParticipantsHeaderProps) {
   return (
-    <div
-      className="-mx-4 flex cursor-pointer items-center justify-between px-4 py-3 transition-colors select-none hover:bg-gray-100 dark:hover:bg-gray-700/50"
-      onClick={onToggleCollapse}
-    >
+    <div className="-mx-4 flex cursor-pointer items-center justify-between px-4 py-3">
       <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-        <ChevronDown
-          size={16}
-          className={`transition-transform duration-200 ${
-            isCollapsed ? '-rotate-90' : 'rotate-0'
-          }`}
-        />
         <h2 className="text-sm font-bold tracking-wide uppercase">
           Participants
         </h2>
