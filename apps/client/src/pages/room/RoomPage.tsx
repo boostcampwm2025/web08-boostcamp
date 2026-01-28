@@ -19,6 +19,7 @@ import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
+import { Chat } from '@/widgets/chat';
 
 function RoomPage() {
   const {
@@ -110,6 +111,7 @@ function RoomPage() {
       <Toaster />
       <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
       <HostClaimRequestDialog />
+      <Chat />
     </div>
   );
 }
