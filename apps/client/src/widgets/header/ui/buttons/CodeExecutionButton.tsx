@@ -4,10 +4,12 @@ import { HeaderActionButton } from './HeaderActionButton';
 import { useFileStore } from '@/stores/file';
 import { emitExecuteCode } from '@/stores/socket-events';
 import { extname, getPistonLanguage } from '@/shared/lib/file';
+import { useSettings } from '@/shared/lib/hooks/useSettings';
 
 export function CodeExecutionButton() {
   const activeFileId = useFileStore((state) => state.activeFileId);
   const getFileName = useFileStore((state) => state.getFileName);
+  const { streamCodeExecutionOutput } = useSettings();
 
   const handleExecute = () => {
     if (!activeFileId) {
@@ -37,7 +39,7 @@ export function CodeExecutionButton() {
       return;
     }
 
-    emitExecuteCode(activeFileId, language);
+    emitExecuteCode(activeFileId, language, streamCodeExecutionOutput);
 
     toast.info('코드를 실행 중입니다...');
   };
