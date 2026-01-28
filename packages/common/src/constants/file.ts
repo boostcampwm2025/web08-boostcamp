@@ -15,6 +15,10 @@ export const EXT_TYPES = [
   'mjs',
   'shtml',
   'ehtml',
+  'c',
+  'cpp',
+  'java',
+  'py',
 ] as const;
 
 // 파일명 체크 결과 타입
