@@ -7,6 +7,7 @@ import { SidebarButton } from './components/SidebarButton';
 import { MoreTabContent } from './components/MoreTabContent';
 import { SIDEBAR_TABS } from './lib/sidebar-data';
 import { SidebarProfile } from './components/SidebarProfile';
+import { SidebarPanel } from './components/SidebarPanel';
 
 export function RoomSidebar({ className }: { className?: string }) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('PARTICIPANTS');
@@ -14,6 +15,8 @@ export function RoomSidebar({ className }: { className?: string }) {
   const toggleTab = (tab: SidebarTab) => {
     setActiveTab((prev) => (prev === tab ? null : tab));
   };
+
+  const isOpen = activeTab !== null;
 
   return (
     <div className={cn('flex h-full shrink-0', className)}>
@@ -33,29 +36,11 @@ export function RoomSidebar({ className }: { className?: string }) {
           <div className="h-1" />
         </div>
       </nav>
-      <aside
-        className={cn(
-          'overflow-hidden transition-all duration-300 ease-in-out',
-          activeTab ? 'my-2 mr-2 ml-2 w-72 opacity-100' : 'm-0 w-0 opacity-0',
-          activeTab && 'border-border bg-card rounded-xl border shadow-sm',
-        )}
-      >
-        <div className="h-full w-72 min-w-[18rem]">
-          {activeTab === 'PARTICIPANTS' && (
-            <div className="h-full py-3">
-              <Participants />
-            </div>
-          )}
-
-          {activeTab === 'FILES' && (
-            <div className="h-full py-3">
-              <FileList />
-            </div>
-          )}
-
-          {activeTab === 'MORE' && <MoreTabContent />}
-        </div>
-      </aside>
+      <SidebarPanel isOpen={isOpen}>
+        {activeTab === 'PARTICIPANTS' && <Participants />}
+        {activeTab === 'FILES' && <FileList />}
+        {activeTab === 'MORE' && <MoreTabContent />}
+      </SidebarPanel>
     </div>
   );
 }

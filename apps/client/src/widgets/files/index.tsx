@@ -46,10 +46,10 @@ export function FileList() {
   }, [yDoc, getFileIdMap]);
 
   return (
-    <div className="w-full px-4">
+    <div className="flex h-full w-full flex-col px-4">
       <SidebarHeader title="파일" count={count} action={<CapacityGauge />} />
 
-      <div className={`flex flex-col overflow-hidden`}>
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         {entries.map(([fileName, fileId]) => (
           <File
             key={fileId}

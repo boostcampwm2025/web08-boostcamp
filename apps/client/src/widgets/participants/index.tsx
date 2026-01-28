@@ -94,10 +94,10 @@ export function Participants() {
   };
 
   return (
-    <div className="w-full px-4">
+    <div className="flex h-full w-full flex-col px-4">
       <SidebarHeader title="참가자" count={totalCount} />
 
-      <div className={`flex flex-col overflow-hidden`}>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* 필터 바 */}
         <div className="p-1">
           <ParticipantsFilterBar
@@ -112,7 +112,7 @@ export function Participants() {
           />
         </div>
 
-        <div className="max-h-[30vh] min-h-0 flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           {me && <Participant ptId={me.ptId} hasPermission={false} />}
 
           {me && others.length > 0 && (
