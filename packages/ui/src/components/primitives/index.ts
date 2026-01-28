@@ -3,25 +3,26 @@ export * from './label';
 export * from './textarea';
 export * from './menu-button';
 
-// Legacy avatar (Lucide icons 기반)
-export * from './avatar/avatar';
-export { getAvatarIcon } from './avatar/avatar-shared';
-export { createAvatarElement } from './avatar/avatar-dom';
-
-// New avatar system (라이브러리 교체 가능)
+// Avatar system (Provider 패턴)
 export {
   createAvatarGenerator,
+  createAvatarElement,
   type AvatarProvider,
-  type AvatarProps,
+  type GeneratedAvatarProps,
 } from './avatar/avatar-generator.js';
+
+// Providers
 export {
   BoringAvatarProvider,
   DEFAULT_BORING_AVATAR_COLORS,
   type BoringAvatarVariant,
   type BoringAvatarOptions,
-} from './avatar/boring-avatar';
+} from './avatar/boring-avatar.js';
+
 export {
   AvvvatarsProvider,
   type AvvvatarsVariant,
   type AvvvatarsOptions,
-} from './avatar/avvvatars-avatar';
+} from './avatar/avvvatars-avatar.js';
+
+export { LucideAvatarProvider, getAvatarPreset } from './avatar/lucide-avatar.js';
