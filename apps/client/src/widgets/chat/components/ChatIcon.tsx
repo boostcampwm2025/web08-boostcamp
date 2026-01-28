@@ -13,7 +13,7 @@ type ChatIconProps = {
  */
 export function ChatIcon({ unreadCount, onClick }: ChatIconProps) {
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed right-4 bottom-4 z-50">
       <Button
         onClick={onClick}
         size="icon-lg"
@@ -22,7 +22,7 @@ export function ChatIcon({ unreadCount, onClick }: ChatIconProps) {
       >
         <MessageCircle className="h-6 w-6" />
         {unreadCount > 0 && (
-          <span className="bg-destructive absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold text-white">
+          <span className="bg-destructive absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

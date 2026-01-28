@@ -109,7 +109,10 @@ export class CollaborationService {
         const decoded = this.roomTokenService.verify(token);
 
         if (decoded && decoded.roomCode.toUpperCase() === roomCode) {
-          const result = await this.ptService.restorePt(room.roomId, decoded.ptId);
+          const result = await this.ptService.restorePt(
+            room.roomId,
+            decoded.ptId,
+          );
 
           if (result) {
             // wasAlreadyOnline이 false면 재접속, true면 신규 입장 (방금 createPt로 생성됨)
@@ -162,7 +165,13 @@ export class CollaborationService {
     await this.fileService.prepareDoc(client, server);
 
     // 알림 전송
-    await this.notifyParticipantJoined(client, server, pt, room, isNewParticipant);
+    await this.notifyParticipantJoined(
+      client,
+      server,
+      pt,
+      room,
+      isNewParticipant,
+    );
 
     this.logger.log(
       `[JOIN_ROOM] ${pt.nickname}(${pt.ptId}) ${isNewParticipant ? 'joined' : 'restored'} ${room.roomCode}`,
@@ -200,7 +209,7 @@ export class CollaborationService {
     client.emit(SOCKET_EVENTS.GOODBYE);
     server.to(roomCode).emit(SOCKET_EVENTS.PT_LEFT, { ptId });
 
-    // 시스템 메시지 발송 
+    // 시스템 메시지 발송
     if (pt) {
       server.to(roomCode).emit(SOCKET_EVENTS.CHAT_SYSTEM, {
         id: uuidv7(),
