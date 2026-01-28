@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Avatar } from '@codejam/ui';
-import { UserIcon, SmileIcon, HeartIcon, StarIcon, ZapIcon } from 'lucide-react';
+import {
+  UserIcon,
+  SmileIcon,
+  HeartIcon,
+  StarIcon,
+  ZapIcon,
+} from 'lucide-react';
 
 const meta = {
   title: 'Primitives/Avatar',
@@ -11,7 +17,7 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     size: {
-      control: { type: 'range', min: 24, max: 120, step: 4 },
+      control: { type: 'range', min: 16, max: 120, step: 4 },
       description: '아바타 크기 (픽셀)',
     },
     color: {
