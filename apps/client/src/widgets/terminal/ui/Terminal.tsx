@@ -34,7 +34,8 @@ export function Terminal({ variant }: TerminalProps) {
       fontSize: 14,
       fontFamily: "'Roboto Mono', 'Space Mono', monospace",
       theme,
-      cursorBlink: false,
+      convertEol: true,
+      cursorBlink: true,
       disableStdin: true, // Read-only
     });
 

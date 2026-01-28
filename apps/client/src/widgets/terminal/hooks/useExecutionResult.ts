@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { Terminal as XTerm } from 'xterm';
 import type { CodeExecutionResult } from '@/stores/code-execution';
-import { ansi, format } from '../utils/ansi';
+import { ansi } from '../utils/ansi';
 
 /**
  * Helper: Write runtime info
@@ -16,10 +16,10 @@ function writeRuntimeInfo(xterm: XTerm, language: string, version: string) {
  */
 function writeStageOutput(xterm: XTerm, stdout?: string, stderr?: string) {
   if (stdout) {
-    xterm.write(format(stdout));
+    xterm.write(stdout);
   }
   if (stderr) {
-    xterm.write(ansi.red(format(stderr)));
+    xterm.write(ansi.red(stderr));
   }
 }
 

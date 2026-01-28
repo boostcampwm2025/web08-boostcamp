@@ -6,7 +6,7 @@ import type {
   CodeExecutionData,
   CodeExecutionExit,
 } from '@/stores/code-execution';
-import { ansi, format } from '@/widgets/terminal/utils/ansi';
+import { ansi } from '@/widgets/terminal/utils/ansi';
 
 /**
  * Parameters for streaming execution display
@@ -61,7 +61,7 @@ export function useDataStream(
   useEffect(() => {
     if (!xterm || !data) return;
 
-    const output = format(data.data);
+    const output = data.data;
 
     if (data.stream === 'stderr') {
       xterm.write(ansi.red(output));

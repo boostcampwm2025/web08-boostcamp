@@ -40,13 +40,6 @@ export function colorize(text: string, color: string): string {
 }
 
 /**
- * Converts \n to \r\n for terminal display
- */
-export function format(text: string): string {
-  return text.replace(/\n/g, '\r\n');
-}
-
-/**
  * Helper functions for common color patterns
  */
 export const ansi = {
