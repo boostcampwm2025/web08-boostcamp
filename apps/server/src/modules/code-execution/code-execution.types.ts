@@ -19,7 +19,9 @@ export interface WebSocketHandlerContext {
   language: string;
   version: string;
   files: Array<{ name?: string; content: string }>;
+  stdin?: string;
   args?: string[];
+  stage?: string;
 }
 
 /**

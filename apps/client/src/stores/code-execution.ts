@@ -76,8 +76,11 @@ export const useCodeExecutionStore = create<CodeExecutionState>((set) => ({
   },
 
   setExit: (data: CodeExecutionExit) => {
+    const { stage } = data;
+    const isExecuting = stage !== 'run';
+
     set({
-      isExecuting: false,
+      isExecuting,
       exit: data,
     });
   },

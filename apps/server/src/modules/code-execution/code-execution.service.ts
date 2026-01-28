@@ -162,7 +162,7 @@ export class CodeExecutionService {
     dto: ExecuteCodeRequestDto,
     callbacks: CodeExecutionEventCallbacks,
   ): Promise<void> {
-    const { language, version, files, args } = dto;
+    const { language, version, files, stdin, args } = dto;
 
     const message = `Executing code (Interactive)`;
     this.logger.log(message);
@@ -192,6 +192,7 @@ export class CodeExecutionService {
         language,
         version,
         files,
+        stdin,
         args,
       };
 
@@ -218,13 +219,19 @@ export class CodeExecutionService {
       language: context.language,
       version: context.version,
       files: context.files,
+      stdin: context.stdin,
       args: context.args,
       compile_timeout: CODE_EXECUTION_LIMITS.COMPILE_TIMEOUT,
       run_timeout: CODE_EXECUTION_LIMITS.RUN_TIMEOUT,
+      compile_cpu_time: CODE_EXECUTION_LIMITS.COMPILE_CPU_TIME,
+      run_cpu_time: CODE_EXECUTION_LIMITS.RUN_CPU_TIME,
       compile_memory_limit: CODE_EXECUTION_LIMITS.COMPILE_MEMORY_LIMIT,
       run_memory_limit: CODE_EXECUTION_LIMITS.RUN_MEMORY_LIMIT,
     };
 
+    this.logger.log(
+      `Sending init message to Piston: ${JSON.stringify(initMessage)}`,
+    );
     context.ws.send(JSON.stringify(initMessage));
     this.logger.log('Sent init message to Piston');
   }
@@ -239,45 +246,65 @@ export class CodeExecutionService {
     try {
       const messageString = this.convertWebSocketDataToString(data);
       const message = JSON.parse(messageString);
-      this.logger.debug(`Piston message: ${message.type}`);
+      this.logger.log(`Piston message received: ${JSON.stringify(message)}`);
 
       switch (message.type) {
-        case 'runtime':
+        case 'runtime': {
           context.callbacks.onStarted({
             language: message.language,
             version: message.version,
           });
           break;
-
-        case 'stage':
+        }
+        case 'stage': {
+          context.stage = message.stage;
           context.callbacks.onStage({
             stage: message.stage,
           });
           break;
-
-        case 'data':
+        }
+        case 'data': {
           context.callbacks.onData({
             stream: message.stream,
             data: message.data,
           });
           break;
+        }
+        case 'exit': {
+          // For compiled languages, there are two exit events: compile and run
+          // Send completed event for both stages
 
-        case 'exit':
+          const stage = context.stage || 'run'; // Default to 'run' for non-compiled languages
+
           context.callbacks.onCompleted({
+            stage: stage as 'compile' | 'run',
             code: message.code,
             signal: message.signal,
           });
 
           this.logger.log(
-            `Execution completed: ${context.language} ${context.version} - ` +
+            `${stage} stage completed: ${context.language} ${context.version} - ` +
               `Exit code: ${message.code}, Signal: ${message.signal}`,
           );
 
-          context.ws.close();
-          context.resolve();
-          break;
+          // Close the connection if:
+          // 1. Run stage exits
+          // 2. Compilation failed (Compile stage exits with non-zero code or signal)
 
-        case 'error':
+          const isRunStage = stage === 'run';
+          const isCompileFailed =
+            stage === 'compile' && (message.code !== 0 || message.signal);
+
+          const shouldClose = isRunStage || isCompileFailed;
+
+          if (shouldClose) {
+            context.ws.close();
+            context.resolve();
+          }
+
+          break;
+        }
+        case 'error': {
           this.logger.error(`Piston error: ${message.message}`);
           context.callbacks.onError({
             error: ERROR_CODE.CODE_EXECUTION_FAILED,
@@ -286,9 +313,10 @@ export class CodeExecutionService {
           context.ws.close();
           context.reject(new Error(message.message));
           break;
-
-        default:
+        }
+        default: {
           this.logger.warn(`Unknown message type: ${message.type}`);
+        }
       }
     } catch (error) {
       this.logger.error(`Error parsing Piston message: ${error}`);

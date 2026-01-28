@@ -78,6 +78,7 @@ export const codeExecutionDataPayloadSchema = z.object({
 
 // 코드 실행 완료 (S -> C) - Streaming
 export const codeExecutionCompletedPayloadSchema = z.object({
+  stage: z.enum(['compile', 'run']),
   code: z.number().nullable(),
   signal: z.string().nullable(),
 });

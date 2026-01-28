@@ -97,7 +97,7 @@ export function useExecutionResult(
 
       if (code !== null) {
         if (code === 0) {
-          xterm.write(ansi.green('Compilation successful') + '\r\n');
+          xterm.write(ansi.green('Compilation successful') + '\r\n\r\n');
         } else {
           xterm.write(
             ansi.red(`Compilation failed (exit code ${compile.code})`) +
