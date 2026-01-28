@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { Terminal as XTerm } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import { type TerminalVariant, getTheme } from '../styles/theme';
-import { Terminal as TerminalIcon } from 'lucide-react';
 import { useCodeExecutionStore } from '@/stores/code-execution';
 import {
   useExecutionStream,
@@ -106,20 +105,5 @@ export function Terminal({ variant }: TerminalProps) {
   useExecutionResult(xtermRef.current, result);
   useExecutionError(xtermRef.current, error);
 
-  return (
-    <div className={`flex h-full w-full flex-col`}>
-      <div className="border-border flex items-center justify-between border-b bg-white px-4 py-2 dark:bg-gray-900">
-        <div className="flex items-center gap-2">
-          <TerminalIcon
-            size={16}
-            className="text-gray-600 dark:text-gray-400"
-          />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Terminal
-          </span>
-        </div>
-      </div>
-      <div ref={terminalRef} className="flex-1 overflow-hidden p-2" />
-    </div>
-  );
+  return <div ref={terminalRef} className="h-full w-full overflow-hidden p-2" />;
 }

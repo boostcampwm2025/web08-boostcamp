@@ -20,6 +20,7 @@ import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelect
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { Terminal } from '@/widgets/terminal';
+import { AlignLeft } from 'lucide-react';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 
 function RoomPage() {
@@ -91,7 +92,7 @@ function RoomPage() {
           <FileViewer fileId={activeFileId} readOnly={isViewer} />
         </div>
         <div className="border-border h-full w-96 shrink-0 border-l">
-          <Terminal variant={isDark ? 'dark' : 'light'} />
+          <Output variant={isDark ? 'dark' : 'light'} />
         </div>
       </main>
       {loader === 'FULL' ? (
@@ -130,6 +131,31 @@ function FileViewer({ fileId, readOnly }: FileViewerProps) {
   if (!fileId) return <EmptyView />;
 
   return <CodeEditor fileId={fileId} readOnly={readOnly} />;
+}
+
+interface OutputProps {
+  variant: 'light' | 'dark';
+}
+
+function Output({ variant }: OutputProps) {
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="border-border flex items-center justify-between border-b bg-white px-3 py-2 dark:bg-gray-900">
+        <div className="flex items-center gap-2">
+          <AlignLeft size={16} className="text-gray-600 dark:text-gray-400" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Output
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-hidden">
+        <Terminal variant={variant} />
+      </div>
+    </div>
+  );
 }
 
 export default RoomPage;
