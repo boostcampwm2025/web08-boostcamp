@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { SidebarTab } from './lib/types';
 import { cn } from '@codejam/ui';
 import { Participants } from '@/widgets/participants';
 import { FileList } from '@/widgets/files';
 import { SidebarButton } from './components/SidebarButton';
-import { FolderOpen, Users } from 'lucide-react';
+import { MoreTabContent } from './components/MoreTabContent';
+import { SIDEBAR_TABS } from './lib/sidebar-data';
 
 export function RoomSidebar({ className }: { className?: string }) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('PARTICIPANTS');
@@ -13,32 +14,10 @@ export function RoomSidebar({ className }: { className?: string }) {
     setActiveTab((prev) => (prev === tab ? null : tab));
   };
 
-  const tabs = useMemo(
-    () => [
-      {
-        id: 'PARTICIPANTS' as SidebarTab,
-
-        icon: <Users size={20} />,
-
-        label: '참가자 목록',
-      },
-
-      {
-        id: 'FILES' as SidebarTab,
-
-        icon: <FolderOpen size={20} />,
-
-        label: '파일 목록',
-      },
-    ],
-
-    [],
-  );
-
   return (
     <div className={cn('flex h-full shrink-0', className)}>
-      <nav className="z-10 flex w-12 flex-col items-center gap-2 border-r py-4">
-        {tabs.map((tab) => (
+      <nav className="bg-muted/10 z-10 flex w-[72px] flex-col items-center gap-2 border-r py-4">
+        {SIDEBAR_TABS.map((tab) => (
           <SidebarButton
             key={tab.id}
             isActive={activeTab === tab.id}
@@ -67,6 +46,8 @@ export function RoomSidebar({ className }: { className?: string }) {
               <FileList />
             </div>
           )}
+
+          {activeTab === 'MORE' && <MoreTabContent />}
         </div>
       </aside>
     </div>

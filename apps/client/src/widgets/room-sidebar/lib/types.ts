@@ -1,1 +1,1 @@
-export type SidebarTab = 'PARTICIPANTS' | 'FILES' | null;
+export type SidebarTab = 'PARTICIPANTS' | 'FILES' | 'MORE' | null;
