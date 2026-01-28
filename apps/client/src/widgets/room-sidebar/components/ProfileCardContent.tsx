@@ -11,6 +11,7 @@ import { usePtsStore } from '@/stores/pts';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS } from '@codejam/common';
 import type { Pt } from '@codejam/common';
+import { ProfileBannerAnimation } from './ProfileBannerAnimation';
 
 const provider = new LucideAvatarProvider();
 const { Avatar } = createAvatarGenerator(provider);
@@ -73,7 +74,9 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
       <div
         className="relative h-20 w-full overflow-hidden transition-colors"
         style={{ background: bannerStyle }}
-      />
+      >
+        <ProfileBannerAnimation />
+      </div>
 
       <div className="px-4 pb-4">
         <div className="relative -mt-10 mb-3 flex items-end justify-between">
