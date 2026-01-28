@@ -26,6 +26,10 @@ import {
   executeCodePayloadSchema,
   codeExecutionResultPayloadSchema,
   codeExecutionErrorPayloadSchema,
+  codeExecutionStartedPayloadSchema,
+  codeExecutionStagePayloadSchema,
+  codeExecutionDataPayloadSchema,
+  codeExecutionCompletedPayloadSchema,
 } from '../schemas/socket/index.js';
 
 // ==================== Room Socket Types ====================
@@ -108,4 +112,24 @@ export type CodeExecutionResultPayload = z.infer<
 /** 코드 실행 시 시스템 또는 인프라 에러 (S -> C) */
 export type CodeExecutionErrorPayload = z.infer<
   typeof codeExecutionErrorPayloadSchema
+>;
+
+/** 코드 실행 시작 (S -> C) - Streaming */
+export type CodeExecutionStartedPayload = z.infer<
+  typeof codeExecutionStartedPayloadSchema
+>;
+
+/** 코드 실행 단계 변경 (S -> C) - Streaming */
+export type CodeExecutionStagePayload = z.infer<
+  typeof codeExecutionStagePayloadSchema
+>;
+
+/** 코드 실행 데이터 스트림 (S -> C) - Streaming */
+export type CodeExecutionDataPayload = z.infer<
+  typeof codeExecutionDataPayloadSchema
+>;
+
+/** 코드 실행 완료 (S -> C) - Streaming */
+export type CodeExecutionCompletedPayload = z.infer<
+  typeof codeExecutionCompletedPayloadSchema
 >;
