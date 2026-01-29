@@ -43,3 +43,14 @@ export const ptUpdateNamePayloadSchema = z.object({
 export const claimHostPayloadSchema = z.object({
   hostPassword: passwordSchema,
 });
+
+// 호스트 이전 알림 (S -> C)
+export const hostTransferredPayloadSchema = z.object({
+  newHostPtId: ptIdSchema,
+});
+
+// 호스트 권한 요청 알림 (S -> C)
+export const hostClaimRequestPayloadSchema = z.object({
+  requesterPtId: ptIdSchema,
+  requesterNickname: nicknameSchema,
+});

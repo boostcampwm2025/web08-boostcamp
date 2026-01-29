@@ -15,6 +15,8 @@ import {
   ptUpdateRolePayloadSchema,
   ptUpdateNamePayloadSchema,
   claimHostPayloadSchema,
+  hostTransferredPayloadSchema,
+  hostClaimRequestPayloadSchema,
   // File socket schemas
   fileUpdatePayloadSchema,
   awarenessUpdatePayloadSchema,
@@ -76,6 +78,12 @@ export type PtUpdateNamePayload = z.infer<typeof ptUpdateNamePayloadSchema>;
 
 /** 호스트 권한 요청 (C -> S) */
 export type ClaimHostPayload = z.infer<typeof claimHostPayloadSchema>;
+
+/** 호스트 이전 알림 (S -> C) */
+export type HostTransferredPayload = z.infer<typeof hostTransferredPayloadSchema>;
+
+/** 호스트 권한 요청 알림 (S -> C) */
+export type HostClaimRequestPayload = z.infer<typeof hostClaimRequestPayloadSchema>;
 
 // ==================== File Socket Types ====================
 
