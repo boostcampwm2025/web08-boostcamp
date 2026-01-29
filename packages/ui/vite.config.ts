@@ -32,6 +32,8 @@ export default defineConfig({
         'clsx',
         'tailwind-merge',
         'next-themes',
+        '@codejam/common',
+        /^@codejam\/common\/.*/,
       ],
     },
     outDir: 'dist',
