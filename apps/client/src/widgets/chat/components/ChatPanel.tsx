@@ -8,7 +8,7 @@ import { ChatInput } from './ChatInput';
 const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
 const MAX_WIDTH = 600;
-const MAX_HEIGHT = 600;
+const MAX_HEIGHT = 900;
 const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 380;
 
