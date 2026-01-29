@@ -48,16 +48,14 @@ export function ChatWindow({ messages }: ChatWindowProps) {
     setHasNewMessage(false);
   }, []);
 
-  // 새 메시지 도착 시 처리
+  // 새 메시지 도착 시 처리 (setState는 다음 틱으로 지연해 cascading render 방지)
   useEffect(() => {
     if (messages.length > prevMessagesLengthRef.current) {
-      // 새 메시지가 추가됨
-      if (isAtBottom) {
-        // 맨 아래면 자동 스크롤
-        scrollToBottom();
+      const wasAtBottom = isAtBottom;
+      if (wasAtBottom) {
+        queueMicrotask(() => scrollToBottom());
       } else {
-        // 위쪽 보고 있으면 "새 메시지" 버튼 표시
-        setHasNewMessage(true);
+        queueMicrotask(() => setHasNewMessage(true));
       }
     }
     prevMessagesLengthRef.current = messages.length;

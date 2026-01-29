@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { LIMITS, type ChatSystemPayload, type ChatMessagePayload, type Pt } from '@codejam/common';
+import {
+  LIMITS,
+  type ChatSystemPayload,
+  type ChatMessagePayload,
+  type Pt,
+} from '@codejam/common';
 
 // ==================== Message Types ====================
 
@@ -86,7 +91,7 @@ export const useChatStore = create<ChatState>((set) => ({
 
       // 메시지 수 제한 적용 (오래된 것부터 삭제)
       const newMessages = [...state.messages, message].slice(
-        -LIMITS.CHAT_MESSAGES_LIMIT
+        -LIMITS.CHAT_MESSAGES_LIMIT,
       );
 
       // 시스템 메시지는 unreadCount에 영향 없음
@@ -94,7 +99,10 @@ export const useChatStore = create<ChatState>((set) => ({
     });
   },
 
-  addUserMessage: (payload: ChatMessagePayload, status: MessageStatus = 'sent') => {
+  addUserMessage: (
+    payload: ChatMessagePayload,
+    status: MessageStatus = 'sent',
+  ) => {
     set((state) => {
       // 중복 방지: 같은 id의 메시지가 이미 있으면 무시
       if (state.messages.some((m) => m.id === payload.id)) {
@@ -112,7 +120,7 @@ export const useChatStore = create<ChatState>((set) => ({
 
       // 메시지 수 제한 적용 (오래된 것부터 삭제)
       const newMessages = [...state.messages, message].slice(
-        -LIMITS.CHAT_MESSAGES_LIMIT
+        -LIMITS.CHAT_MESSAGES_LIMIT,
       );
 
       // 채팅창이 닫혀있을 때만 unreadCount 증가 (사용자 메시지만)
@@ -127,7 +135,7 @@ export const useChatStore = create<ChatState>((set) => ({
   updateMessageStatus: (id: string, status: MessageStatus) => {
     set((state) => ({
       messages: state.messages.map((m) =>
-        m.id === id && m.type === 'user' ? { ...m, status } : m
+        m.id === id && m.type === 'user' ? { ...m, status } : m,
       ),
     }));
   },

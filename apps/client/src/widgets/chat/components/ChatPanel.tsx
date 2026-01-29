@@ -21,7 +21,10 @@ export function ChatPanel() {
   const messages = useChatStore((state) => state.messages);
   const setChatOpen = useChatStore((state) => state.setChatOpen);
 
-  const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+  const [size, setSize] = useState({
+    width: DEFAULT_WIDTH,
+    height: DEFAULT_HEIGHT,
+  });
   const [isResizing, setIsResizing] = useState(false);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -33,8 +36,14 @@ export function ChatPanel() {
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, window.innerWidth - e.clientX - 16));
-      const newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, window.innerHeight - e.clientY - 80));
+      const newWidth = Math.min(
+        MAX_WIDTH,
+        Math.max(MIN_WIDTH, window.innerWidth - e.clientX - 16),
+      );
+      const newHeight = Math.min(
+        MAX_HEIGHT,
+        Math.max(MIN_HEIGHT, window.innerHeight - e.clientY - 80),
+      );
       setSize({ width: newWidth, height: newHeight });
     };
 

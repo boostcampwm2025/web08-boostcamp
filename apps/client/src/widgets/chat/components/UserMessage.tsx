@@ -70,9 +70,7 @@ export function UserMessage({ message }: UserMessageProps) {
           <span className="text-foreground text-xs font-medium">
             {pt.nickname}
           </span>
-          <span className="text-muted-foreground/70 text-xs">
-            #{pt.ptHash}
-          </span>
+          <span className="text-muted-foreground/70 text-xs">#{pt.ptHash}</span>
           <span className="text-muted-foreground/50 text-[10px]">
             · {formatTime(createdAt)}
           </span>
