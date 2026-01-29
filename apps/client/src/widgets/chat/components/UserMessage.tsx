@@ -1,6 +1,6 @@
 import {
   createAvatarGenerator,
-  LucideAvatarProvider,
+  AvvvatarsProvider,
   RadixButton as Button,
 } from '@codejam/ui';
 import { RotateCcw, X } from 'lucide-react';
@@ -10,7 +10,7 @@ import { useChatStore } from '@/stores/chat';
 import { emitChatMessage } from '@/stores/socket-events/chat';
 import { MarkdownContent } from './MarkdownContent';
 
-const provider = new LucideAvatarProvider();
+const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
 
 type UserMessageProps = {
@@ -61,7 +61,7 @@ export function UserMessage({ message }: UserMessageProps) {
     >
       {/* 아바타 */}
       <div className="shrink-0 pt-0.5">
-        <Avatar id={pt.ptHash} color={pt.color} size={28} />
+        <Avatar id={pt.ptHash} size={28} />
       </div>
 
       {/* 메시지 내용 */}

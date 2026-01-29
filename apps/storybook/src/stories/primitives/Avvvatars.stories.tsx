@@ -7,7 +7,7 @@ import {
 } from '@codejam/ui';
 
 const { Avatar: AvvvatarsAvatar } = createAvatarGenerator(
-  new AvvvatarsProvider(),
+  new AvvvatarsProvider({ variant: 'shape' }),
 );
 
 const meta = {
@@ -126,7 +126,7 @@ export const CompareWithBoringAvatars: Story = {
       new BoringAvatarProvider(),
     );
     const { Avatar: Avvvatars } = createAvatarGenerator(
-      new AvvvatarsProvider(),
+      new AvvvatarsProvider({ variant: 'shape' }),
     );
     const ids = ['1001', '1002', '1003', '1004', '1005'];
 

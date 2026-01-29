@@ -5,10 +5,11 @@ import {
 } from '@codejam/ui';
 import { usePt } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
-import { createAvatarGenerator, LucideAvatarProvider } from '@codejam/ui';
+import { createAvatarGenerator, AvvvatarsProvider } from '@codejam/ui';
 import { ProfileCardContent } from './ProfileCardContent';
+import { PRESENCE } from '@codejam/common';
 
-const provider = new LucideAvatarProvider();
+const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
 
 export function SidebarProfile() {
@@ -27,8 +28,11 @@ export function SidebarProfile() {
           title="설정 및 프로필"
         >
           <div className="relative">
-            <Avatar id={me.ptHash} color={me.color} size={40} />
-            <span className="ring-background absolute right-0 bottom-0 block h-3 w-3 rounded-full bg-green-500 ring-2 transition-colors" />
+            <Avatar
+              id={me.ptHash}
+              size={40}
+              showOnline={me.presence === PRESENCE.ONLINE}
+            />
           </div>
         </button>
       </PopoverTrigger>

@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import {
   createAvatarGenerator,
-  LucideAvatarProvider,
+  AvvvatarsProvider,
   RadixInput as Input,
 } from '@codejam/ui';
 import { Pencil } from 'lucide-react';
@@ -9,11 +9,11 @@ import { adjustColor } from '@/shared/lib/utils/color';
 
 import { usePtsStore } from '@/stores/pts';
 import { socket } from '@/shared/api/socket';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, PRESENCE } from '@codejam/common';
 import type { Pt } from '@codejam/common';
 import { ProfileBannerAnimation } from './ProfileBannerAnimation';
 
-const provider = new LucideAvatarProvider();
+const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
 
 interface ProfileCardContentProps {
@@ -83,12 +83,10 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
           <div className="bg-card relative rounded-full p-1.5">
             <Avatar
               id={me.ptHash}
-              color={me.color}
               size={70}
               className="rounded-full shadow-md"
+              showOnline={me.presence === PRESENCE.ONLINE}
             />
-            {/* 온라인 상태 표시 */}
-            <span className="ring-card absolute right-2 bottom-2 block h-5 w-5 rounded-full bg-green-500 ring-4" />
           </div>
 
           <div className="mb-2">

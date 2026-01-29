@@ -1,8 +1,8 @@
-import { LucideAvatarProvider } from '@codejam/ui';
+import { AvvvatarsProvider } from '@codejam/ui';
 import { gutter, GutterMarker } from '@codemirror/view';
 import * as Y from 'yjs';
 
-const provider = new LucideAvatarProvider();
+const provider = new AvvvatarsProvider({ variant: 'shape' });
 
 export interface RemoteUser {
   hash: string;
@@ -70,11 +70,7 @@ class AvatarMarker extends GutterMarker {
     avatarContainer.style.borderRadius = '50%';
     avatarContainer.style.overflow = 'hidden'; // 둥근 테두리 밖으로 나가는 것 방지
 
-    const svgString = provider.toSvgString(
-      firstUser.hash,
-      avatarSize,
-      firstUser.color,
-    );
+    const svgString = provider.toSvgString(firstUser.hash, avatarSize);
 
     avatarContainer.innerHTML = svgString;
 
