@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   createAvatarGenerator,
   AvvvatarsProvider,
@@ -9,6 +10,8 @@ import { useRoomStore } from '@/stores/room';
 import { useChatStore } from '@/stores/chat';
 import { emitChatMessage } from '@/stores/socket-events/chat';
 import { MarkdownContent } from './MarkdownContent';
+import { FileMention } from './FileMention';
+import { parseFileMentions } from '../lib/parseFileMentions';
 
 const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
@@ -42,6 +45,9 @@ export function UserMessage({ message }: UserMessageProps) {
   const removeMessage = useChatStore((state) => state.removeMessage);
 
   const isMyMessage = pt.ptId === myPtId;
+
+  // content를 세그먼트로 파싱 (파일 언급 + 텍스트)
+  const segments = useMemo(() => parseFileMentions(content), [content]);
 
   const handleResend = () => {
     // 기존 메시지 삭제 후 재전송
@@ -77,9 +83,15 @@ export function UserMessage({ message }: UserMessageProps) {
           </span>
         </div>
 
-        {/* 메시지 텍스트 (마크다운 렌더링) */}
+        {/* 메시지 텍스트 (파일 언급 + 마크다운 렌더링) */}
         <div className="mt-0.5">
-          <MarkdownContent content={content} />
+          {segments.map((seg, i) =>
+            seg.type === 'file' ? (
+              <FileMention key={i} fileName={seg.fileName} />
+            ) : (
+              <MarkdownContent key={i} content={seg.text} />
+            ),
+          )}
         </div>
 
         {/* 전송 실패 시 재전송/삭제 버튼 */}
