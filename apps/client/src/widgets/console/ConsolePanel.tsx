@@ -1,4 +1,6 @@
 import { Activity } from 'react';
+import { useEffect, useRef } from 'react';
+import { useCodeExecutionStore } from '@/stores/code-execution';
 import { useConsoleResize } from './hooks/useConsoleResize';
 import { ConsolePanelHeader } from './components/ConsolePanelHeader';
 import { ConsolePanelContent } from './components/ConsolePanelContent';
@@ -13,11 +15,24 @@ interface ConsolePanelProps {
 }
 
 export function ConsolePanel({ variant }: ConsolePanelProps) {
-  const { width, isResizing, isCollapsed, handleMouseDown } = useConsoleResize({
-    minWidth: MIN_WIDTH,
-    maxWidth: MAX_WIDTH,
-    defaultWidth: DEFAULT_WIDTH,
-  });
+  const { width, isResizing, isCollapsed, handleMouseDown, handleExpand } =
+    useConsoleResize({
+      minWidth: MIN_WIDTH,
+      maxWidth: MAX_WIDTH,
+      defaultWidth: DEFAULT_WIDTH,
+    });
+
+  const isExecuting = useCodeExecutionStore((state) => state.isExecuting);
+  const prevIsExecutingRef = useRef(false);
+
+  // Expand console when execution starts while collapsed
+  useEffect(() => {
+    const wasExecuting = prevIsExecutingRef.current;
+    const executionStarting = !wasExecuting && isExecuting;
+
+    if (executionStarting && isCollapsed) handleExpand();
+    prevIsExecutingRef.current = isExecuting;
+  }, [isExecuting, isCollapsed, handleExpand]);
 
   return (
     <div
