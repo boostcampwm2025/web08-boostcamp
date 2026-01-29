@@ -65,7 +65,7 @@ export default function CodeEditor({
 
   return (
     <>
-      <div ref={containerRef} className="h-full" />
+      <div ref={containerRef} className="h-screen" />
       <AvatarGutterMenu
         isOpen={menuState.isOpen}
         position={menuState.position}
