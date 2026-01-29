@@ -1,7 +1,5 @@
 import { Logo } from './Logo';
 import { RoomCode } from './RoomCode';
-import { FileDownloadButton } from './buttons/FileDownloadButton';
-import { FileCopyButton } from './buttons/FileCopyButton';
 import { CodeExecutionButton } from './buttons/CodeExecutionButton';
 import { ShareButton } from './buttons/ShareButton';
 import { DestroyRoomButton } from './buttons/DestroyRoomButton';
@@ -20,8 +18,6 @@ export default function Header({ roomCode }: HeaderProps) {
 
       {/* 우측 액션 버튼들 */}
       <div className="ml-auto flex shrink-0 items-center gap-1">
-        <FileDownloadButton />
-        <FileCopyButton />
         <CodeExecutionButton />
         <ShareButton roomCode={roomCode} />
         <DestroyRoomButton />
