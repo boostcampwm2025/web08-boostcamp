@@ -1,5 +1,8 @@
+import { useContext } from 'react';
 import { FileText } from 'lucide-react';
 import { useFileStore } from '@/stores/file';
+import { useTabStore } from '@/stores/tab';
+import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 
 type FileMentionProps = {
   fileName: string;
@@ -13,12 +16,21 @@ type FileMentionProps = {
 export function FileMention({ fileName }: FileMentionProps) {
   const getFileId = useFileStore((state) => state.getFileId);
   const setActiveFile = useFileStore((state) => state.setActiveFile);
+  const activeTabKey = useTabStore((state) => state.activeTabKey);
+  const setActiveTab = useTabStore((state) => state.setActiveTab);
+  const { appendLinear } = useContext(LinearTabApiContext);
 
   const handleClick = () => {
     const fileId = getFileId(fileName);
 
     if (fileId) {
+      // File.tsx와 동일한 로직
       setActiveFile(fileId);
+      appendLinear(activeTabKey, fileName, {
+        fileId,
+        readOnly: false, // 기본값
+      });
+      setActiveTab(activeTabKey, fileName);
     } else {
       // 파일이 삭제된 경우
       console.warn(`[FileMention] 파일을 찾을 수 없습니다: ${fileName}`);

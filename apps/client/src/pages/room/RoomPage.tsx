@@ -142,6 +142,7 @@ function RoomPage() {
                 {(tabKey: number) => <FileViewer tabKey={tabKey} />}
               </LinearGrid>
             </div>
+            <Chat />
           </ProviderAPI>
         </TabProvider>
         <div className="border-border h-full w-96 shrink-0 border-l">
@@ -171,7 +172,6 @@ function RoomPage() {
       <Toaster />
       <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
       <HostClaimRequestDialog />
-      <Chat />
     </div>
   );
 }
