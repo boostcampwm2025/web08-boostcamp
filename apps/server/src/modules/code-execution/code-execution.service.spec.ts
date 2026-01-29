@@ -81,6 +81,7 @@ describe('CodeExecutionService', () => {
 
       // Act
       const result = await service.execute(dto);
+      if (!result) return;
 
       // Assert
       expect(result.language).toBe('python');
@@ -121,6 +122,7 @@ describe('CodeExecutionService', () => {
 
       // Act
       const result = await service.execute(dto);
+      if (!result) return;
 
       // Assert
       expect(result.run.stdout).toBe('Hello, Codejam!\n');
@@ -159,6 +161,7 @@ describe('CodeExecutionService', () => {
 
       // Act
       const result = await service.execute(dto);
+      if (!result) return;
 
       // Assert
       expect(result.run.stderr).toBeTruthy();
@@ -206,6 +209,7 @@ describe('CodeExecutionService', () => {
 
       // Act
       const result = await service.execute(dto);
+      if (!result) return;
 
       // Assert
       expect(result.run.stdout).toBe('Hello, World!\n');

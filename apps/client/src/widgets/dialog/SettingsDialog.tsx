@@ -18,6 +18,7 @@ import {
   MousePointer2,
   UserCircle,
   Type,
+  Activity,
 } from 'lucide-react';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
 import { toast } from '@codejam/ui';
@@ -30,9 +31,11 @@ export function SettingsDialog() {
     showRemoteCursor,
     showGutterAvatars,
     alwaysShowCursorLabels,
+    streamCodeExecutionOutput,
     toggleRemoteCursor,
     toggleGutterAvatars,
     toggleCursorLabels,
+    toggleStreamCodeExecutionOutput,
   } = useSettings();
   const [inputValue, setInputValue] = useState(fontSize.toString());
 
@@ -170,6 +173,29 @@ export function SettingsDialog() {
               id="show-labels"
               checked={alwaysShowCursorLabels}
               onCheckedChange={toggleCursorLabels}
+            />
+          </div>
+        </div>
+
+        <div className="border-border my-2 border-t" />
+
+        <div className="grid gap-4">
+          <h4 className="text-muted-foreground mb-1 text-sm font-medium">
+            코드 실행
+          </h4>
+
+          {/* 코드 실행 출력 스트리밍 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="text-muted-foreground h-4 w-4" />
+              <Label htmlFor="stream-output" className="cursor-pointer">
+                실시간 출력
+              </Label>
+            </div>
+            <Switch
+              id="stream-output"
+              checked={streamCodeExecutionOutput}
+              onCheckedChange={toggleStreamCodeExecutionOutput}
             />
           </div>
         </div>

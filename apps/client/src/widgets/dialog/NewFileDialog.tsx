@@ -99,12 +99,16 @@ export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
               <SelectContent className="bg-white">
                 <SelectGroup>
                   <SelectLabel>확장자</SelectLabel>
-                  <SelectItem value="js">.js</SelectItem>
-                  <SelectItem value="ts">.ts</SelectItem>
-                  <SelectItem value="jsx">.jsx</SelectItem>
-                  <SelectItem value="tsx">.tsx</SelectItem>
-                  <SelectItem value="html">.html</SelectItem>
+                  <SelectItem value="c">.c</SelectItem>
+                  <SelectItem value="cpp">.cpp</SelectItem>
                   <SelectItem value="css">.css</SelectItem>
+                  <SelectItem value="html">.html</SelectItem>
+                  <SelectItem value="java">.java</SelectItem>
+                  <SelectItem value="js">.js</SelectItem>
+                  <SelectItem value="jsx">.jsx</SelectItem>
+                  <SelectItem value="py">.py</SelectItem>
+                  <SelectItem value="ts">.ts</SelectItem>
+                  <SelectItem value="tsx">.tsx</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

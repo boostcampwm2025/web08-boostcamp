@@ -6,11 +6,13 @@ interface SettingsState {
   showRemoteCursor: boolean; // 원격 커서 표시 여부
   showGutterAvatars: boolean; // Gutter 아바타 표시 여부
   alwaysShowCursorLabels: boolean; // 커서 이름표 항상 표시 여부
+  streamCodeExecutionOutput: boolean; // 코드 실행 출력 스트리밍 여부
 
   setFontSize: (size: number) => void;
   toggleRemoteCursor: () => void;
   toggleGutterAvatars: () => void;
   toggleCursorLabels: () => void;
+  toggleStreamCodeExecutionOutput: () => void;
   resetSettings: () => void;
 }
 
@@ -21,6 +23,7 @@ export const useSettingsStore = create<SettingsState>()(
       showRemoteCursor: true, // 기본값: 보임
       showGutterAvatars: true, // 기본값: 보임
       alwaysShowCursorLabels: false, // 기본값: 숨김 (Hover시에만 보임)
+      streamCodeExecutionOutput: true, // 기본값: 코드 실행 출력 시 스트리밍 활성화
 
       setFontSize: (size) => set({ fontSize: size }),
 
@@ -35,12 +38,18 @@ export const useSettingsStore = create<SettingsState>()(
           alwaysShowCursorLabels: !state.alwaysShowCursorLabels,
         })),
 
+      toggleStreamCodeExecutionOutput: () =>
+        set((state) => ({
+          streamCodeExecutionOutput: !state.streamCodeExecutionOutput,
+        })),
+
       resetSettings: () =>
         set({
           fontSize: 14,
           showRemoteCursor: true,
           showGutterAvatars: true,
           alwaysShowCursorLabels: false,
+          streamCodeExecutionOutput: true,
         }),
     }),
     {
@@ -59,12 +68,14 @@ export function useSettings() {
     showRemoteCursor: state.showRemoteCursor,
     showGutterAvatars: state.showGutterAvatars,
     alwaysShowCursorLabels: state.alwaysShowCursorLabels,
+    streamCodeExecutionOutput: state.streamCodeExecutionOutput,
 
     // Actions
     setFontSize: state.setFontSize,
     toggleRemoteCursor: state.toggleRemoteCursor,
     toggleGutterAvatars: state.toggleGutterAvatars,
     toggleCursorLabels: state.toggleCursorLabels,
+    toggleStreamCodeExecutionOutput: state.toggleStreamCodeExecutionOutput,
     resetSettings: state.resetSettings,
   };
 }
