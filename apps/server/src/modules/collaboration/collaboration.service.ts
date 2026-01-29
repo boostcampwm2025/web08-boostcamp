@@ -5,6 +5,7 @@ import {
   UPDATABLE_PT_ROLES,
   EXT_TYPES,
   FILENAME_CHECK_RESULT_TYPES,
+  LIMITS,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
@@ -19,6 +20,8 @@ import {
   type PtRole,
   type PtId,
   type ExecuteCodePayload,
+  type ChatMessageSendPayload,
+  type ChatMessagePayload,
 } from '@codejam/common';
 import { WsException } from '@nestjs/websockets';
 import { Injectable, Logger } from '@nestjs/common';
@@ -394,6 +397,49 @@ export class CollaborationService {
     const { fileId } = payload;
     const { docId } = client.data;
     this.fileService.deleteFile(docId, fileId, client, server);
+  }
+
+  /** 채팅 메시지 처리 */
+  async handleChatMessage(
+    client: CollabSocket,
+    server: Server,
+    payload: ChatMessageSendPayload,
+  ): Promise<void> {
+    const { roomCode, ptId, ptHash, nickname, color } = client.data;
+
+    // 1. client.data 유효성 확인
+    if (!roomCode || !ptId || !ptHash || !nickname || !color) {
+      this.logger.warn('[CHAT_MESSAGE] Missing client data');
+      return;
+    }
+
+    // 2. content 검증 (trim 후 길이)
+    const content = payload.content.trim();
+    if (
+      content.length < LIMITS.CHAT_MESSAGE_MIN ||
+      content.length > LIMITS.CHAT_MESSAGE_MAX
+    ) {
+      this.logger.warn('[CHAT_MESSAGE] Invalid content length');
+      return;
+    }
+
+    // 3. 메시지 payload 생성 (client.data에서 pt 정보 조립, DB 조회 없음)
+    const messagePayload: ChatMessagePayload = {
+      id: uuidv7(),
+      pt: {
+        ptId,
+        ptHash,
+        nickname,
+        color,
+      } as Pt,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    // 4. 방 전체에 브로드캐스트 (발신자 포함)
+    server.to(roomCode).emit(SOCKET_EVENTS.CHAT_MESSAGE, messagePayload);
+
+    this.logger.log(`[CHAT_MESSAGE] ${nickname}#${ptHash} in ${roomCode}`);
   }
 
   /** 코드 실행 */
