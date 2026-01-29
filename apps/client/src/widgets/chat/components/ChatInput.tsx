@@ -36,6 +36,8 @@ export function ChatInput() {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // 한글 등 IME 조합 중엔 Enter로 전송하지 않음 (마지막 글자가 따로 전송되는 버그 방지)
+    if (e.nativeEvent.isComposing) return;
     // Enter: 전송 (Shift 없이)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
