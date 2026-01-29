@@ -8,6 +8,7 @@ import {
   updatablePtRoleSchema,
   ptPresenceSchema,
   ptColorSchema,
+  ptHashSchema,
   // Room schemas
   roomCodeSchema,
   roomTokenSchema,
@@ -49,6 +50,9 @@ export type PtPresence = z.infer<typeof ptPresenceSchema>;
 
 /** 참가자 색상 */
 export type PtColor = z.infer<typeof ptColorSchema>;
+
+/** 참가자 해시 */
+export type PtHash = z.infer<typeof ptHashSchema>;
 
 // ==================== Room Types ====================
 

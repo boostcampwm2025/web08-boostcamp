@@ -26,4 +26,9 @@ export const LIMITS = {
   // File capacity limits (in bytes)
   MAX_DOC_SIZE_CLIENT: 1_000_000, // 1MB - Client-side total document size limit
   MAX_DOC_SIZE_SERVER: 5 * 1024 * 1024, // 5MB - Server-side total document size limit (Redis compression)
+
+  // Chat
+  CHAT_MESSAGE_MIN: 1,
+  CHAT_MESSAGE_MAX: 2000, // 메세지 한 개당 길이 제한
+  CHAT_MESSAGES_LIMIT: 300, // 클라이언트 메모리에 유지할 최대 메시지 개수
 } as const;
