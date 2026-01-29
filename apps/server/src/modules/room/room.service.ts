@@ -116,6 +116,8 @@ export class RoomService {
   ): Promise<{ roomCode: string; token?: string }> {
     const roomCode = await this.generateUniqueRoomCode();
 
+    await this.checkRoomLimit();
+
     return await this.dataSource.transaction(async (manager: EntityManager) => {
       try {
         // 1. Room 생성
@@ -171,6 +173,22 @@ export class RoomService {
         throw error;
       }
     });
+  }
+
+  /**
+   * 방 생성 제한 확인
+   * - 동시성 이슈로 100개를 살짝 넘길 수 있지만, 서버 보호 목적에는 충분함
+   */
+  private async checkRoomLimit(): Promise<void> {
+    const currentCount = await this.roomRepository.count();
+
+    if (currentCount >= ROOM_CONFIG.MAX_ROOMS) {
+      throw new ApiException(
+        ERROR_CODE.ROOM_LIMIT_EXCEEDED,
+        ERROR_MESSAGES.ROOM_LIMIT_EXCEEDED,
+        503,
+      );
+    }
   }
 
   // --- Helper Methods ---

@@ -30,6 +30,7 @@ export const ROOM_CONFIG = {
   COOKIE_MAX_AGE: 24 * 60 * 60 * 1000, // 1일
   MAX_RETRIES: 3,
   QUICK_ROOM_MAX_PTS: 6,
+  MAX_ROOMS: 100,
 };
 
 export const DEFAULT_HOST = {
