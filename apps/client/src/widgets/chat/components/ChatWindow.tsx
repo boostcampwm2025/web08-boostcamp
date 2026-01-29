@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { ChatMessage } from '@/stores/chat';
 import { SystemMessage } from './SystemMessage';
+import { UserMessage } from './UserMessage';
 
 type ChatWindowProps = {
   messages: ChatMessage[];
@@ -24,19 +25,18 @@ export function ChatWindow({ messages }: ChatWindowProps) {
   return (
     <div
       ref={scrollRef}
-      className="scrollbar-thin flex max-h-[280px] min-h-[120px] flex-col gap-0 overflow-y-auto px-3 py-2"
+      className="scrollbar-thin flex max-h-[280px] min-h-[120px] flex-col gap-1 overflow-y-auto px-3 py-2"
     >
       {messages.length === 0 ? (
         <div className="text-muted-foreground flex flex-1 items-center justify-center text-xs">
-          입장/퇴장 알림이 여기에 표시됩니다.
+          메시지가 여기에 표시됩니다.
         </div>
       ) : (
         messages.map((msg) => {
           if (msg.type === 'system') {
             return <SystemMessage key={msg.id} message={msg.message} />;
           }
-          // 추후 사용자 채팅 메시지
-          return null;
+          return <UserMessage key={msg.id} message={msg} />;
         })
       )}
     </div>
