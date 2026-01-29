@@ -148,7 +148,14 @@ function LinearChild({ width, tabKey, children }: LinearChildProps) {
   };
 
   return (
-    <div style={{ width }} className="h-full" onClick={handleClick}>
+    <div
+      style={{
+        flex: `${width} 1 0%`,
+        minWidth: 0,
+      }}
+      className="h-full overflow-hidden"
+      onClick={handleClick}
+    >
       {children}
     </div>
   );
