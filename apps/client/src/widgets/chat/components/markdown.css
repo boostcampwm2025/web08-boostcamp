@@ -1,5 +1,5 @@
 /* highlight.js 테마 (코드 블록 문법 강조) */
-@import 'highlight.js/styles/atom-one-dark.css';
+@import 'highlight.js/styles/github-dark.css';
 
 /* 채팅 마크다운 전용 스타일 (전역 테마/플러그인 없이 안전하게) */
 .markdown-content {
@@ -23,10 +23,10 @@
   font-weight: 500 !important;
 }
 
-/* 3) 코드 블록 스타일 */
+/* 3) 코드 블록 스타일 (다크 테마 고정) */
 .markdown-content pre {
-  background-color: color-mix(in oklab, var(--foreground) 12%, transparent) !important;
-  border: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent) !important;
+  background-color: #0d1117 !important;
+  border: 1px solid #30363d !important;
   border-radius: 0.5rem !important;
   padding: 0.75rem 1rem !important;
   overflow-x: auto !important;
@@ -36,7 +36,7 @@
 .markdown-content pre code {
   background-color: transparent !important;
   padding: 0 !important;
-  color: var(--foreground) !important;
+  color: #e6edf3 !important;
   font-family: var(--font-mono) !important;
   font-size: 0.85em !important;
 }
