@@ -10,8 +10,14 @@ import { cardColorSchemes } from '../constants/card-color-schemes';
 const colors = cardColorSchemes.green;
 
 export function JoinRoomCard() {
-  const { roomCode, setRoomCode, error, isLoading, isCodeComplete, handleJoinRoom } =
-    useJoinRoom();
+  const {
+    roomCode,
+    setRoomCode,
+    error,
+    isLoading,
+    isCodeComplete,
+    handleJoinRoom,
+  } = useJoinRoom();
 
   return (
     <Card
