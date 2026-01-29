@@ -1,4 +1,4 @@
-import type { LinearValue } from '@/contexts/useLinearTabProvider';
+import type { LinearValue } from '@/contexts/TabProvider';
 import { create } from 'zustand';
 
 type TabContent = { [key: string]: LinearValue };
