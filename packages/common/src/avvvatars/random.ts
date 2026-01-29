@@ -1,5 +1,5 @@
-import MersenneTwister from './mersenne-twister';
-import AleaGen from './alea';
+import MersenneTwister from './mersenne-twister.js';
+import AleaGen from './alea.js';
 
 interface range {
   min: number;

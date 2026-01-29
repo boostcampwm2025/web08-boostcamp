@@ -1,5 +1,5 @@
-import randomNumber from './random';
-import { BACKGROUND_COLORS, TEXT_COLORS, SHAPE_COLORS } from './colors';
+import randomNumber from './random.js';
+import { BACKGROUND_COLORS, TEXT_COLORS, SHAPE_COLORS } from './colors.js';
 
 export interface AvatarColors {
   shapeIndex: number;
