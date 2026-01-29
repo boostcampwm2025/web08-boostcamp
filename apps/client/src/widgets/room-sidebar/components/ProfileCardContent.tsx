@@ -9,7 +9,7 @@ import { adjustColor } from '@/shared/lib/utils/color';
 
 import { usePtsStore } from '@/stores/pts';
 import { socket } from '@/shared/api/socket';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, PRESENCE } from '@codejam/common';
 import type { Pt } from '@codejam/common';
 import { ProfileBannerAnimation } from './ProfileBannerAnimation';
 
@@ -85,9 +85,8 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
               id={me.ptHash}
               size={70}
               className="rounded-full shadow-md"
+              showOnline={me.presence === PRESENCE.ONLINE}
             />
-            {/* 온라인 상태 표시 */}
-            <span className="ring-card absolute right-2 bottom-2 block h-5 w-5 rounded-full bg-green-500 ring-4" />
           </div>
 
           <div className="mb-2">
