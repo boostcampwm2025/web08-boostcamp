@@ -12,7 +12,6 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   const { handleCheckRename } = useFileRename(roomCode);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [currentDuplicate, setCurrentDuplicate] = useState<{
     name: string;
@@ -20,7 +19,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   } | null>(null);
 
   const processNextPending = useCallback(
-    (remaining: File[]) => {
+    function internalProcess(remaining: File[]) {
       if (remaining.length === 0) {
         setIsDialogOpen(false);
         setCurrentDuplicate(null);
@@ -39,7 +38,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
         // 중복이 아니면 바로 생성하고 다음 파일 확인
         nextFile.text().then((content) => {
           createFile(nextFile.name, content);
-          processNextPending(nextRemaining);
+          internalProcess(nextRemaining);
         });
       }
     },
@@ -68,7 +67,6 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
 
     // 전체 파일 리스트를 큐로 넘김
     processNextPending(Array.from(files));
-
     if (uploadRef.current) uploadRef.current.value = '';
   };
 
@@ -103,10 +101,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
           onOpenChange={setIsDialogOpen}
           filename={currentDuplicate.name}
           file={currentDuplicate.file}
-          onClick={() => {
-            // 현재 처리가 끝났으므로 큐에서 다음 파일을 진행
-            processNextPending(pendingFiles);
-          }}
+          onClick={() => processNextPending(pendingFiles)}
         />
       )}
     </div>
