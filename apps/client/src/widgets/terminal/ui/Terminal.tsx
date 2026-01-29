@@ -67,9 +67,19 @@ export function Terminal({ variant }: TerminalProps) {
     // Initialize terminal
     const frame = requestAnimationFrame(openTerminal);
 
+    // Setup resize observer
+    let resizeTimeout: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => fitTerminal(), 0);
+    });
+    if (terminalRef.current) observer.observe(terminalRef.current);
+
     // Cleanup
     return () => {
       cancelAnimationFrame(frame);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      observer.disconnect();
       xterm.dispose();
     };
 
