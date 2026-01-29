@@ -93,8 +93,8 @@ export function ChatInput() {
       mentionState.startIndex + 1 + mentionState.query.length,
     );
 
-    // @[fileName](fileName) 규약으로 삽입
-    setContent(`${before}@[${fileName}](${fileName}) ${after}`);
+    // @[fileName] 규약으로 삽입
+    setContent(`${before}@[${fileName}] ${after}`);
     setMentionState({ isOpen: false, query: '', startIndex: 0 });
     textareaRef.current?.focus();
   };

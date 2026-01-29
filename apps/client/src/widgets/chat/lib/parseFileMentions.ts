@@ -8,17 +8,15 @@ export type Segment =
   | { type: 'file'; fileName: string };
 
 /**
- * @[fileName](fileName) 패턴 매칭 정규식
- * - @[display](id) 형식의 react-mentions 규약
- * - display와 id 모두 캡처
+ * @[fileName] 패턴 매칭 정규식
  */
-const FILE_MENTION_REGEX = /@\[([^\]]+)\]\(([^)]+)\)/g;
+const FILE_MENTION_REGEX = /@\[([^\]]+)\]/g;
 
 /**
  * 메시지 content를 파싱하여 세그먼트 배열로 변환
  *
  * @example
- * parseFileMentions("확인해줘 @[main.ts](main.ts) 여기!")
+ * parseFileMentions("확인해줘 @[main.ts] 여기!")
  * // → [
  * //     { type: 'text', text: '확인해줘 ' },
  * //     { type: 'file', fileName: 'main.ts' },
@@ -37,8 +35,7 @@ export function parseFileMentions(content: string): Segment[] {
       segments.push({ type: 'text', text: content.slice(lastIndex, matchIndex) });
     }
 
-    // 파일 언급 추가
-    // match[1] = display (fileName), match[2] = id (fileName)
+    // 파일 언급 추가 (match[1] = fileName)
     segments.push({ type: 'file', fileName: match[1] });
 
     lastIndex = matchIndex + match[0].length;
