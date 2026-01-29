@@ -1,0 +1,42 @@
+@plugin '@tailwindcss/typography';
+
+/* 채팅 마크다운 전용 스타일 (전역 테마/플러그인 없이 안전하게) */
+.markdown-content {
+  color: var(--foreground);
+}
+
+/* 1) 인라인 코드에서 백틱 제거 (typography 기본값 override) */
+.markdown-content :not(pre) > code::before,
+.markdown-content :not(pre) > code::after {
+  content: '' !important;
+}
+
+/* 2) 인라인 코드 스타일 */
+.markdown-content :not(pre) > code {
+  background-color: color-mix(in oklab, var(--foreground) 12%, transparent) !important;
+  color: var(--foreground) !important;
+  padding: 0.15rem 0.4rem !important;
+  border-radius: 0.35rem !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.85em !important;
+  font-weight: 500 !important;
+}
+
+/* 3) 코드 블록 스타일 */
+.markdown-content pre {
+  background-color: color-mix(in oklab, var(--foreground) 12%, transparent) !important;
+  border: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1rem !important;
+  overflow-x: auto !important;
+  margin: 0.5rem 0 !important;
+}
+
+.markdown-content pre code {
+  background-color: transparent !important;
+  padding: 0 !important;
+  color: var(--foreground) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.85em !important;
+}
+
