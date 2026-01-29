@@ -148,7 +148,7 @@ export function TabProvider({ children }: ProviderProps) {
       const current = myRef.current!;
       const prevWidth = fullWidth.current;
 
-      if (prevWidth > 0 && eachWidth) {
+      if (prevWidth > 0 && eachWidthRef.current) {
         if (prevWidth === current.offsetWidth) {
           return;
         }

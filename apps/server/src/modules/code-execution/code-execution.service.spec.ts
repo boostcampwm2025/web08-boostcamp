@@ -19,7 +19,6 @@ const mockHttpService = {
 
 describe('CodeExecutionService', () => {
   let service: CodeExecutionService;
-  let httpService: HttpService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,7 +36,6 @@ describe('CodeExecutionService', () => {
     }).compile();
 
     service = module.get<CodeExecutionService>(CodeExecutionService);
-    httpService = module.get<HttpService>(HttpService);
   });
 
   afterEach(() => {

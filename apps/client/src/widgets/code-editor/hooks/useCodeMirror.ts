@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EditorView } from 'codemirror';
 import { type Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -44,13 +44,14 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
   } = props;
 
   const viewRef = useRef<EditorView | null>(null);
+  const [initialDoc] = useState(docString);
 
   // Mount Editor
   useEffect(() => {
     if (!containerRef.current) return;
 
     const view = new EditorView({
-      doc: docString,
+      doc: initialDoc,
       extensions,
       parent: containerRef.current,
     });
@@ -61,7 +62,7 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
       view.destroy();
       viewRef.current = null;
     };
-  }, [extensions]);
+  }, [extensions, containerRef, initialDoc]);
 
   // Update Theme
   useEffect(() => {

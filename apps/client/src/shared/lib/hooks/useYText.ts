@@ -25,6 +25,7 @@ export const useYText = (fileId: string) => {
 
   // 계층형 구조에서 Y.Text 가져오기
   const yText = useMemo(() => {
+    void updateCount; // 업데이트 감지용 (eslint-disable 회피)
     if (!yDoc) return null;
 
     const filesMap = yDoc.getMap('files');

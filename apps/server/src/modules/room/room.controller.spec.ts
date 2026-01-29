@@ -8,7 +8,7 @@ import { Response } from 'express';
 
 describe('RoomController', () => {
   let controller: RoomController;
-  let roomService: RoomService;
+  let roomService: any;
 
   const mockRoomService = {
     createQuickRoom: jest.fn(),
@@ -24,7 +24,7 @@ describe('RoomController', () => {
 
   const mockResponse = {
     cookie: jest.fn(),
-  } as unknown as Response;
+  } as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
