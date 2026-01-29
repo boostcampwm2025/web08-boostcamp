@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Logger } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Room } from './room.entity';
@@ -32,12 +31,6 @@ describe('RoomService', () => {
   let roomTokenService: RoomTokenService;
   let fileService: FileService;
   let roomRepository: any;
-
-  beforeAll(() => {
-    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
-    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
-    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
-  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
