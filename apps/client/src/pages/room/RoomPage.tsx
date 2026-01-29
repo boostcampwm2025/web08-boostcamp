@@ -16,7 +16,6 @@ import {
   RadixContextMenuContent as ContextMenuContent,
   RadixContextMenuItem as ContextMenuItem,
   RadixContextMenuTrigger as ContextMenuTrigger,
-  RadixDialog as Dialog,
   ScrollArea,
   ScrollBar,
 } from '@codejam/ui';

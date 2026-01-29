@@ -42,11 +42,9 @@ export function LinearGrid({
 }: LinearGridProps) {
   const myRef = useContext(LinearRefContext);
   const position = useContext(PositionContext);
-  const { linearTabWidth, setLinearTabWidth } = useContext(
-    LinearTabWidthContext,
-  );
-  const { linearTab, setLinearTab } = useContext(LinearTabContext);
-  const { draggingTab, setDraggingTab } = useContext(DraggingTabContext);
+  const { linearTabWidth } = useContext(LinearTabWidthContext);
+  const { linearTab } = useContext(LinearTabContext);
+  const { draggingTab } = useContext(DraggingTabContext);
   const { dropSignal, setDropSignal } = useContext(DropSignalContext);
   const fullWidth = useContext(FullWidthContext);
   const { createLinearTab, appendLinear } = useContext(LinearTabApiContext);
