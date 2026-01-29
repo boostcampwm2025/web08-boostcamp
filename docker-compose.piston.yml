@@ -1,20 +1,28 @@
 services:
+  # Code execution engine
   piston:
     image: ghcr.io/engineer-man/piston:latest
     container_name: piston
     privileged: true
     restart: unless-stopped
     ports:
-      - '2000:2000'
+      - '${PISTON_PORT:-2000}:2000'
     volumes:
       - piston_data:/piston
-    environment:
-      # Configure Piston settings
-      - PISTON_LOG_LEVEL=INFO
-      # Disable networking for executed code
-      - PISTON_DISABLE_NETWORKING=true
-      # Maximum concurrent jobs
-      - PISTON_MAX_CONCURRENT_JOBS=64
+    env_file:
+      - ./apps/piston/.env
+
+  # Language runtime installer
+  # Polls until Piston API is ready, then installs language runtimes
+  # Skip installation if the runtime is already installed
+  piston-setup:
+    build:
+      context: ./apps/piston
+    container_name: piston-setup
+    depends_on:
+      - piston
+    restart: 'no'
+    network_mode: 'service:piston'
 
 volumes:
   piston_data:

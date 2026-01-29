@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################################
 # Piston Language Runtime Installation Script
@@ -102,7 +102,7 @@ install_package() {
     
     if echo "${response}" | grep -q '"message"'; then
         local message
-        message=$(echo "${response}" | grep -oP '(?<="message":")[^"]*' || echo "Unknown error")
+        message=$(echo "${response}" | jq -r '.message // "Unknown error"')
         
         if echo "${message}" | grep -qi "already installed\|exists"; then
             log_success "${name}-${version} already installed"
@@ -131,17 +131,22 @@ check_package_installed() {
 # ============================================================================
 
 check_api_connectivity() {
-    log_info "Checking Piston API connectivity..."
-    
-    if curl -s --connect-timeout "${API_TIMEOUT}" \
-        "${PISTON_API_URL}/runtimes" > /dev/null 2>&1; then
-        log_success "API server is reachable at ${PISTON_API_URL}"
-        return 0
-    else
-        log_error "Cannot connect to Piston API at ${PISTON_API_URL}"
-        log_error "Please ensure Piston is running and accessible"
-        return 1
-    fi
+    log_info "Waiting for Piston API to be ready..."
+
+    local attempt=0
+    while [[ ${attempt} -lt ${MAX_POLL_ATTEMPTS} ]]; do
+        if curl -s --connect-timeout "${API_TIMEOUT}" \
+            "${PISTON_API_URL}/runtimes" > /dev/null 2>&1; then
+            log_success "API server is ready at ${PISTON_API_URL}"
+            return 0
+        fi
+
+        ((attempt++))
+        sleep "${POLL_INTERVAL}"
+    done
+
+    log_error "Timed out waiting for Piston API"
+    return 1
 }
 
 validate_packages() {
@@ -259,9 +264,7 @@ main() {
     
     log_result "Installed languages:"
     get_installed_packages | \
-        grep -oP '(?<="language":")[^"]*|(?<="version":")[^"]*' | \
-        paste - - | \
-        sed 's/\t/ → /' | \
+        jq -r '.[] | "\(.language) → \(.version)"' | \
         sort | \
         while read -r line; do
             echo "  • ${line}"

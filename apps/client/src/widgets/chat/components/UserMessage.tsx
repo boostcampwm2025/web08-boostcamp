@@ -8,6 +8,7 @@ import type { UserMessage as UserMessageType } from '@/stores/chat';
 import { useRoomStore } from '@/stores/room';
 import { useChatStore } from '@/stores/chat';
 import { emitChatMessage } from '@/stores/socket-events/chat';
+import { MarkdownContent } from './MarkdownContent';
 
 const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
@@ -76,10 +77,10 @@ export function UserMessage({ message }: UserMessageProps) {
           </span>
         </div>
 
-        {/* 메시지 텍스트 */}
-        <p className="text-foreground mt-0.5 text-sm leading-relaxed whitespace-pre-wrap">
-          {content}
-        </p>
+        {/* 메시지 텍스트 (마크다운 렌더링) */}
+        <div className="mt-0.5">
+          <MarkdownContent content={content} />
+        </div>
 
         {/* 전송 실패 시 재전송/삭제 버튼 */}
         {status === 'failed' && (
