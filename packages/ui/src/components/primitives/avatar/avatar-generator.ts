@@ -11,6 +11,7 @@ export interface GeneratedAvatarProps {
   badge?: ReactNode;
   size?: number;
   className?: string;
+  showOnline?: boolean;
 }
 
 export function createAvatarGenerator(provider: AvatarProvider) {
@@ -20,7 +21,14 @@ export function createAvatarGenerator(provider: AvatarProvider) {
     badge,
     size = 40,
     className = '',
+    showOnline = false,
   }: GeneratedAvatarProps) {
+    // 온라인 표시 크기를 아바타 크기의 약 25%로 설정 (최소 10px, 최대 20px)
+    const onlineIndicatorSize = Math.max(
+      10,
+      Math.min(20, Math.round(size * 0.25)),
+    );
+
     return createElement(
       'div',
       { className: `relative ${className}` },
@@ -31,6 +39,17 @@ export function createAvatarGenerator(provider: AvatarProvider) {
           { className: 'text-s absolute -top-2 -right-1' },
           badge,
         ),
+      showOnline &&
+        createElement('span', {
+          className:
+            'ring-card absolute block rounded-full bg-green-500 ring-2',
+          style: {
+            width: `${onlineIndicatorSize}px`,
+            height: `${onlineIndicatorSize}px`,
+            right: `${Math.round(onlineIndicatorSize * 0.12)}px`,
+            bottom: `${Math.round(onlineIndicatorSize * 0.12)}px`,
+          },
+        }),
     );
   }
 
