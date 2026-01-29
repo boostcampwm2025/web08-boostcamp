@@ -3,6 +3,7 @@ import {
   CircleHelp,
   FolderOpen,
   MoreHorizontal,
+  Settings,
   Users,
 } from 'lucide-react';
 import type { SidebarTab } from './types';
@@ -28,6 +29,12 @@ export const SIDEBAR_TABS: {
     label: '더보기',
   },
 ];
+
+export const SETTINGS_TAB = {
+  id: 'SETTINGS' as SidebarTab,
+  icon: <Settings size={22} />,
+  label: '설정',
+};
 
 export const MORE_MENU_ITEMS = [
   {
