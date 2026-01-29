@@ -1,11 +1,15 @@
-import { useState, useRef, useEffect, type KeyboardEvent } from 'react';
-import { MentionsInput, Mention } from 'react-mentions';
-import { RadixButton as Button } from '@codejam/ui';
+import {
+  useState,
+  useRef,
+  useEffect,
+  type KeyboardEvent,
+  type ChangeEvent,
+} from 'react';
+import { RadixButton as Button, Textarea } from '@codejam/ui';
 import { Send, FileText } from 'lucide-react';
 import { LIMITS } from '@codejam/common';
 import { emitChatMessage } from '@/stores/socket-events/chat';
 import { useFileNames } from '../hooks/useFileNames';
-import './mention.css';
 
 /**
  * 채팅 입력창 컴포넌트
@@ -13,20 +17,34 @@ import './mention.css';
  * - Shift+Enter: 줄바꿈
  * - 1~2000자 유효성 검사
  * - 자동 포커스
- * - @로 파일 언급 자동완성
+ * - @로 파일 언급 자동완성 (Popover)
  */
 export function ChatInput() {
   const [content, setContent] = useState('');
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const fileNames = useFileNames();
+  const [mentionState, setMentionState] = useState<{
+    isOpen: boolean;
+    query: string;
+    startIndex: number;
+  }>({ isOpen: false, query: '', startIndex: 0 });
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // react-mentions용 데이터 형식
-  const fileData = fileNames.map((name) => ({ id: name, display: name }));
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileNames = useFileNames();
 
   // 채팅창 열릴 때 자동 포커스
   useEffect(() => {
-    inputRef.current?.focus();
+    textareaRef.current?.focus();
   }, []);
+
+  // 필터링된 파일 목록
+  const filteredFiles = fileNames.filter((name) =>
+    name.toLowerCase().includes(mentionState.query.toLowerCase()),
+  );
+
+  // 선택 인덱스 리셋
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [mentionState.query]);
 
   const trimmedContent = content.trim();
   const isValid =
@@ -38,51 +56,114 @@ export function ChatInput() {
 
     emitChatMessage(content);
     setContent('');
+    setMentionState({ isOpen: false, query: '', startIndex: 0 });
 
-    // 전송 후 포커스 유지
-    inputRef.current?.focus();
+    textareaRef.current?.focus();
   };
 
-  const handleKeyDown = (
-    e: KeyboardEvent<HTMLTextAreaElement> | KeyboardEvent<HTMLInputElement>,
-  ) => {
-    // 한글 등 IME 조합 중엔 Enter로 전송하지 않음 (마지막 글자가 따로 전송되는 버그 방지)
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setContent(value);
+
+    const cursorPos = e.target.selectionStart;
+    const textBeforeCursor = value.slice(0, cursorPos);
+
+    // 마지막 @ 찾기
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (lastAtIndex !== -1) {
+      const afterAt = textBeforeCursor.slice(lastAtIndex + 1);
+      // @ 이후에 공백이 없으면 검색 중
+      if (!afterAt.includes(' ') && !afterAt.includes('\n')) {
+        setMentionState({
+          isOpen: true,
+          query: afterAt,
+          startIndex: lastAtIndex,
+        });
+        return;
+      }
+    }
+
+    setMentionState({ isOpen: false, query: '', startIndex: 0 });
+  };
+
+  const handleSelectFile = (fileName: string) => {
+    const before = content.slice(0, mentionState.startIndex);
+    const after = content.slice(
+      mentionState.startIndex + 1 + mentionState.query.length,
+    );
+
+    // @[fileName](fileName) 규약으로 삽입
+    setContent(`${before}@[${fileName}](${fileName}) ${after}`);
+    setMentionState({ isOpen: false, query: '', startIndex: 0 });
+    textareaRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // 한글 등 IME 조합 중엔 무시
     if (e.nativeEvent.isComposing) return;
+
+    // Popover 열려있을 때 키보드 네비게이션
+    if (mentionState.isOpen && filteredFiles.length > 0) {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedIndex((i) => Math.min(i + 1, filteredFiles.length - 1));
+          return;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedIndex((i) => Math.max(i - 1, 0));
+          return;
+        case 'Enter':
+          e.preventDefault();
+          handleSelectFile(filteredFiles[selectedIndex]);
+          return;
+        case 'Escape':
+          e.preventDefault();
+          setMentionState({ isOpen: false, query: '', startIndex: 0 });
+          return;
+      }
+    }
+
     // Enter: 전송 (Shift 없이)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-    // Shift+Enter: 줄바꿈 (기본 동작 유지)
   };
 
   return (
-    <div className="border-border flex items-end gap-2 border-t px-3 py-2">
-      <MentionsInput
-        inputRef={inputRef}
+    <div className="border-border relative flex items-end gap-2 border-t px-3 py-2">
+      {/* 파일 선택 Popover */}
+      {mentionState.isOpen && filteredFiles.length > 0 && (
+        <div className="border-border bg-popover absolute bottom-full left-3 mb-1 w-64 rounded-lg border p-1 shadow-lg">
+          {filteredFiles.slice(0, 8).map((fileName, index) => (
+            <button
+              key={fileName}
+              onClick={() => handleSelectFile(fileName)}
+              className={`text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
+                index === selectedIndex
+                  ? 'bg-accent text-accent-foreground'
+                  : 'hover:bg-accent/50'
+              }`}
+            >
+              <FileText className="text-muted-foreground h-4 w-4 shrink-0" />
+              {fileName}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <Textarea
+        ref={textareaRef}
         value={content}
-        onChange={(_, newValue) => setContent(newValue)}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="메시지를 입력하세요... (@로 파일 언급)"
         maxLength={LIMITS.CHAT_MESSAGE_MAX}
-        className="mentions-input"
-        style={mentionsInputStyle}
-      >
-        <Mention
-          trigger="@"
-          data={fileData}
-          markup="@[__display__](__id__)"
-          displayTransform={(_, display) => `@${display}`}
-          className="mention-highlight"
-          appendSpaceOnAdd
-          renderSuggestion={(_, __, highlightedDisplay) => (
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 shrink-0" />
-              <span>{highlightedDisplay}</span>
-            </div>
-          )}
-        />
-      </MentionsInput>
+        rows={1}
+        className="max-h-[100px] min-h-[36px] flex-1 resize-none"
+      />
 
       <Button
         variant="ghost"
@@ -97,24 +178,3 @@ export function ChatInput() {
     </div>
   );
 }
-
-// react-mentions 인라인 스타일 (기본 구조)
-const mentionsInputStyle = {
-  control: {
-    fontSize: 14,
-    fontWeight: 'normal',
-  },
-  highlighter: {
-    overflow: 'hidden',
-  },
-  input: {
-    margin: 0,
-    overflow: 'auto',
-  },
-  suggestions: {
-    list: {
-      maxHeight: 200,
-      overflow: 'auto',
-    },
-  },
-};
