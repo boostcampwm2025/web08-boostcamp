@@ -1,7 +1,7 @@
 import { Activity } from 'react';
 import { useEffect, useRef } from 'react';
 import { useCodeExecutionStore } from '@/stores/code-execution';
-import { useConsoleResize } from './hooks/useConsoleResize';
+import { useConsolePanelResize } from './hooks/useConsolePanelResize';
 import { ConsolePanelHeader } from './components/ConsolePanelHeader';
 import { ConsolePanelContent } from './components/ConsolePanelContent';
 import { ConsolePanelResizeHandle } from './components/ConsolePanelResizeHandle';
@@ -16,7 +16,7 @@ interface ConsolePanelProps {
 
 export function ConsolePanel({ variant }: ConsolePanelProps) {
   const { width, isResizing, isCollapsed, handleMouseDown, handleExpand } =
-    useConsoleResize({
+    useConsolePanelResize({
       minWidth: MIN_WIDTH,
       maxWidth: MAX_WIDTH,
       defaultWidth: DEFAULT_WIDTH,

@@ -2,13 +2,13 @@ import { useState, useCallback, useEffect } from 'react';
 
 const COLLAPSED_WIDTH = 5;
 
-interface UseConsoleResizeProps {
+interface UseConsolePanelResizeProps {
   minWidth: number;
   maxWidth: number;
   defaultWidth: number;
 }
 
-interface UseConsoleResizeReturn {
+interface UseConsolePanelResizeReturn {
   width: number;
   isResizing: boolean;
   isCollapsed: boolean;
@@ -16,11 +16,11 @@ interface UseConsoleResizeReturn {
   handleExpand: () => void;
 }
 
-export function useConsoleResize({
+export function useConsolePanelResize({
   minWidth,
   maxWidth,
   defaultWidth,
-}: UseConsoleResizeProps): UseConsoleResizeReturn {
+}: UseConsolePanelResizeProps): UseConsolePanelResizeReturn {
   const [width, setWidth] = useState(defaultWidth);
   const [isResizing, setIsResizing] = useState(false);
   const isCollapsed = width === COLLAPSED_WIDTH;

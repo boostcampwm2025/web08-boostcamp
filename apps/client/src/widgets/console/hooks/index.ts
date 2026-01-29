@@ -1,1 +1,1 @@
-export { useOutputResize } from './useConsoleResize';
+export { useConsolePanelResize } from './useConsolePanelResize';
