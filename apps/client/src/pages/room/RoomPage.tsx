@@ -2,13 +2,11 @@ import { useEffect, type DragEvent } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
 import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
-import { Participants } from '@/widgets/participants';
 import { useSocket } from '@/shared/lib/hooks/useSocket';
 import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
 import { RadixToaster as Toaster } from '@codejam/ui';
-import { FileList } from '@/widgets/files';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
@@ -20,6 +18,7 @@ import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelect
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { Chat } from '@/widgets/chat';
+import { RoomSidebar } from '@/widgets/room-sidebar';
 
 function RoomPage() {
   const {
@@ -76,10 +75,7 @@ function RoomPage() {
         <div className="bg-red-500 p-4 text-center text-white">{roomError}</div>
       )}
       <main className="flex flex-1 overflow-hidden">
-        <div className="border-border scrollbar-thin bg-background flex h-full w-72 shrink-0 flex-col overflow-y-auto border-r">
-          <Participants />
-          <FileList />
-        </div>
+        <RoomSidebar />
         <div
           className="bg-background h-full flex-1"
           onDragOver={handleDragPrevent}

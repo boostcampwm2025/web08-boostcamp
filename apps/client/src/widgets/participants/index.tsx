@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
-import { Participant, ParticipantsHeader } from './components';
+import { Participant } from './components';
 import { ParticipantsFilterBar } from './components/ParticipantsFilterBar';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
 import { SOCKET_EVENTS, ROLE } from '@codejam/common';
-import { toast } from '@codejam/ui';
+import { SidebarHeader, toast } from '@codejam/ui';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
 import { filterParticipants, sortParticipants } from './types';
@@ -27,7 +27,6 @@ export function Participants() {
   const iAmHost = meData?.role === ROLE.HOST;
 
   // 상태 관리
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<FilterOption[]>([]);
   const [sortKey, setSortKey] = useState<SortKey>('time');
 
@@ -95,17 +94,12 @@ export function Participants() {
   };
 
   return (
-    <div className="w-full px-4">
-      <ParticipantsHeader
-        totalCount={totalCount}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-      />
-      <div
-        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-h-0' : 'max-h-150'}`}
-      >
+    <div className="flex h-full w-full flex-col px-4">
+      <SidebarHeader title="참가자" count={totalCount} />
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* 필터 바 */}
-        <div className="mt-2 mb-1">
+        <div className="p-1">
           <ParticipantsFilterBar
             selectedFilters={selectedFilters}
             onFiltersChange={setSelectedFilters}
@@ -118,7 +112,7 @@ export function Participants() {
           />
         </div>
 
-        <div className="max-h-[30vh] min-h-0 flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           {me && <Participant ptId={me.ptId} hasPermission={false} />}
 
           {me && others.length > 0 && (

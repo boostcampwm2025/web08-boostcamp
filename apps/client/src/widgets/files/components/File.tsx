@@ -8,9 +8,9 @@ import {
 import { useFileStore } from '@/stores/file';
 import { Edit2, Trash2 } from 'lucide-react';
 import { memo, useState } from 'react';
-import { RenameDialog } from '../dialog/RenameDialog';
+import { RenameDialog } from '@/widgets/dialog/RenameDialog';
 import { RadixDialog as Dialog } from '@codejam/ui';
-import { DeleteDialog } from '../dialog/DeleteDialog';
+import { DeleteDialog } from '@/widgets/dialog/DeleteDialog';
 
 type DialogType = 'RENAME' | 'DELETE' | undefined;
 type FileProps = {

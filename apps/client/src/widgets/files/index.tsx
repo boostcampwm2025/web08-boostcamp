@@ -1,10 +1,11 @@
 import { ROLE } from '@codejam/common';
 import { useFileStore } from '@/stores/file';
-import { File } from './File';
+import { File } from './components/File';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
 import { useEffect, useState } from 'react';
-import { FileHeader } from './components/FileHeader';
+import { SidebarHeader } from '@codejam/ui';
+import { CapacityGauge } from '../capacity-gauge';
 
 export function FileList() {
   const getFileIdMap = useFileStore((state) => state.getFileIdMap);
@@ -12,7 +13,6 @@ export function FileList() {
 
   const [count, setCount] = useState(0);
   const [entries, setEntries] = useState<[string, string][]>([]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const me = usePt(myPtId);
@@ -46,18 +46,10 @@ export function FileList() {
   }, [yDoc, getFileIdMap]);
 
   return (
-    <div className="w-full px-4">
-      <FileHeader
-        count={count}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-      />
+    <div className="flex h-full w-full flex-col px-4">
+      <SidebarHeader title="파일" count={count} action={<CapacityGauge />} />
 
-      <div
-        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${
-          isCollapsed ? 'max-h-0' : 'max-h-[600px]'
-        }`}
-      >
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         {entries.map(([fileName, fileId]) => (
           <File
             key={fileId}
@@ -71,4 +63,4 @@ export function FileList() {
   );
 }
 
-export { File } from './File';
+export { File } from './components/File';
