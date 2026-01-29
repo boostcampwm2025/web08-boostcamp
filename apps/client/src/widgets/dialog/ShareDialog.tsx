@@ -1,4 +1,4 @@
-import { RadixButton as Button } from '@codejam/ui';
+import { RadixButton as Button, toast } from '@codejam/ui';
 import {
   RadixDialog as Dialog,
   RadixDialogContent as DialogContent,
@@ -8,7 +8,7 @@ import {
   RadixDialogTrigger as DialogTrigger,
 } from '@codejam/ui';
 import { RadixInput as Input } from '@codejam/ui';
-import { Check, Copy, Users } from 'lucide-react';
+import { Check, Copy, Share2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -33,6 +33,29 @@ export function ShareDialog({ children, roomCode }: ShareDialogProps) {
     navigator.clipboard.writeText(inviteUrl);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const handleWebShare = async () => {
+    const shareData = {
+      title: 'CodeJam 초대',
+      text: `CodeJam 세션에 참여하세요! 방 코드: ${roomCode}`,
+      url: inviteUrl,
+    };
+
+    // 브라우저 지원 여부 확인
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('공유 실패:', error);
+        }
+      }
+    } else {
+      // 미지원 브라우저인 경우 링크 복사로 대체
+      handleCopyLink();
+      toast('공유 기능을 지원하지 않는 브라우저입니다. 링크가 복사되었습니다.');
+    }
   };
 
   return (
@@ -125,7 +148,13 @@ export function ShareDialog({ children, roomCode }: ShareDialogProps) {
                 <span className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase">
                   Share Via
                 </span>
-                {/* TODO: 여기에 외부 서비스 공유 버튼 추가 */}
+                <Button
+                  onClick={handleWebShare}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border-none bg-slate-100 text-slate-900 transition-all hover:bg-slate-200 active:scale-95 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="text-sm font-medium">기기 공유하기</span>
+                </Button>
               </div>
             </div>
 
