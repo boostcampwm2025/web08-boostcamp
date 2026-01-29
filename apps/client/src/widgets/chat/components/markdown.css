@@ -1,5 +1,8 @@
 @plugin '@tailwindcss/typography';
 
+/* highlight.js 테마 (코드 블록 문법 강조) */
+@import 'highlight.js/styles/atom-one-dark.css';
+
 /* 채팅 마크다운 전용 스타일 (전역 테마/플러그인 없이 안전하게) */
 .markdown-content {
   color: var(--foreground);
