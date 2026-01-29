@@ -45,8 +45,8 @@ jobs:
           username: ${{ secrets.NCP_USERNAME }}
           key: ${{ secrets.NCP_SSH_KEY }}
           port: ${{ secrets.NCP_PORT }}
-          source: "docker-compose.piston.yml,apps/piston/.env.example"
-          target: "~/piston"
+          source: 'docker-compose.piston.yml,apps/piston/.env.example'
+          target: '~/piston'
           strip_components: 0
 
       - name: Deploy Piston to NCP
@@ -57,6 +57,10 @@ jobs:
           key: ${{ secrets.NCP_SSH_KEY }}
           port: ${{ secrets.NCP_PORT }}
           script: |
+            # Ensure directory exists
+            mkdir -p ~/piston/apps/piston
+
+            # Enter the directory
             cd ~/piston
 
             # Create .env from .env.example if not exists
