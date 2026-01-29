@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { of, throwError } from 'rxjs';
@@ -20,6 +21,12 @@ const mockHttpService = {
 describe('CodeExecutionService', () => {
   let service: CodeExecutionService;
   let httpService: HttpService;
+
+  beforeAll(() => {
+    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
