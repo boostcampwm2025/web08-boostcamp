@@ -4,6 +4,10 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/typography';
+
+/* highlight.js 테마 (코드 블록 문법 강조) */
+@import 'highlight.js/styles/github-dark.css';
 
 @custom-variant dark (&:is(.dark *));
 
