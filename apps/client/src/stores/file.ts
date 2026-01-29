@@ -17,6 +17,7 @@ interface FileState {
   yDoc: Doc | null;
   awareness: Awareness | null;
   activeFileId: string | null;
+  viewerFileId: string | null;
   isInitialized: boolean;
   isInitialDocLoaded: boolean;
 
@@ -32,6 +33,7 @@ interface FileState {
   initialize: (roomCode: string) => number;
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
+  setViewerFile: (fileId: string) => void;
   initializeActiveFile: () => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
@@ -50,7 +52,7 @@ interface FileState {
   getFilesMap: () => YMap<YMap<unknown>> | null;
   getFileIdMap: () => YMap<string> | null;
 
-  getFileName: (fileId: string) => string | null;
+  getFileName: (fileId: string | null) => string | null;
   getFileContent: (fileId: string) => string | null;
   getActiveFileContent: () => string | null;
 }
@@ -59,6 +61,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   yDoc: null,
   awareness: null,
   activeFileId: null,
+  viewerFileId: null,
   isInitialized: false,
   isInitialDocLoaded: false,
 
@@ -166,6 +169,10 @@ export const useFileStore = create<FileState>((set, get) => ({
         currentFileId: fileId,
       });
     }
+  },
+
+  setViewerFile: (fileId: string | null) => {
+    set({ viewerFileId: fileId });
   },
 
   applyRemoteDocUpdate: (message: Uint8Array) => {
@@ -379,7 +386,10 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   // 파일 이름 가져오기
-  getFileName: (fileId: string) => {
+  getFileName: (fileId: string | null) => {
+    if (!fileId) {
+      return null;
+    }
     const { yDoc } = get();
     if (!yDoc) return null;
 

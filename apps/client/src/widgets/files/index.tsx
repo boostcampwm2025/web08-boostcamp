@@ -7,7 +7,11 @@ import { useEffect, useState } from 'react';
 import { SidebarHeader } from '@codejam/ui';
 import { CapacityGauge } from '../capacity-gauge';
 
-export function FileList() {
+type FileListProps = {
+  readOnly: boolean;
+};
+
+export function FileList({ readOnly }: FileListProps) {
   const getFileIdMap = useFileStore((state) => state.getFileIdMap);
   const yDoc = useFileStore((state) => state.yDoc);
 
@@ -56,6 +60,7 @@ export function FileList() {
             fileId={fileId}
             fileName={fileName}
             hasPermission={hasPermission}
+            readOnly={readOnly}
           />
         ))}
       </div>

@@ -9,7 +9,13 @@ import { SIDEBAR_TABS } from './lib/sidebar-data';
 import { SidebarProfile } from './components/SidebarProfile';
 import { SidebarPanel } from './components/SidebarPanel';
 
-export function RoomSidebar({ className }: { className?: string }) {
+export function RoomSidebar({
+  className,
+  readOnly,
+}: {
+  className?: string;
+  readOnly: boolean;
+}) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('PARTICIPANTS');
 
   const toggleTab = (tab: SidebarTab) => {
@@ -38,7 +44,7 @@ export function RoomSidebar({ className }: { className?: string }) {
       </nav>
       <SidebarPanel isOpen={isOpen}>
         {activeTab === 'PARTICIPANTS' && <Participants />}
-        {activeTab === 'FILES' && <FileList />}
+        {activeTab === 'FILES' && <FileList readOnly={readOnly} />}
         {activeTab === 'MORE' && <MoreTabContent />}
       </SidebarPanel>
     </div>

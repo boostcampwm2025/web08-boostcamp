@@ -1,4 +1,4 @@
-import { useEffect, type DragEvent } from 'react';
+import { useContext, useEffect, useMemo, type DragEvent } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
 import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
@@ -6,7 +6,19 @@ import { useSocket } from '@/shared/lib/hooks/useSocket';
 import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
-import { RadixToaster as Toaster } from '@codejam/ui';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  RadixToaster as Toaster,
+  RadixContextMenu as ContextMenu,
+  RadixContextMenuContent as ContextMenuContent,
+  RadixContextMenuItem as ContextMenuItem,
+  RadixContextMenuTrigger as ContextMenuTrigger,
+  ScrollArea,
+  ScrollBar,
+} from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
@@ -22,6 +34,11 @@ import { AlignLeft } from 'lucide-react';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { Chat } from '@/widgets/chat';
 import { RoomSidebar } from '@/widgets/room-sidebar';
+import { LinearGrid } from './LinearGrid';
+import { LinearTabApiContext, ProviderAPI } from '@/contexts/ProviderAPI';
+import { TabProvider } from '@/contexts/TabProvider';
+import { Trash2 } from 'lucide-react';
+import { useTabStore } from '@/stores/tab';
 
 function RoomPage() {
   const {
@@ -42,8 +59,9 @@ function RoomPage() {
   useAwarenessSync();
   useInitialFileSelection();
 
-  const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const activeFileId = useFileStore((state) => state.activeFileId);
+  const setRoomCode = useRoomStore((state) => state.setRoomCode);
+  const getFileName = useFileStore((state) => state.getFileName);
 
   const loader = useLoaderData<RoomJoinStatus>();
 
@@ -61,7 +79,7 @@ function RoomPage() {
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || '');
-  const isViewer = myPt?.role === ROLE.VIEWER;
+  const isViewer = useMemo(() => myPt?.role === ROLE.VIEWER, [myPt?.role]);
 
   const handleDragPrevent = (ev: DragEvent) => {
     ev.preventDefault();
@@ -70,7 +88,26 @@ function RoomPage() {
   const handleFileDrop = (ev: DragEvent) => {
     ev.preventDefault();
     const files = ev.dataTransfer.files;
-    handleFileChange(files);
+    if (files.length > 0) {
+      handleFileChange(files);
+    }
+  };
+
+  const convertProcessFn = (fileId: string) => {
+    const fileName = getFileName(fileId);
+    if (!fileName) {
+      return {};
+    }
+
+    return {
+      fileId,
+      readOnly: isViewer,
+    };
+  };
+
+  const convertKeyName = (key: string) => {
+    const fileName = getFileName(key);
+    return fileName!;
   };
 
   return (
@@ -80,14 +117,33 @@ function RoomPage() {
         <div className="bg-red-500 p-4 text-center text-white">{roomError}</div>
       )}
       <main className="flex flex-1 overflow-hidden">
-        <RoomSidebar />
-        <div
-          className="bg-background h-full flex-1"
-          onDragOver={handleDragPrevent}
-          onDrop={handleFileDrop}
-        >
-          <FileViewer fileId={activeFileId} readOnly={isViewer} />
-        </div>
+        <TabProvider>
+          <ProviderAPI>
+            <RoomSidebar readOnly={isViewer} />
+            <div
+              className="bg-background h-full flex-1"
+              onDragOver={handleDragPrevent}
+              onDrop={handleFileDrop}
+            >
+              <LinearGrid
+                min={1}
+                max={2}
+                keyName="fileId"
+                convertKeyName={convertKeyName}
+                convertProcessFn={convertProcessFn}
+                initialTabValue={{
+                  key: getFileName(activeFileId),
+                  value: {
+                    fileId: activeFileId,
+                    readOnly: isViewer,
+                  },
+                }}
+              >
+                {(tabKey: number) => <FileViewer tabKey={tabKey} />}
+              </LinearGrid>
+            </div>
+          </ProviderAPI>
+        </TabProvider>
         <div className="border-border h-full w-96 shrink-0 border-l">
           <Output variant={isDark ? 'dark' : 'light'} />
         </div>
@@ -121,14 +177,82 @@ function RoomPage() {
 }
 
 interface FileViewerProps {
-  fileId: string | null;
-  readOnly: boolean;
+  tabKey: number;
 }
 
-function FileViewer({ fileId, readOnly }: FileViewerProps) {
-  if (!fileId) return <EmptyView />;
+type FileViewerTab = {
+  [fileName: string]: {
+    fileId: string;
+    readOnly: boolean;
+  };
+};
 
-  return <CodeEditor fileId={fileId} readOnly={readOnly} />;
+function FileViewer({ tabKey }: FileViewerProps) {
+  const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
+    useContext(LinearTabApiContext);
+  const setActiveFileId = useFileStore((state) => state.setActiveFile);
+  const getFileName = useFileStore((state) => state.getFileName);
+  const activeTab = useTabStore((state) => state.activeTab);
+  const setActiveTab = useTabStore((state) => state.setActiveTab);
+
+  const fileTab = takeTab(tabKey) as FileViewerTab;
+
+  if (!activeTab[tabKey] || !fileTab[activeTab[tabKey]]) return <EmptyView />;
+
+  const { fileId, readOnly } = fileTab[activeTab[tabKey]];
+
+  const handleDeleteTab = (fileName: string) => {
+    removeLinear(tabKey, fileName);
+    const nextActive = Object.keys(fileTab)[0];
+    if (activeTab[tabKey] === fileName) {
+      setActiveTab(
+        tabKey,
+        nextActive === fileName ? Object.keys(fileTab)[1] : nextActive,
+      );
+    }
+    const deleted = takeTab(tabKey) as FileViewerTab;
+    const keys = Object.keys(deleted);
+
+    if (keys.length === 1 && tabKeys().length > 1) {
+      deleteLinearTab(tabKey);
+    }
+  };
+
+  const handleValueChange = (fileId: string) => {
+    setActiveFileId(fileId);
+    const fileName = getFileName(fileId)!;
+    setActiveTab(tabKey, fileName);
+  };
+
+  return (
+    <Tabs value={fileId} onValueChange={handleValueChange}>
+      <ScrollArea className="overflow-x-auto">
+        <TabsList variant="line">
+          {Object.keys(fileTab).map((fileName) => (
+            <ContextMenu key={fileName}>
+              <ContextMenuTrigger>
+                <TabsTrigger value={fileTab[fileName].fileId}>
+                  {fileName}
+                </TabsTrigger>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => handleDeleteTab(fileName)}>
+                  <Trash2 color="red" />
+                  삭제하기
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          ))}
+        </TabsList>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+      {Object.keys(fileTab).map((fileName) => (
+        <TabsContent key={fileName} value={fileTab[fileName].fileId}>
+          <CodeEditor fileId={fileTab[fileName].fileId} readOnly={readOnly} />
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
 }
 
 interface OutputProps {

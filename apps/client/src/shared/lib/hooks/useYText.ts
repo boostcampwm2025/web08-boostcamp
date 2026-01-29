@@ -36,8 +36,6 @@ export const useYText = (fileId: string) => {
 
   // Update active file when the component mounts
   useEffect(() => {
-    setActiveFile(fileId);
-
     // Cleanup awareness state on unmount
     const handleUnload = () => {
       awareness?.setLocalState(null);

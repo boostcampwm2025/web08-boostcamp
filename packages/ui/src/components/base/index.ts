@@ -61,5 +61,13 @@ export {
   SelectTrigger,
   SelectValue,
 } from './select';
+export { ScrollArea, ScrollBar } from './scroll-area';
 export { Slider } from './slider';
 export { Switch } from './switch';
+export {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  tabsListVariants,
+} from './tabs';
