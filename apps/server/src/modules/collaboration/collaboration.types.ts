@@ -7,6 +7,7 @@ import {
   type PtId,
   type Nickname,
   type PtColor,
+  type PtHash,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
@@ -18,6 +19,8 @@ import {
   type PtJoinedPayload,
   type PtDisconnectPayload,
   type PtLeftPayload,
+  type ChatMessageSendPayload,
+  type ChatMessagePayload,
 } from '@codejam/common';
 
 export interface SocketData {
@@ -29,6 +32,7 @@ export interface SocketData {
   role: PtRole;
   nickname?: Nickname;
   color?: PtColor;
+  ptHash?: PtHash;
   createdAt?: string;
 }
 
@@ -40,6 +44,10 @@ export interface ClientToServerEvents {
   [SOCKET_EVENTS.REQUEST_AWARENESS]: () => void;
   [SOCKET_EVENTS.UPDATE_FILE]: (payload: FileUpdatePayload) => void;
   [SOCKET_EVENTS.UPDATE_AWARENESS]: (payload: AwarenessUpdatePayload) => void;
+  [SOCKET_EVENTS.CHAT_MESSAGE]: (
+    payload: ChatMessageSendPayload,
+    callback: (response: { success: boolean }) => void,
+  ) => void;
 }
 
 // Server -> Client 이벤트
@@ -53,6 +61,7 @@ export interface ServerToClientEvents {
   [SOCKET_EVENTS.PT_DISCONNECT]: (payload: PtDisconnectPayload) => void;
   [SOCKET_EVENTS.PT_LEFT]: (payload: PtLeftPayload) => void;
   [SOCKET_EVENTS.UPDATE_PT]: (payload: PtUpdatePayload) => void;
+  [SOCKET_EVENTS.CHAT_MESSAGE]: (payload: ChatMessagePayload) => void;
 }
 
 export type CollabSocket = Socket<
