@@ -39,7 +39,7 @@ export function FileMention({ fileName }: FileMentionProps) {
   // 삭제된 파일
   if (isDeleted) {
     return (
-      <span className="mx-0.5 inline-flex items-center gap-1 rounded-md border border-muted/30 bg-muted/10 px-2 py-0.5 text-xs text-muted-foreground line-through opacity-60">
+      <span className="border-muted/30 bg-muted/10 text-muted-foreground mx-0.5 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs line-through opacity-60">
         <FileText className="h-3 w-3 shrink-0" />
         <span className="truncate">{fileName}</span>
         <span className="text-[10px] no-underline">(삭제됨)</span>
@@ -52,10 +52,10 @@ export function FileMention({ fileName }: FileMentionProps) {
     <button
       type="button"
       onClick={handleClick}
-      className="group relative mx-0.5 inline-flex cursor-pointer items-center gap-1 overflow-hidden rounded-md border border-primary/20 bg-linear-to-r from-primary/10 to-primary/5 px-2 py-0.5 text-xs font-medium text-primary shadow-sm transition-all duration-200 ease-out hover:border-primary/40 hover:from-primary/20 hover:to-primary/10 hover:shadow-md active:scale-95"
+      className="group border-primary/20 from-primary/10 to-primary/5 text-primary hover:border-primary/40 hover:from-primary/20 hover:to-primary/10 relative mx-0.5 inline-flex cursor-pointer items-center gap-1 overflow-hidden rounded-md border bg-linear-to-r px-2 py-0.5 text-xs font-medium shadow-sm transition-all duration-200 ease-out hover:shadow-md active:scale-95"
     >
       {/* 배경 글로우 효과 */}
-      <span className="absolute inset-0 -z-10 bg-primary/5 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
+      <span className="bg-primary/5 absolute inset-0 -z-10 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
 
       {/* 아이콘 */}
       <FileText className="h-3 w-3 shrink-0 transition-transform duration-200 group-hover:scale-110" />

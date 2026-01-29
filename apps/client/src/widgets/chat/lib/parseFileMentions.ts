@@ -32,7 +32,10 @@ export function parseFileMentions(content: string): Segment[] {
 
     // 이전 텍스트 추가
     if (matchIndex > lastIndex) {
-      segments.push({ type: 'text', text: content.slice(lastIndex, matchIndex) });
+      segments.push({
+        type: 'text',
+        text: content.slice(lastIndex, matchIndex),
+      });
     }
 
     // 파일 언급 추가 (match[1] = fileName)

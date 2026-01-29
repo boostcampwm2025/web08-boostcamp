@@ -136,12 +136,12 @@ export function ChatInput() {
     <div className="border-border relative flex items-end gap-2 border-t px-3 py-2">
       {/* 파일 선택 Popover */}
       {mentionState.isOpen && filteredFiles.length > 0 && (
-        <div className="border-border bg-popover/95 absolute bottom-full left-3 mb-2 w-72 origin-bottom animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 rounded-xl border p-1.5 shadow-xl backdrop-blur-sm duration-150">
+        <div className="border-border bg-popover/95 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 absolute bottom-full left-3 mb-2 w-72 origin-bottom rounded-xl border p-1.5 shadow-xl backdrop-blur-sm duration-150">
           {/* 헤더 */}
-          <div className="text-muted-foreground mb-1 px-2 py-1 text-[10px] font-medium uppercase tracking-wider">
+          <div className="text-muted-foreground mb-1 px-2 py-1 text-[10px] font-medium tracking-wider uppercase">
             파일 선택
           </div>
-          
+
           {/* 파일 목록 */}
           <div className="max-h-48 overflow-y-auto">
             {filteredFiles.slice(0, 8).map((fileName, index) => (
@@ -167,9 +167,9 @@ export function ChatInput() {
               </button>
             ))}
           </div>
-          
+
           {/* 힌트 */}
-          <div className="text-muted-foreground/70 mt-1 border-t border-border/50 px-2 pt-1.5 text-[10px]">
+          <div className="text-muted-foreground/70 border-border/50 mt-1 border-t px-2 pt-1.5 text-[10px]">
             ↑↓ 이동 · Enter 선택 · Esc 닫기
           </div>
         </div>

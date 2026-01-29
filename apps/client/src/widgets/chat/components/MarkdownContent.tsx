@@ -15,7 +15,7 @@ type MarkdownContentProps = {
  */
 export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
-    <span className="markdown-content prose prose-sm dark:prose-invert max-w-none wrap-break-word inline">
+    <span className="markdown-content prose prose-sm dark:prose-invert inline max-w-none wrap-break-word">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
