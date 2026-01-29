@@ -55,3 +55,27 @@
   opacity: 0.8 !important;
 }
 
+/* 5) 테이블 스타일 */
+.markdown-content table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 0.5rem 0 !important;
+  font-size: 0.85em !important;
+}
+
+.markdown-content th,
+.markdown-content td {
+  border: 1px solid color-mix(in oklab, var(--foreground) 20%, transparent) !important;
+  padding: 0.4rem 0.6rem !important;
+  text-align: left !important;
+}
+
+.markdown-content th {
+  background-color: color-mix(in oklab, var(--foreground) 8%, transparent) !important;
+  font-weight: 600 !important;
+}
+
+.markdown-content tr:nth-child(even) {
+  background-color: color-mix(in oklab, var(--foreground) 4%, transparent) !important;
+}
+
