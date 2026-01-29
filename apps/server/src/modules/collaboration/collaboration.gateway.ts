@@ -11,6 +11,7 @@ import {
   type PtUpdateNamePayload,
   type ClaimHostPayload,
   type ExecuteCodePayload,
+  type ChatMessageSendPayload,
 } from '@codejam/common';
 import { UseFilters, UseGuards } from '@nestjs/common';
 import {
@@ -215,6 +216,23 @@ export class CollaborationGateway
   @SubscribeMessage(SOCKET_EVENTS.REJECT_HOST_CLAIM)
   handleRejectHostClaim(@ConnectedSocket() client: CollabSocket) {
     this.collaborationService.handleRejectHostClaim(client, this.server);
+  }
+
+  /** C -> S 채팅 메시지 전송 */
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
+  @UseGuards(PermissionGuard, WsThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 1000 } })
+  async handleChatMessage(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: ChatMessageSendPayload,
+    @MessageBody() callback: (response: { success: boolean }) => void,
+  ) {
+    await this.collaborationService.handleChatMessage(
+      client,
+      this.server,
+      payload,
+    );
+    callback({ success: true });
   }
 
   /** C -> S 코드 실행 요청 */
