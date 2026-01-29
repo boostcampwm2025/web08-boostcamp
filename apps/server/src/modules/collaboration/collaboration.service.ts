@@ -400,11 +400,11 @@ export class CollaborationService {
   }
 
   /** 채팅 메시지 처리 */
-  async handleChatMessage(
+  handleChatMessage(
     client: CollabSocket,
     server: Server,
     payload: ChatMessageSendPayload,
-  ): Promise<void> {
+  ): void {
     const { roomCode, ptId, ptHash, nickname, color } = client.data;
 
     // 1. client.data 유효성 확인
