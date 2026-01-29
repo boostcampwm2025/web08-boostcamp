@@ -1,6 +1,7 @@
 import { useChatStore } from '@/stores/chat';
 import { ChatIcon } from './components/ChatIcon';
 import { ChatWindow } from './components/ChatWindow';
+import { ChatInput } from './components/ChatInput';
 import { Button } from '@codejam/ui';
 import { X } from 'lucide-react';
 
@@ -31,6 +32,7 @@ export function Chat() {
             </Button>
           </div>
           <ChatWindow messages={messages} />
+          <ChatInput />
         </div>
       )}
     </>
