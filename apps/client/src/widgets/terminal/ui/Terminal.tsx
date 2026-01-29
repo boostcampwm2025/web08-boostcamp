@@ -19,8 +19,7 @@ export function Terminal({ variant }: TerminalProps) {
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
 
-  const { isExecuting, runtime, stage, data, exit, error, result } =
-    useCodeExecutionStore();
+  const isExecuting = useCodeExecutionStore((state) => state.isExecuting);
 
   // Initialization
   useEffect(() => {
@@ -109,16 +108,9 @@ export function Terminal({ variant }: TerminalProps) {
   }, [isExecuting]);
 
   // Use custom hooks for handling code execution output
-  useExecutionStream({
-    xterm: xtermRef.current,
-    runtime,
-    stage,
-    data,
-    exit,
-    isExecuting,
-  });
-  useExecutionResult(xtermRef.current, result);
-  useExecutionError(xtermRef.current, error);
+  useExecutionStream(xtermRef.current);
+  useExecutionResult(xtermRef.current);
+  useExecutionError(xtermRef.current);
 
   return (
     <div ref={terminalRef} className="h-full w-full overflow-hidden p-2" />

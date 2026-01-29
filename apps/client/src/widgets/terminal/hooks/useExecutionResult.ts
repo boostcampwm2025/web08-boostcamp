@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { Terminal as XTerm } from 'xterm';
-import type { CodeExecutionResult } from '@/stores/code-execution';
+import { useCodeExecutionStore } from '@/stores/code-execution';
 import { ansi } from '../utils/ansi';
 
 /**
@@ -76,10 +76,9 @@ function writeMetrics(
 /**
  * Handle non-streaming execution result
  */
-export function useExecutionResult(
-  xterm: XTerm | null,
-  result: CodeExecutionResult | null,
-) {
+export function useExecutionResult(xterm: XTerm | null) {
+  const result = useCodeExecutionStore((state) => state.result);
+
   useEffect(() => {
     if (!xterm || !result) return;
 

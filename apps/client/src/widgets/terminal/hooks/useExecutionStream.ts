@@ -6,27 +6,15 @@ import type {
   CodeExecutionData,
   CodeExecutionExit,
 } from '@/stores/code-execution';
+import { useCodeExecutionStore } from '@/stores/code-execution';
 import { ansi } from '@/widgets/terminal/utils/ansi';
-
-/**
- * Parameters for streaming execution display
- */
-export interface ExecutionStreamParams {
-  xterm: XTerm | null;
-  runtime: CodeExecutionRuntime | null;
-  stage: CodeExecutionStage | null;
-  data: CodeExecutionData | null;
-  exit: CodeExecutionExit | null;
-  isExecuting: boolean;
-}
 
 /**
  * Handle runtime info display
  */
-export function useRuntimeDisplay(
-  xterm: XTerm | null,
-  runtime: CodeExecutionRuntime | null,
-) {
+export function useRuntimeDisplay(xterm: XTerm | null) {
+  const runtime = useCodeExecutionStore((state) => state.runtime);
+
   useEffect(() => {
     if (!xterm || !runtime) return;
     const { language, version } = runtime;
@@ -38,10 +26,9 @@ export function useRuntimeDisplay(
 /**
  * Handle stage change display
  */
-export function useStageDisplay(
-  xterm: XTerm | null,
-  stage: CodeExecutionStage | null,
-) {
+export function useStageDisplay(xterm: XTerm | null) {
+  const stage = useCodeExecutionStore((state) => state.stage);
+
   useEffect(() => {
     if (!xterm || !stage) return;
 
@@ -54,10 +41,9 @@ export function useStageDisplay(
 /**
  * Handle streaming data chunks
  */
-export function useDataStream(
-  xterm: XTerm | null,
-  data: CodeExecutionData | null,
-) {
+export function useDataStream(xterm: XTerm | null) {
+  const data = useCodeExecutionStore((state) => state.data);
+
   useEffect(() => {
     if (!xterm || !data) return;
 
@@ -74,11 +60,9 @@ export function useDataStream(
 /**
  * Handle execution completion
  */
-export function useExecutionCompletion(
-  xterm: XTerm | null,
-  exit: CodeExecutionExit | null,
-  isExecuting: boolean,
-) {
+export function useExecutionCompletion(xterm: XTerm | null) {
+  const exit = useCodeExecutionStore((state) => state.exit);
+  const isExecuting = useCodeExecutionStore((state) => state.isExecuting);
   const prevIsExecutingRef = useRef(false);
 
   useEffect(() => {
@@ -127,16 +111,9 @@ export function useExecutionCompletion(
 /**
  * Composite hook: Handle all streaming execution display
  */
-export function useExecutionStream({
-  xterm,
-  runtime,
-  stage,
-  data,
-  exit,
-  isExecuting,
-}: ExecutionStreamParams) {
-  useRuntimeDisplay(xterm, runtime);
-  useStageDisplay(xterm, stage);
-  useDataStream(xterm, data);
-  useExecutionCompletion(xterm, exit, isExecuting);
+export function useExecutionStream(xterm: XTerm | null) {
+  useRuntimeDisplay(xterm);
+  useStageDisplay(xterm);
+  useDataStream(xterm);
+  useExecutionCompletion(xterm);
 }

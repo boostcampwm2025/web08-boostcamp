@@ -1,15 +1,14 @@
 import { useEffect } from 'react';
 import type { Terminal as XTerm } from 'xterm';
-import type { CodeExecutionError } from '@/stores/code-execution';
+import { useCodeExecutionStore } from '@/stores/code-execution';
 import { ansi } from '../utils/ansi';
 
 /**
  * Handle execution errors
  */
-export function useExecutionError(
-  xterm: XTerm | null,
-  error: CodeExecutionError | null,
-) {
+export function useExecutionError(xterm: XTerm | null) {
+  const error = useCodeExecutionStore((state) => state.error);
+
   useEffect(() => {
     if (!xterm || !error) return;
 
