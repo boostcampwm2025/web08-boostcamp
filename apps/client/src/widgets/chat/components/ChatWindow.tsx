@@ -71,14 +71,14 @@ export function ChatWindow({ messages }: ChatWindowProps) {
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="scrollbar-thin flex max-h-[280px] min-h-[120px] flex-col gap-1 overflow-y-auto px-3 py-2"
+        className="scrollbar-thin absolute inset-0 flex flex-col gap-1 overflow-y-auto px-3 py-2"
       >
         {messages.length === 0 ? (
-          <div className="text-muted-foreground flex flex-1 items-center justify-center text-xs">
+          <div className="text-muted-foreground flex min-h-full flex-1 items-center justify-center text-xs">
             메시지가 여기에 표시됩니다.
           </div>
         ) : (
