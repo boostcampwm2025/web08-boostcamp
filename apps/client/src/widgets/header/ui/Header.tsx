@@ -29,7 +29,7 @@ export default function Header({ roomCode }: HeaderProps) {
         <FileDownloadButton />
         <FileCopyButton />
         <CodeExecutionButton />
-        <ShareButton />
+        <ShareButton roomCode={roomCode} />
         <DestroyRoomButton />
         <SettingsButton />
         <ThemeToggleButton />
