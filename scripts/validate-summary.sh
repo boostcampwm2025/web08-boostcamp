@@ -20,7 +20,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 EXECUTED=$(grep -E 'cache (hit|miss|bypass)' "$LOG" | sed 's/: cache.*//' | awk '!seen[$0]++')
 
 # 실패한 태스크 추출
-FAILED_TURBO=$(grep 'Failed:' "$LOG" | head -1 | grep -oE '[a-zA-Z@/._-]+#[a-z-]+' | sed 's/#/:/')
+FAILED_TURBO=$(grep 'Failed:' "$LOG" | grep -oE '[a-zA-Z@/._-]+#[a-z-]+' | sed 's/#/:/')
 FAILED_ERROR=$(grep 'ERROR: command finished with error' "$LOG" | grep -oE '^[a-zA-Z@/._-]+:[a-z-]+' | sed 's/:$//')
 FAILED=$(printf '%s\n%s' "$FAILED_TURBO" "$FAILED_ERROR" | grep -v '^$' | sort -u)
 
