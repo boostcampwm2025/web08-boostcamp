@@ -63,7 +63,12 @@ export function ChatPanel() {
   return (
     <div
       className="border-border bg-background ring-foreground/10 fixed right-4 bottom-20 z-50 flex flex-col rounded-lg shadow-lg ring-1"
-      style={{ width: size.width, height: size.height }}
+      style={{
+        width: size.width,
+        height: size.height,
+        maxHeight: MAX_HEIGHT,
+        maxWidth: MAX_WIDTH,
+      }}
     >
       {/* 리사이즈 핸들 (좌측 상단) */}
       <div
