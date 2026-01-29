@@ -32,8 +32,8 @@ import { CustomRoomGuard } from './guards/custom-room.guard';
 import { NotHostGuard } from './guards/not-host.guard';
 import { WsToken } from '../../common/decorators/ws-token.decorator';
 import { Throttle } from '@nestjs/throttler';
-import { WsThrottlerGuard } from 'src/common/guards/ws-throttler.guard';
-import { WsExceptionFilter } from 'src/common/filters/ws-exception.filter';
+import { WsThrottlerGuard } from '../../common/guards/ws-throttler.guard';
+import { WsExceptionFilter } from '../../common/filters/ws-exception.filter';
 
 @UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
