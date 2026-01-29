@@ -28,8 +28,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: 6000, // 1분 (기본)
+        ttl: 60000, // 1분 (기본)
         limit: 10, // 10회 (기본)
+        setHeaders: false,
       },
     ]),
     RedisModule,
