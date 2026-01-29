@@ -1,5 +1,5 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerLimitDetail } from '@nestjs/throttler';
 import { ERROR_CODE, ERROR_MESSAGES } from '@codejam/common';
 import { WsApiException } from '../exceptions/ws-api.exception';
 
@@ -18,10 +18,13 @@ export class WsThrottlerGuard extends ThrottlerGuard {
     };
   }
 
-  protected async throwThrottlingException(): Promise<void> {
+  protected throwThrottlingException(context: ExecutionContext): Promise<void> {
+    const event = Reflect.getMetadata('message', context.getHandler());
+
     throw new WsApiException(
       ERROR_CODE.TOO_MANY_REQUESTS,
       ERROR_MESSAGES.TOO_MANY_REQUESTS,
+      event,
     );
   }
 }
