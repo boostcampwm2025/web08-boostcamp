@@ -1,0 +1,81 @@
+name: CD Piston
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'apps/piston/**'
+      - 'docker-compose.piston.yml'
+      - '.github/workflows/cd-piston.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to NCP Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.NCP_REGISTRY_URL }}
+          username: ${{ secrets.NCP_ACCESS_KEY }}
+          password: ${{ secrets.NCP_SECRET_KEY }}
+
+      - name: Build and push piston-setup image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/piston
+          file: ./apps/piston/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.NCP_REGISTRY_URL }}/piston-setup:latest
+            ${{ secrets.NCP_REGISTRY_URL }}/piston-setup:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.NCP_REGISTRY_URL }}/piston-setup:latest
+          cache-to: type=inline
+
+      - name: Copy files to NCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USERNAME }}
+          key: ${{ secrets.NCP_SSH_KEY }}
+          port: ${{ secrets.NCP_PORT }}
+          source: "docker-compose.piston.yml,apps/piston/.env.example"
+          target: "~/piston"
+          strip_components: 0
+
+      - name: Deploy Piston to NCP
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USERNAME }}
+          key: ${{ secrets.NCP_SSH_KEY }}
+          port: ${{ secrets.NCP_PORT }}
+          script: |
+            cd ~/piston
+
+            # Create .env from .env.example if not exists
+            if [ ! -f apps/piston/.env ]; then
+              echo "Creating .env from .env.example"
+              cp apps/piston/.env.example apps/piston/.env
+            fi
+
+            # Login to registry
+            docker login -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }} ${{ secrets.NCP_REGISTRY_URL }}
+
+            # Pull latest piston-setup image
+            docker pull ${{ secrets.NCP_REGISTRY_URL }}/piston-setup:${{ github.sha }}
+
+            # Tag as latest
+            docker tag ${{ secrets.NCP_REGISTRY_URL }}/piston-setup:${{ github.sha }} piston-setup:latest
+
+            # Deploy using docker-compose.piston.yml
+            docker compose -f docker-compose.piston.yml up -d
+
+            # Cleanup old images
+            docker image prune -af
