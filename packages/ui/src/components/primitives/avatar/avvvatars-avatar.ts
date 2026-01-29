@@ -38,9 +38,9 @@ export class AvvvatarsProvider implements AvatarProvider {
 
     // 색상 정보 가져오기
     const colors = getAvatarColors(id);
-    const bgColor = `#${colors.background}`;
+    const bgColor = colors.background;
     const fgColor =
-      this.variant === 'character' ? `#${colors.text}` : `#${colors.shape}`;
+      this.variant === 'character' ? colors.text : colors.shape;
 
     if (this.variant === 'character') {
       // Character 모드: 배경 원 + 텍스트

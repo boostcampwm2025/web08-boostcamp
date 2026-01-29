@@ -60,6 +60,9 @@ export class PtService {
     // ptHash 기반으로 아바타 색상 결정 (서버/클라이언트 동기화)
     const avatarColors = getAvatarColors(ptHash);
     const color = avatarColors.shape;
+    this.logger.debug(
+      `[CREATE_PT] ptHash: ${ptHash}, avatarColors: ${JSON.stringify(avatarColors)}`,
+    );
 
     const ptEntity = this.ptRepository.create({
       ptId,

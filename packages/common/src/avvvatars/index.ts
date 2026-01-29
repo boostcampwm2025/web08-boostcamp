@@ -19,9 +19,9 @@ export function getAvatarColors(value: string): AvatarColors {
   return {
     shapeIndex,
     colorIndex,
-    background: BACKGROUND_COLORS[colorIndex],
-    text: TEXT_COLORS[colorIndex],
-    shape: SHAPE_COLORS[colorIndex],
+    background: `#${BACKGROUND_COLORS[colorIndex]}`,
+    text: `#${TEXT_COLORS[colorIndex]}`,
+    shape: `#${SHAPE_COLORS[colorIndex]}`,
   };
 }
 

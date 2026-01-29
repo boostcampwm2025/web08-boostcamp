@@ -65,7 +65,7 @@ export default function Avvvatars(props: AvvvatarsProps) {
     width: `${size}px`,
     height: `${size}px`,
     borderRadius: `${borderRadius}px`,
-    backgroundColor: `#${backgroundColor}`,
+    backgroundColor,
     border: border ? `${borderSize}px solid ${borderColor}` : undefined,
     boxSizing: 'border-box',
     display: 'flex',
@@ -85,7 +85,7 @@ export default function Avvvatars(props: AvvvatarsProps) {
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif',
     fontSize: `${Math.round((size / 100) * 37)}px`,
-    color: `#${textColor}`,
+    color: textColor,
     lineHeight: 0,
     textTransform: 'uppercase',
     fontWeight: 500,
@@ -95,7 +95,7 @@ export default function Avvvatars(props: AvvvatarsProps) {
     display: 'inline-flex',
     alignItems: 'center',
     verticalAlign: 'middle',
-    color: `#${shapeColor}`,
+    color: shapeColor,
   };
 
   return (
