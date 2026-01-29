@@ -436,8 +436,8 @@ export class CollaborationService {
       createdAt: new Date().toISOString(),
     };
 
-    // 4. 방 전체에 브로드캐스트 (발신자 포함)
-    server.to(roomCode).emit(SOCKET_EVENTS.CHAT_MESSAGE, messagePayload);
+    // 4. 방 전체에 브로드캐스트 (발신자 제외 - 낙관적 업데이트 사용)
+    client.to(roomCode).emit(SOCKET_EVENTS.CHAT_MESSAGE, messagePayload);
 
     this.logger.log(`[CHAT_MESSAGE] ${nickname}#${ptHash} in ${roomCode}`);
   }

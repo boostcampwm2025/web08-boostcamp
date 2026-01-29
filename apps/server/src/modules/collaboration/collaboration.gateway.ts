@@ -225,14 +225,13 @@ export class CollaborationGateway
   async handleChatMessage(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: ChatMessageSendPayload,
-    @MessageBody() callback: (response: { success: boolean }) => void,
-  ) {
+  ): Promise<{ success: boolean }> {
     await this.collaborationService.handleChatMessage(
       client,
       this.server,
       payload,
     );
-    callback({ success: true });
+    return { success: true };
   }
 
   /** C -> S 코드 실행 요청 */
