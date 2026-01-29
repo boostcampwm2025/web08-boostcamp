@@ -7,9 +7,7 @@ import { FileCopyButton } from './buttons/FileCopyButton';
 import { CodeExecutionButton } from './buttons/CodeExecutionButton';
 import { ShareButton } from './buttons/ShareButton';
 import { DestroyRoomButton } from './buttons/DestroyRoomButton';
-import { SettingsButton } from './buttons/SettingsButton';
 import { ThemeToggleButton } from './buttons/ThemeToggleButton';
-import { LeaveRoomButton } from './buttons/LeaveRoomButton';
 
 type HeaderProps = {
   roomCode: string;
@@ -31,9 +29,7 @@ export default function Header({ roomCode }: HeaderProps) {
         <CodeExecutionButton />
         <ShareButton roomCode={roomCode} />
         <DestroyRoomButton />
-        <SettingsButton />
         <ThemeToggleButton />
-        <LeaveRoomButton />
       </div>
     </header>
   );
