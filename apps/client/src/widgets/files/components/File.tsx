@@ -1,13 +1,6 @@
 import { extname, purename } from '@/shared/lib/file';
-import {
-  RadixContextMenu as ContextMenu,
-  RadixContextMenuContent as ContextMenuContent,
-  RadixContextMenuItem as ContextMenuItem,
-  RadixContextMenuTrigger as ContextMenuTrigger,
-  RadixDialog as Dialog,
-} from '@codejam/ui';
+import { RadixDialog as Dialog, cn } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
-import { Edit2, Trash2 } from 'lucide-react';
 import {
   memo,
   useContext,
@@ -19,6 +12,7 @@ import { useTabStore } from '@/stores/tab';
 import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 import { RenameDialog } from '@/widgets/dialog/RenameDialog';
 import { DeleteDialog } from '@/widgets/dialog/DeleteDialog';
+import { FileMoreMenu } from './FileMoreMenu';
 
 type DialogType = 'RENAME' | 'DELETE' | undefined;
 type FileProps = {
@@ -28,8 +22,9 @@ type FileProps = {
   readOnly: boolean;
 };
 
-const ACTIVE_FILE_BG = 'bg-blue-100 dark:bg-blue-900';
-const INACTIVE_FILE_HOVER = 'hover:bg-gray-100 dark:hover:bg-gray-700';
+const ACTIVE_FILE_BG = 'bg-primary/10 text-primary font-semibold rounded-lg';
+const INACTIVE_FILE_HOVER =
+  'hover:bg-muted/60 text-muted-foreground hover:text-foreground rounded-lg';
 
 export const File = memo(
   ({ fileId, fileName, hasPermission, readOnly }: FileProps) => {
@@ -59,7 +54,7 @@ export const File = memo(
       setActiveTab(activeTabKey, fileName);
     };
 
-    const handleContextClick = (type: DialogType) => {
+    const handleActionClick = (type: DialogType) => {
       setDialogType(type);
       setOpen(true);
     };
@@ -87,37 +82,33 @@ export const File = memo(
 
     return (
       <>
-        <ContextMenu>
-          <ContextMenuTrigger disabled={!hasPermission}>
-            <div
-              draggable
-              className={`flex items-center justify-between p-2 transition-all duration-200 select-none ${isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER}`}
-              onMouseDown={onMouseDown}
-              onMouseUp={onMouseUp}
-              onDragStart={handleDragStart}
-            >
-              <div className="flex items-center space-x-3">
-                <div>
-                  <div className="flex items-center text-sm font-semibold text-gray-800 dark:text-gray-100">
-                    <p className="w-50 truncate" title={fileName}>
-                      {fileName}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ContextMenuTrigger>
-          <ContextMenuContent className="bg-white dark:bg-black dark:text-white">
-            <ContextMenuItem onClick={() => handleContextClick('RENAME')}>
-              <Edit2 className="dark:text-white" />
-              이름 변경
-            </ContextMenuItem>
-            <ContextMenuItem onClick={() => handleContextClick('DELETE')}>
-              <Trash2 color="red" />
-              삭제
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
+        <div
+          draggable
+          className={cn(
+            'group relative my-0.5 flex cursor-pointer items-center justify-between p-2 px-3 transition-all duration-200 select-none',
+            isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER,
+          )}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onDragStart={handleDragStart}
+        >
+          <div className="flex items-center space-x-3 overflow-hidden">
+            <p className="truncate text-sm" title={fileName}>
+              {fileName}
+            </p>
+          </div>
+
+          {/* 더보기 액션 버튼 */}
+          {hasPermission && (
+            <FileMoreMenu
+              fileId={fileId}
+              fileName={fileName}
+              isActive={isActive}
+              onActionClick={handleActionClick}
+            />
+          )}
+        </div>
+
         <Dialog open={open} onOpenChange={setOpen}>
           {dialogType === 'RENAME' ? (
             <RenameDialog
