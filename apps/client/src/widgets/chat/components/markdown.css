@@ -1,5 +1,3 @@
-@plugin '@tailwindcss/typography';
-
 /* highlight.js 테마 (코드 블록 문법 강조) */
 @import 'highlight.js/styles/atom-one-dark.css';
 
