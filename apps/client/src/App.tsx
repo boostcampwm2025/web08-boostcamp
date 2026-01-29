@@ -9,7 +9,13 @@ import HomePage from '@/pages/home/HomePage';
 import JoinPage from '@/pages/join/JoinPage';
 import { checkRoomJoinable } from '@/shared/api/room';
 import type { RoomJoinStatus } from '@codejam/common';
-import { HTTP_STATUS, ROOM_JOIN_STATUS, ROUTE_PATTERNS } from '@codejam/common';
+import {
+  ERROR_MESSAGES,
+  HTTP_STATUS,
+  ROOM_JOIN_STATUS,
+  ROUTE_PATTERNS,
+  VALIDATION_MESSAGES,
+} from '@codejam/common';
 
 async function joinLoader({
   params,
@@ -17,7 +23,7 @@ async function joinLoader({
 }: LoaderFunctionArgs): Promise<{ roomCode: string; token: string }> {
   const { roomCode } = params;
   if (!roomCode) {
-    throw new Response('Room code is required', {
+    throw new Response(VALIDATION_MESSAGES.ROOM_CODE_REQUIRED, {
       status: HTTP_STATUS.BAD_REQUEST,
     });
   }
@@ -25,7 +31,7 @@ async function joinLoader({
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
   if (!token) {
-    throw new Response('Token is required', {
+    throw new Response(VALIDATION_MESSAGES.TOKEN_REQUIRED, {
       status: HTTP_STATUS.BAD_REQUEST,
     });
   }
@@ -38,13 +44,15 @@ async function roomLoader({
 }: LoaderFunctionArgs): Promise<RoomJoinStatus> {
   const { roomCode } = params;
   if (!roomCode) {
-    throw new Response('Room code is required', {
+    throw new Response(VALIDATION_MESSAGES.ROOM_CODE_REQUIRED, {
       status: HTTP_STATUS.BAD_REQUEST,
     });
   }
   const status = await checkRoomJoinable(roomCode);
   if (status === ROOM_JOIN_STATUS.NOT_FOUND) {
-    throw new Response('Room not found', { status: HTTP_STATUS.NOT_FOUND });
+    throw new Response(ERROR_MESSAGES.ROOM_NOT_FOUND, {
+      status: HTTP_STATUS.NOT_FOUND,
+    });
   }
 
   return status;
