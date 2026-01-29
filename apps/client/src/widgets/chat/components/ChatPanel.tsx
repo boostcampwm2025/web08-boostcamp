@@ -40,10 +40,13 @@ export function ChatPanel() {
         MAX_WIDTH,
         Math.max(MIN_WIDTH, window.innerWidth - e.clientX - 16),
       );
+      const rawHeight = window.innerHeight - e.clientY - 80;
       const newHeight = Math.min(
         MAX_HEIGHT,
-        Math.max(MIN_HEIGHT, window.innerHeight - e.clientY - 80),
+        Math.max(MIN_HEIGHT, rawHeight),
       );
+      // TODO: Preview 리사이즈 디버깅 후 제거
+      console.log('chat resize', { innerHeight: window.innerHeight, clientY: e.clientY, rawHeight, newHeight });
       setSize({ width: newWidth, height: newHeight });
     };
 
