@@ -41,7 +41,6 @@ export function UserMessage({ message }: UserMessageProps) {
   const removeMessage = useChatStore((state) => state.removeMessage);
 
   const isMyMessage = pt.ptId === myPtId;
-  const displayName = `${pt.nickname}#${pt.ptHash}`;
 
   const handleResend = () => {
     // 기존 메시지 삭제 후 재전송
@@ -66,13 +65,16 @@ export function UserMessage({ message }: UserMessageProps) {
 
       {/* 메시지 내용 */}
       <div className="min-w-0 flex-1">
-        {/* 닉네임 + 시간 */}
-        <div className="flex items-baseline gap-2">
+        {/* 닉네임 + 해시 + 시간 */}
+        <div className="flex items-baseline gap-1">
           <span className="text-foreground text-xs font-medium">
-            {displayName}
+            {pt.nickname}
           </span>
-          <span className="text-muted-foreground text-[10px]">
-            {formatTime(createdAt)}
+          <span className="text-muted-foreground/70 text-xs">
+            #{pt.ptHash}
+          </span>
+          <span className="text-muted-foreground/50 text-[10px]">
+            · {formatTime(createdAt)}
           </span>
         </div>
 
