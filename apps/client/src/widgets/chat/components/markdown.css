@@ -43,3 +43,15 @@
   font-size: 0.85em !important;
 }
 
+/* 4) 링크 스타일 */
+.markdown-content a {
+  color: var(--color-brand-blue) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+  transition: opacity 0.15s ease !important;
+}
+
+.markdown-content a:hover {
+  opacity: 0.8 !important;
+}
+
