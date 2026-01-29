@@ -44,11 +44,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Build common and ui packages
-        run: |
-          pnpm --filter @codejam/common build
-          pnpm --filter @codejam/ui build
-
       - name: Format check
         id: format
         continue-on-error: true
