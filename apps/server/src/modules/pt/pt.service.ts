@@ -2,13 +2,13 @@ import {
   Pt,
   SOCKET_EVENTS,
   PtUpdatePayload,
-  PT_COLORS,
   ROLE,
   PRESENCE,
   LIMITS,
   type PtRole,
   type PtPresence,
 } from '@codejam/common';
+import { getAvatarColors } from '@codejam/common/avvvatars';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -30,8 +30,6 @@ export class PtService {
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
   ) {}
-
-  private readonly colors = PT_COLORS;
 
   /** 클라이언트 연결 시 로깅 */
   handleConnection(client: CollabSocket) {
@@ -56,9 +54,12 @@ export class PtService {
   /** 새 참가자 생성 */
   async createPt(roomId: number, nickname: string): Promise<Pt> {
     const ptId = uuidv4();
-    const color = await this.generateRandomColor(roomId);
-    const role = await this.assignRole(roomId);
     const ptHash = this.generatePtHash();
+    const role = await this.assignRole(roomId);
+
+    // ptHash 기반으로 아바타 색상 결정 (서버/클라이언트 동기화)
+    const avatarColors = getAvatarColors(ptHash);
+    const color = avatarColors.shape;
 
     const ptEntity = this.ptRepository.create({
       ptId,
@@ -326,23 +327,6 @@ export class PtService {
       .replace(/[^a-z0-9]/gi, '')
       .toLowerCase()
       .substring(0, length);
-  }
-
-  /** 랜덤 색상 생성 (최근 6명과 중복되지 않도록) */
-  private async generateRandomColor(roomId: number): Promise<string> {
-    // DB에서 직접 조회 (새 참가자 생성 시점에는 server가 없으므로)
-    const ptEntities = await this.ptRepository.find({
-      where: { roomId },
-      order: { createdAt: 'DESC' },
-      take: 6,
-    });
-    const ptColors = ptEntities.map((entity) => entity.color);
-    const availableColors = this.colors.filter(
-      (color) => !ptColors.includes(color),
-    );
-
-    const colors = availableColors.length > 0 ? availableColors : this.colors;
-    return colors[Math.floor(Math.random() * colors.length)];
   }
 
   /** PtEntity를 Pt (common 타입)으로 변환 */
