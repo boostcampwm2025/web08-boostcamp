@@ -41,9 +41,9 @@ export function ChatInput() {
     name.toLowerCase().includes(mentionState.query.toLowerCase()),
   );
 
-  // 선택 인덱스 리셋
+  // 선택 인덱스 리셋 (setState는 다음 틱으로 지연해 cascading render 방지)
   useEffect(() => {
-    setSelectedIndex(0);
+    queueMicrotask(() => setSelectedIndex(0));
   }, [mentionState.query]);
 
   const trimmedContent = content.trim();
