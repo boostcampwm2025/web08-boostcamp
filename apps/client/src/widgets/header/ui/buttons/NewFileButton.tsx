@@ -1,3 +1,8 @@
+/**
+ * [!NOTE]
+ * 현재 사용하지 않음 (이동됨)
+ * files의 FileHeaderActions를 이용할 것
+ */
 import { Plus } from 'lucide-react';
 import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';

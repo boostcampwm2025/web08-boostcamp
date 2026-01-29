@@ -1,3 +1,8 @@
+/**
+ * [!NOTE]
+ * 현재 사용하지 않음 (이동됨)
+ * files의 FileHeaderActions를 이용할 것
+ */
 import { useRef, type ChangeEvent } from 'react';
 import { Upload } from 'lucide-react';
 import { toast } from '@codejam/ui';

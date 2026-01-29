@@ -6,6 +6,7 @@ import { usePt } from '@/stores/pts';
 import { useEffect, useState } from 'react';
 import { SidebarHeader } from '@codejam/ui';
 import { CapacityGauge } from '../capacity-gauge';
+import { FileHeaderActions } from './components/FileHeaderActions';
 
 type FileListProps = {
   readOnly: boolean;
@@ -14,6 +15,7 @@ type FileListProps = {
 export function FileList({ readOnly }: FileListProps) {
   const getFileIdMap = useFileStore((state) => state.getFileIdMap);
   const yDoc = useFileStore((state) => state.yDoc);
+  const roomCode = useRoomStore((state) => state.roomCode);
 
   const [count, setCount] = useState(0);
   const [entries, setEntries] = useState<[string, string][]>([]);
@@ -51,7 +53,18 @@ export function FileList({ readOnly }: FileListProps) {
 
   return (
     <div className="flex h-full w-full flex-col px-4">
-      <SidebarHeader title="파일" count={count} action={<CapacityGauge />} />
+      <SidebarHeader
+        title="파일"
+        count={count}
+        action={
+          <div className="flex items-center gap-3">
+            <CapacityGauge />
+            {roomCode && hasPermission && (
+              <FileHeaderActions roomCode={roomCode} />
+            )}
+          </div>
+        }
+      />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         {entries.map(([fileName, fileId]) => (

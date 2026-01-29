@@ -77,6 +77,7 @@ export function DuplicateDialog({
     const content = (await file?.text()) ?? '';
     createFile(newName(), content);
     onOpenChange(false);
+    onClick();
   };
 
   return (
@@ -85,18 +86,23 @@ export function DuplicateDialog({
         <DialogHeader>
           <DialogTitle>파일 중복</DialogTitle>
           <DialogDescription>
-            이미 존재하는 파일입니다. 어떻게 하시겠습니까?
+            <strong className="text-foreground">{filename}</strong> 파일이 이미
+            존재합니다.
+            <br />
+            어떻게 하시겠습니까?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button type="button" onClick={handleOverwrite}>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button type="button" variant="secondary" onClick={handleOverwrite}>
             덮어쓰기
           </Button>
           <Button type="button" onClick={handleRename}>
-            이름변경
+            자동 이름 변경
           </Button>
           <DialogClose asChild>
-            <Button type="button">취소</Button>
+            <Button type="button" variant="ghost">
+              취소
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
