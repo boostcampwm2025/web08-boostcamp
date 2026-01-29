@@ -12,6 +12,7 @@ type FileMentionProps = {
  * 파일 언급 UI 컴포넌트
  * - 배지 스타일로 표시
  * - 클릭 시 해당 파일 열기
+ * - 파일이 삭제된 경우 "삭제됨" 표시
  */
 export function FileMention({ fileName }: FileMentionProps) {
   const getFileId = useFileStore((state) => state.getFileId);
@@ -20,21 +21,33 @@ export function FileMention({ fileName }: FileMentionProps) {
   const setActiveTab = useTabStore((state) => state.setActiveTab);
   const { appendLinear } = useContext(LinearTabApiContext);
 
-  const handleClick = () => {
-    const fileId = getFileId(fileName);
+  // 렌더링 시점에 파일 존재 여부 확인
+  const fileId = getFileId(fileName);
+  const isDeleted = !fileId;
 
-    if (fileId) {
-      setActiveFile(fileId);
-      appendLinear(activeTabKey, fileName, {
-        fileId,
-        readOnly: false,
-      });
-      setActiveTab(activeTabKey, fileName);
-    } else {
-      console.warn(`[FileMention] 파일을 찾을 수 없습니다: ${fileName}`);
-    }
+  const handleClick = () => {
+    if (isDeleted) return;
+
+    setActiveFile(fileId);
+    appendLinear(activeTabKey, fileName, {
+      fileId,
+      readOnly: false,
+    });
+    setActiveTab(activeTabKey, fileName);
   };
 
+  // 삭제된 파일
+  if (isDeleted) {
+    return (
+      <span className="mx-0.5 inline-flex items-center gap-1 rounded-md border border-muted/30 bg-muted/10 px-2 py-0.5 text-xs text-muted-foreground line-through opacity-60">
+        <FileText className="h-3 w-3 shrink-0" />
+        <span className="truncate">{fileName}</span>
+        <span className="text-[10px] no-underline">(삭제됨)</span>
+      </span>
+    );
+  }
+
+  // 존재하는 파일
   return (
     <button
       type="button"
@@ -43,10 +56,10 @@ export function FileMention({ fileName }: FileMentionProps) {
     >
       {/* 배경 글로우 효과 */}
       <span className="absolute inset-0 -z-10 bg-primary/5 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
-      
+
       {/* 아이콘 */}
       <FileText className="h-3 w-3 shrink-0 transition-transform duration-200 group-hover:scale-110" />
-      
+
       {/* 파일명 */}
       <span className="truncate">{fileName}</span>
     </button>
