@@ -1,4 +1,8 @@
-import { createAvatarGenerator, LucideAvatarProvider, Button } from '@codejam/ui';
+import {
+  createAvatarGenerator,
+  LucideAvatarProvider,
+  RadixButton as Button,
+} from '@codejam/ui';
 import { RotateCcw, X } from 'lucide-react';
 import type { UserMessage as UserMessageType } from '@/stores/chat';
 import { useRoomStore } from '@/stores/room';
