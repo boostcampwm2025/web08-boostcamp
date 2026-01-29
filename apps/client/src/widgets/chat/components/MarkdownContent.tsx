@@ -15,11 +15,13 @@ type MarkdownContentProps = {
  */
 export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
-    <div className="markdown-content prose prose-sm dark:prose-invert max-w-none wrap-break-word">
+    <span className="markdown-content prose prose-sm dark:prose-invert max-w-none wrap-break-word inline">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
         components={{
+          // 단순 텍스트는 p 태그 대신 span으로 (인라인 유지)
+          p: ({ children }) => <span>{children} </span>,
           a: ({ href, children }) => (
             <a href={href} target="_blank" rel="noopener noreferrer">
               {children}
@@ -29,6 +31,6 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
       >
         {content}
       </ReactMarkdown>
-    </div>
+    </span>
   );
 }

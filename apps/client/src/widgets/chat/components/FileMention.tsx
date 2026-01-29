@@ -24,15 +24,13 @@ export function FileMention({ fileName }: FileMentionProps) {
     const fileId = getFileId(fileName);
 
     if (fileId) {
-      // File.tsx와 동일한 로직
       setActiveFile(fileId);
       appendLinear(activeTabKey, fileName, {
         fileId,
-        readOnly: false, // 기본값
+        readOnly: false,
       });
       setActiveTab(activeTabKey, fileName);
     } else {
-      // 파일이 삭제된 경우
       console.warn(`[FileMention] 파일을 찾을 수 없습니다: ${fileName}`);
     }
   };
@@ -41,10 +39,16 @@ export function FileMention({ fileName }: FileMentionProps) {
     <button
       type="button"
       onClick={handleClick}
-      className="inline-flex items-center gap-1 rounded bg-primary/15 px-1.5 py-0.5 text-xs font-medium text-primary transition-colors hover:bg-primary/25"
+      className="group relative mx-0.5 inline-flex cursor-pointer items-center gap-1 overflow-hidden rounded-md border border-primary/20 bg-linear-to-r from-primary/10 to-primary/5 px-2 py-0.5 text-xs font-medium text-primary shadow-sm transition-all duration-200 ease-out hover:border-primary/40 hover:from-primary/20 hover:to-primary/10 hover:shadow-md active:scale-95"
     >
-      <FileText className="h-3 w-3" />
-      {fileName}
+      {/* 배경 글로우 효과 */}
+      <span className="absolute inset-0 -z-10 bg-primary/5 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
+      
+      {/* 아이콘 */}
+      <FileText className="h-3 w-3 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+      
+      {/* 파일명 */}
+      <span className="truncate">{fileName}</span>
     </button>
   );
 }

@@ -84,7 +84,7 @@ export function UserMessage({ message }: UserMessageProps) {
         </div>
 
         {/* 메시지 텍스트 (파일 언급 + 마크다운 렌더링) */}
-        <div className="mt-0.5">
+        <div className="mt-0.5 leading-relaxed">
           {segments.map((seg, i) =>
             seg.type === 'file' ? (
               <FileMention key={i} fileName={seg.fileName} />
