@@ -12,7 +12,7 @@ import {
   type ClaimHostPayload,
   type ExecuteCodePayload,
 } from '@codejam/common';
-import { UseGuards } from '@nestjs/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -31,7 +31,11 @@ import { DestroyRoomGuard } from './guards/destroy-room.guard';
 import { CustomRoomGuard } from './guards/custom-room.guard';
 import { NotHostGuard } from './guards/not-host.guard';
 import { WsToken } from '../../common/decorators/ws-token.decorator';
+import { Throttle } from '@nestjs/throttler';
+import { WsThrottlerGuard } from '../../common/guards/ws-throttler.guard';
+import { WsExceptionFilter } from '../../common/filters/ws-exception.filter';
 
+@UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   cors: {
     origin: '*', // 개발용: 모든 출처 허용 (배포 시 프론트 주소로 변경)
@@ -214,6 +218,8 @@ export class CollaborationGateway
   }
 
   /** C -> S 코드 실행 요청 */
+  @UseGuards(PermissionGuard, WsThrottlerGuard)
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
   @UseGuards(PermissionGuard)
   @SubscribeMessage(SOCKET_EVENTS.EXECUTE_CODE)
   async handleExecuteCode(

@@ -7,7 +7,7 @@ export function ErrorMessage({ message }: ErrorMessageProps) {
 
   return (
     <div className="-mt-2 min-h-5 w-full">
-      <p className="wrap-break-words text-center font-mono text-sm text-red-500">
+      <p className="wrap-break-words text-center font-mono text-sm whitespace-pre-line text-red-500">
         {message}
       </p>
     </div>

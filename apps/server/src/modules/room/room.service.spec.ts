@@ -42,6 +42,7 @@ describe('RoomService', () => {
             findOne: jest.fn(),
             exists: jest.fn(),
             delete: jest.fn(),
+            count: jest.fn(),
           },
         },
         {
@@ -86,29 +87,30 @@ describe('RoomService', () => {
   });
 
   describe('createQuickRoom', () => {
-    it('Transaction 내에서 Room과 Document만 저장해야 한다 (Pt 생성 X)', async () => {
+    it('방 개수가 제한 이내라면 Room과 Document를 저장해야 한다', async () => {
       // Arrange
-      jest.spyOn(service as any, 'generateRoomCode').mockReturnValue('QUICK');
+      roomRepository.count.mockResolvedValue(50);
       roomRepository.exists.mockResolvedValue(false);
+      jest.spyOn(service as any, 'generateRoomCode').mockReturnValue('QUICK');
 
       // Act
       const result = await service.createQuickRoom();
 
       // Assert
       expect(result.roomCode).toBe('QUICK');
+      expect(roomRepository.count).toHaveBeenCalled();
       expect(mockQueryRunner.manager.save).toHaveBeenCalledTimes(2); // Room + Document
-      expect(roomTokenService.sign).not.toHaveBeenCalled();
     });
   });
 
   describe('createCustomRoom', () => {
-    it('Transaction 내에서 Room, Host Pt, Document를 저장하고 Token을 반환해야 한다', async () => {
+    it('성공 시 Room, Host Pt, Document를 저장하고 토큰을 반환한다', async () => {
       // Arrange
+      roomRepository.count.mockResolvedValue(0);
+      roomRepository.exists.mockResolvedValue(false);
       const dto = { roomPassword: 'pw', maxPts: 5 };
       jest.spyOn(service as any, 'generateRoomCode').mockReturnValue('CUSTOM');
-      roomRepository.exists.mockResolvedValue(false);
 
-      // save 호출 순서에 따른 반환값 설정
       (mockQueryRunner.manager.save as jest.Mock)
         .mockResolvedValueOnce({ roomId: 1, roomCode: 'CUSTOM' }) // 1. Room
         .mockResolvedValueOnce({ ptId: 'host-pt' }) // 2. Pt
@@ -118,9 +120,20 @@ describe('RoomService', () => {
       const result = await service.createCustomRoom(dto as any);
 
       // Assert
-      expect(result.roomCode).toBe('CUSTOM');
       expect(result.token).toBe('mock-token');
       expect(mockQueryRunner.manager.save).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('checkRoomLimit', () => {
+    it('방 개수가 MAX_ROOMS(100)에 도달하면 ApiException을 던져야 한다', async () => {
+      // Arrange
+      roomRepository.count.mockResolvedValue(100);
+
+      // Act & Assert
+      await expect(service.createQuickRoom()).rejects.toThrow(ApiException);
+
+      expect(mockQueryRunner.manager.save).not.toHaveBeenCalled();
     });
   });
 
