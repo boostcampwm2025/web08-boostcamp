@@ -512,6 +512,7 @@ export class CollaborationService {
     client.data.role = pt.role;
     client.data.nickname = pt.nickname;
     client.data.color = pt.color;
+    client.data.ptHash = pt.ptHash;
     client.data.createdAt = pt.createdAt;
   }
 
