@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { type AvatarUser } from '../plugin/LineAvatars';
 import { createPortal } from 'react-dom';
-import { createAvatarGenerator, LucideAvatarProvider } from '@codejam/ui';
+import { createAvatarGenerator, AvvvatarsProvider } from '@codejam/ui';
 
-const provider = new LucideAvatarProvider();
+const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
 
 interface Props {
@@ -49,7 +49,7 @@ export function AvatarGutterMenu({ isOpen, position, users, onClose }: Props) {
             key={user.hash}
             className="flex items-center gap-2 rounded p-1 pr-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <Avatar id={user.hash} color={user.color} size={20} />
+            <Avatar id={user.hash} size={20} />
             <span className="max-w-[100px] truncate text-sm text-gray-800 dark:text-gray-200">
               {user.name || 'Anonymous'}
             </span>

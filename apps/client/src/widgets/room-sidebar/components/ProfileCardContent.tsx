@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import {
   createAvatarGenerator,
-  LucideAvatarProvider,
+  AvvvatarsProvider,
   RadixInput as Input,
 } from '@codejam/ui';
 import { Pencil } from 'lucide-react';
@@ -13,7 +13,7 @@ import { SOCKET_EVENTS } from '@codejam/common';
 import type { Pt } from '@codejam/common';
 import { ProfileBannerAnimation } from './ProfileBannerAnimation';
 
-const provider = new LucideAvatarProvider();
+const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
 
 interface ProfileCardContentProps {
@@ -83,7 +83,6 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
           <div className="bg-card relative rounded-full p-1.5">
             <Avatar
               id={me.ptHash}
-              color={me.color}
               size={70}
               className="rounded-full shadow-md"
             />

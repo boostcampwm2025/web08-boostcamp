@@ -1,9 +1,9 @@
-import { createAvatarGenerator, LucideAvatarProvider } from '@codejam/ui';
+import { createAvatarGenerator, AvvvatarsProvider } from '@codejam/ui';
 import { usePt } from '@/stores/pts';
 import type { ParticipantProps } from '../lib/types';
 import { ROLE } from '@codejam/common';
 
-const provider = new LucideAvatarProvider();
+const provider = new AvvvatarsProvider({ variant: 'shape' });
 const { Avatar } = createAvatarGenerator(provider);
 
 /**
@@ -16,11 +16,11 @@ export function ParticipantAvatar({ ptId }: ParticipantProps) {
 
   if (!pt) return null;
 
-  const { ptHash, color, role } = pt;
+  const { ptHash, role } = pt;
   const badge =
     role === ROLE.HOST ? (
       <span className="text-yellow-500">👑</span>
     ) : undefined;
 
-  return <Avatar id={ptHash} color={color} badge={badge} size={32} />;
+  return <Avatar id={ptHash} badge={badge} size={32} />;
 }
