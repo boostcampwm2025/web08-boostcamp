@@ -1,11 +1,5 @@
 import { useEffect, useRef } from 'react';
 import type { Terminal as XTerm } from 'xterm';
-import type {
-  CodeExecutionRuntime,
-  CodeExecutionStage,
-  CodeExecutionData,
-  CodeExecutionExit,
-} from '@/stores/code-execution';
 import { useCodeExecutionStore } from '@/stores/code-execution';
 import { ansi } from '@/widgets/terminal/utils/ansi';
 
