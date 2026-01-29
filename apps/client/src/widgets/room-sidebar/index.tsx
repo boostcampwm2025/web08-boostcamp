@@ -5,9 +5,13 @@ import { Participants } from '@/widgets/participants';
 import { FileList } from '@/widgets/files';
 import { SidebarButton } from './components/SidebarButton';
 import { MoreTabContent } from './components/MoreTabContent';
-import { SIDEBAR_TABS } from './lib/sidebar-data';
+import { SETTINGS_TAB, SIDEBAR_TABS } from './lib/sidebar-data';
 import { SidebarProfile } from './components/SidebarProfile';
 import { SidebarPanel } from './components/SidebarPanel';
+import { SettingsTabContent } from './components/SettingsTabContent';
+import { DoorOpen } from 'lucide-react';
+import { LeaveRoomDialog } from '../dialog/LeaveRoomDialog';
+import { emitLeftRoom } from '@/stores/socket-events/room';
 
 export function RoomSidebar({
   className,
@@ -17,6 +21,7 @@ export function RoomSidebar({
   readOnly: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('PARTICIPANTS');
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
 
   const toggleTab = (tab: SidebarTab) => {
     setActiveTab((prev) => (prev === tab ? null : tab));
@@ -37,7 +42,21 @@ export function RoomSidebar({
           />
         ))}
 
-        <div className="mt-auto flex w-full flex-col items-center gap-3">
+        <div className="mt-auto flex w-full flex-col items-center gap-2">
+          <SidebarButton
+            key={SETTINGS_TAB.id}
+            isActive={activeTab === SETTINGS_TAB.id}
+            onClick={() => toggleTab(SETTINGS_TAB.id)}
+            icon={SETTINGS_TAB.icon}
+            label={SETTINGS_TAB.label}
+          />
+          <SidebarButton
+            onClick={() => setIsLeaveDialogOpen(true)}
+            icon={<DoorOpen size={22} />}
+            label="나가기"
+          />
+
+          <div className="h-1" />
           <SidebarProfile />
           <div className="h-1" />
         </div>
@@ -46,7 +65,14 @@ export function RoomSidebar({
         {activeTab === 'PARTICIPANTS' && <Participants />}
         {activeTab === 'FILES' && <FileList readOnly={readOnly} />}
         {activeTab === 'MORE' && <MoreTabContent />}
+        {activeTab === 'SETTINGS' && <SettingsTabContent />}
       </SidebarPanel>
+
+      <LeaveRoomDialog
+        open={isLeaveDialogOpen}
+        onOpenChange={setIsLeaveDialogOpen}
+        onConfirm={emitLeftRoom}
+      />
     </div>
   );
 }

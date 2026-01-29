@@ -1,3 +1,8 @@
+/**
+ * [!NOTE]
+ * 현재 사용하지 않음 (이동됨)
+ * room-sidebar의 SettingsTabContent를 이용할 것
+ */
 import { useState, useEffect } from 'react';
 import {
   RadixDialog as Dialog,
