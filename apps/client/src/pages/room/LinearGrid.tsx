@@ -67,7 +67,15 @@ export function LinearGrid({
         createLinearTab(initialTabValue.key!, initialTabValue.value),
       );
     });
-  }, [myRef, min, initialTabValue.key]);
+  }, [
+    myRef,
+    min,
+    initialTabValue.key,
+    initialTabValue.value,
+    linearTab,
+    createLinearTab,
+    setActiveTabKey,
+  ]);
 
   useEffect(() => {
     if (!dropSignal.signal) {
@@ -115,7 +123,20 @@ export function LinearGrid({
     } finally {
       setDropSignal({ signal: false });
     }
-  }, [dropSignal.signal]);
+  }, [
+    dropSignal,
+    position,
+    linearTabWidth,
+    draggingTab,
+    fullWidth,
+    keyName,
+    convertProcessFn,
+    convertKeyName,
+    max,
+    createLinearTab,
+    appendLinear,
+    setDropSignal,
+  ]);
 
   return (
     <div ref={myRef} className="flex h-screen w-full">

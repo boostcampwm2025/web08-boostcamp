@@ -1,5 +1,5 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
-import { ThrottlerGuard, ThrottlerLimitDetail } from '@nestjs/throttler';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { ERROR_CODE, ERROR_MESSAGES } from '@codejam/common';
 import { WsApiException } from '../exceptions/ws-api.exception';
 

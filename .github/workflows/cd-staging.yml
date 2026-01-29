@@ -46,10 +46,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Install dependencies and build packages
+      - name: Install dependencies
         if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages for Client
+        if: steps.changes.outputs.client == 'true'
         run: |
-          pnpm install --frozen-lockfile
           pnpm --filter @codejam/common build
           pnpm --filter @codejam/ui build
 

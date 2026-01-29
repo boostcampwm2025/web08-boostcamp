@@ -27,9 +27,9 @@ const mockQueryRunner = {
 
 describe('RoomService', () => {
   let service: RoomService;
-  let ptService: PtService;
-  let roomTokenService: RoomTokenService;
-  let fileService: FileService;
+  let ptService: any;
+  let roomTokenService: any;
+  let fileService: any;
   let roomRepository: any;
 
   beforeEach(async () => {
@@ -50,7 +50,7 @@ describe('RoomService', () => {
           useValue: {
             createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
             // transaction 메서드 Mock: 콜백을 즉시 실행하여 로직 검증
-            transaction: jest.fn(async (cb) => {
+            transaction: jest.fn(async (cb: any) => {
               return await cb(mockQueryRunner.manager);
             }),
           },
