@@ -1,0 +1,1 @@
+export { useOutputResize } from './useConsoleResize';
