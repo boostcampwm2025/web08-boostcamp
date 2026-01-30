@@ -220,7 +220,7 @@ export class CollaborationGateway
 
   /** C -> S 채팅 메시지 전송 */
   @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
-  @UseGuards(PermissionGuard, WsThrottlerGuard)
+  @UseGuards(WsThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 1000 } })
   async handleChatMessage(
     @ConnectedSocket() client: CollabSocket,
