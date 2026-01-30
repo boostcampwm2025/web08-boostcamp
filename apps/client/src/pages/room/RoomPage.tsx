@@ -199,7 +199,6 @@ function FileViewer({ tabKey }: FileViewerProps) {
   if (!activeTab[tabKey] || !fileTab[activeTab[tabKey]]) return <EmptyView />;
 
   const { fileId } = fileTab[activeTab[tabKey]];
-  // 역할 변경(VIEWER→EDITOR) 시 즉시 반영되도록 현재 역할 기준으로 계산
   const readOnly = myPt?.role === ROLE.VIEWER;
 
   const handleDeleteTab = (fileName: string) => {
