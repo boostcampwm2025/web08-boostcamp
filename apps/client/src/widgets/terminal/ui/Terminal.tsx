@@ -19,8 +19,7 @@ export function Terminal({ variant }: TerminalProps) {
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
 
-  const { isExecuting, runtime, stage, data, exit, error, result } =
-    useCodeExecutionStore();
+  const isExecuting = useCodeExecutionStore((state) => state.isExecuting);
 
   // Initialization
   useEffect(() => {
@@ -67,9 +66,19 @@ export function Terminal({ variant }: TerminalProps) {
     // Initialize terminal
     const frame = requestAnimationFrame(openTerminal);
 
+    // Setup resize observer
+    let resizeTimeout: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => fitTerminal(), 0);
+    });
+    if (terminalRef.current) observer.observe(terminalRef.current);
+
     // Cleanup
     return () => {
       cancelAnimationFrame(frame);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      observer.disconnect();
       xterm.dispose();
     };
 
@@ -99,16 +108,9 @@ export function Terminal({ variant }: TerminalProps) {
   }, [isExecuting]);
 
   // Use custom hooks for handling code execution output
-  useExecutionStream({
-    xterm: xtermRef.current,
-    runtime,
-    stage,
-    data,
-    exit,
-    isExecuting,
-  });
-  useExecutionResult(xtermRef.current, result);
-  useExecutionError(xtermRef.current, error);
+  useExecutionStream(xtermRef.current);
+  useExecutionResult(xtermRef.current);
+  useExecutionError(xtermRef.current);
 
   return (
     <div ref={terminalRef} className="h-full w-full overflow-hidden p-2" />

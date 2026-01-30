@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { Terminal as XTerm } from 'xterm';
-import type { CodeExecutionResult } from '@/stores/code-execution';
+import { useCodeExecutionStore } from '@/stores/code-execution';
 import { ansi } from '../utils/ansi';
 
 /**
@@ -15,12 +15,8 @@ function writeRuntimeInfo(xterm: XTerm, language: string, version: string) {
  * Helper: Write stage output (stdout/stderr)
  */
 function writeStageOutput(xterm: XTerm, stdout?: string, stderr?: string) {
-  if (stdout) {
-    xterm.write(stdout);
-  }
-  if (stderr) {
-    xterm.write(ansi.red(stderr));
-  }
+  if (stdout) xterm.write(stdout);
+  if (stderr) xterm.write(ansi.red(stderr));
 }
 
 /**
@@ -42,6 +38,43 @@ function writeExitStatus(
   if (msg) {
     xterm.write(msg + '\r\n');
   }
+}
+
+/**
+ * Helper: Write compilation status
+ * @returns true if compilation succeeded, false otherwise
+ */
+function writeCompilationStatus(xterm: XTerm, code: number): boolean {
+  const success = code === 0;
+
+  const output = success
+    ? ansi.green('Compilation successful')
+    : ansi.red(`Compilation failed with code ${code}`);
+
+  xterm.write(output + '\r\n\r\n');
+  return success;
+}
+
+/**
+ * Helper: Write compile stage
+ * @returns true if compilation succeeded, false otherwise
+ */
+function writeCompileStage(
+  xterm: XTerm,
+  compile: {
+    stdout?: string;
+    stderr?: string;
+    code: number | null;
+    message?: string | null;
+  },
+): boolean {
+  xterm.write(ansi.cyan('Compiling...') + '\r\n');
+
+  const { stdout, stderr, code } = compile;
+  writeStageOutput(xterm, stdout, stderr);
+
+  if (code === null) return true;
+  return writeCompilationStatus(xterm, code);
 }
 
 /**
@@ -69,17 +102,30 @@ function writeMetrics(
   }
 
   if (metrics.length > 0) {
-    xterm.write(ansi.dim(`[${metrics.join(', ')}]`) + '\r\n');
+    const output = ansi.dim(`[${metrics.join(', ')}]`);
+    xterm.write(output + '\r\n');
   }
+}
+
+/**
+ * Helper: Write run stage output
+ */
+function writeRunStage(
+  xterm: XTerm,
+  run: { stdout?: string; stderr?: string },
+) {
+  xterm.write(ansi.cyan('Running...') + '\r\n');
+
+  const { stdout, stderr } = run;
+  writeStageOutput(xterm, stdout, stderr);
 }
 
 /**
  * Handle non-streaming execution result
  */
-export function useExecutionResult(
-  xterm: XTerm | null,
-  result: CodeExecutionResult | null,
-) {
+export function useExecutionResult(xterm: XTerm | null) {
+  const result = useCodeExecutionStore((state) => state.result);
+
   useEffect(() => {
     if (!xterm || !result) return;
 
@@ -89,31 +135,13 @@ export function useExecutionResult(
     writeRuntimeInfo(xterm, language, version);
 
     // Compile stage (if exists)
-    if (compile) {
-      xterm.write(ansi.cyan('Compiling...') + '\r\n');
-
-      const { stdout, stderr, code } = compile;
-      writeStageOutput(xterm, stdout, stderr);
-
-      if (code !== null) {
-        if (code === 0) {
-          xterm.write(ansi.green('Compilation successful') + '\r\n\r\n');
-        } else {
-          xterm.write(
-            ansi.red(`Compilation failed (exit code ${compile.code})`) +
-              '\r\n\r\n',
-          );
-          return; // Don't show run stage if compilation failed
-        }
-      }
-    }
+    // Don't show run stage if compilation failed
+    if (compile && !writeCompileStage(xterm, compile)) return;
 
     // Run stage
-    xterm.write(ansi.cyan('Running...') + '\r\n');
+    const { code, signal, cpu_time, wall_time, memory } = run;
 
-    const { stdout, stderr, code, signal, cpu_time, wall_time, memory } = run;
-
-    writeStageOutput(xterm, stdout, stderr);
+    writeRunStage(xterm, run);
     writeExitStatus(xterm, code, signal);
     writeMetrics(xterm, cpu_time, wall_time, memory);
 
