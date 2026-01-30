@@ -6,7 +6,7 @@ Minimal Piston environment for testing, CI/CD, or isolated deployment.
 
 ```bash
 # Start Piston
-docker compose -f docker-compose.piston.yml up -d --build
+docker compose -f docker-compose.piston.yml up -d
 
 # Watch setup
 docker compose -f docker-compose.piston.yml logs -f piston-setup
@@ -28,7 +28,7 @@ curl http://localhost:2000/api/v2/runtimes
 ### 1. Start
 
 ```bash
-docker compose -f docker-compose.piston.yml up -d --build
+docker compose -f docker-compose.piston.yml up -d
 ```
 
 ### 2. Monitor
@@ -69,7 +69,7 @@ docker compose -f docker-compose.piston.yml logs piston-setup | grep "already in
 ## Custom Port
 
 ```bash
-PISTON_PORT=3000 docker compose -f docker-compose.piston.yml up -d --build
+PISTON_PORT=3000 docker compose -f docker-compose.piston.yml up -d
 curl http://localhost:3000/api/v2/runtimes
 ```
 
