@@ -7,10 +7,16 @@ import { ChatInput } from './ChatInput';
 
 const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
-const MAX_WIDTH = 600;
-const MAX_HEIGHT = 900;
 const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 380;
+
+/** right-4(16px), bottom-20(80px) 기준. 가로·세로 모두 뷰포트 넘지 않는 한 원하는 만큼 확대 */
+function getViewportMaxSize() {
+  return {
+    width: Math.max(MIN_WIDTH, window.innerWidth - 16),
+    height: Math.max(MIN_HEIGHT, window.innerHeight - 80),
+  };
+}
 
 /**
  * 채팅 패널 컴포넌트
@@ -21,9 +27,12 @@ export function ChatPanel() {
   const messages = useChatStore((state) => state.messages);
   const setChatOpen = useChatStore((state) => state.setChatOpen);
 
-  const [size, setSize] = useState({
-    width: DEFAULT_WIDTH,
-    height: DEFAULT_HEIGHT,
+  const [size, setSize] = useState(() => {
+    const { width: maxW, height: maxH } = getViewportMaxSize();
+    return {
+      width: Math.min(DEFAULT_WIDTH, maxW),
+      height: Math.min(DEFAULT_HEIGHT, maxH),
+    };
   });
   const [isResizing, setIsResizing] = useState(false);
 
@@ -36,12 +45,13 @@ export function ChatPanel() {
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      const { width: maxW, height: maxH } = getViewportMaxSize();
       const newWidth = Math.min(
-        MAX_WIDTH,
+        maxW,
         Math.max(MIN_WIDTH, window.innerWidth - e.clientX - 16),
       );
       const newHeight = Math.min(
-        MAX_HEIGHT,
+        maxH,
         Math.max(MIN_HEIGHT, window.innerHeight - e.clientY - 80),
       );
       setSize({ width: newWidth, height: newHeight });
@@ -59,6 +69,19 @@ export function ChatPanel() {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isResizing]);
+
+  // 뷰포트 리사이즈 시 채팅 크기를 뷰포트 안으로 클램프
+  useEffect(() => {
+    const handleResize = () => {
+      const { width: maxW, height: maxH } = getViewportMaxSize();
+      setSize((prev) => ({
+        width: Math.min(prev.width, maxW),
+        height: Math.min(prev.height, maxH),
+      }));
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div
