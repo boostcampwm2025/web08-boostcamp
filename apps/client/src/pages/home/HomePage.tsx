@@ -56,6 +56,8 @@ export default function MainPage() {
         </div>
       </div>
 
+      <div data-boostad-zone className="w-full h-auto"></div>
+
       {/* Footer */}
       <footer className="py-8 text-center text-xs text-gray-400 font-mono border-t border-gray-100 mt-12">
         <p>© 2026 CodeJam. All rights reserved.</p>
