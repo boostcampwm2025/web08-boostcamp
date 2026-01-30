@@ -32,7 +32,7 @@ export default function HomePage() {
         </section>
       </article>
 
-      <div data-boostad-zone className="w-full h-auto"></div>
+      <div data-boostad-zone className="mx-auto mt-20 h-40 w-200"></div>
 
       {/* Footer */}
       <footer className="mt-24 border-t border-gray-100 py-8 text-center font-mono text-xs text-gray-400">
