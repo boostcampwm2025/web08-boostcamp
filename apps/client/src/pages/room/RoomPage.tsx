@@ -78,7 +78,7 @@ function RoomPage() {
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || '');
-  const isViewer = useMemo(() => myPt?.role === ROLE.VIEWER, [myPt?.role]);
+  const isViewer = myPt?.role === ROLE.VIEWER;
 
   const handleDragPrevent = (ev: DragEvent) => {
     ev.preventDefault();
