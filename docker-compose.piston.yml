@@ -1,0 +1,28 @@
+services:
+  # Code execution engine
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: piston
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - '${PISTON_PORT:-2000}:2000'
+    volumes:
+      - piston_data:/piston
+    env_file:
+      - ./apps/piston/.env
+
+  # Language runtime installer
+  # Polls until Piston API is ready, then installs language runtimes
+  # Skip installation if the runtime is already installed
+  piston-setup:
+    image: piston-setup:latest
+    container_name: piston-setup
+    depends_on:
+      - piston
+    restart: 'no'
+    network_mode: 'service:piston'
+
+volumes:
+  piston_data:
+    driver: local

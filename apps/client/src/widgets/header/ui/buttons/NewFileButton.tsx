@@ -1,4 +1,8 @@
-import { useState } from 'react';
+/**
+ * [!NOTE]
+ * 현재 사용하지 않음 (이동됨)
+ * files의 FileHeaderActions를 이용할 것
+ */
 import { Plus } from 'lucide-react';
 import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
@@ -14,12 +18,9 @@ export function NewFileButton({ roomCode }: NewFileButtonProps) {
   const { getFileId, createFile, setActiveFile } = useFileStore();
   const { setIsDuplicated, isDuplicated, handleCheckRename } =
     useFileRename(roomCode);
-  const [filename, setFilename] = useState('');
-
   const handleNewFile = async (name: string, ext: string) => {
     const newFilename = `${name}.${ext}`;
     if (getFileId(newFilename)) {
-      setFilename(newFilename);
       setIsDuplicated(true);
     } else {
       const result = await handleCheckRename(newFilename);
@@ -28,10 +29,6 @@ export function NewFileButton({ roomCode }: NewFileButtonProps) {
         setActiveFile(fileId);
       }
     }
-  };
-
-  const handleDuplicateDialogClose = () => {
-    setFilename('');
   };
 
   return (
@@ -43,12 +40,7 @@ export function NewFileButton({ roomCode }: NewFileButtonProps) {
         </HeaderActionButton>
       </NewFileDialog>
 
-      <DuplicateDialog
-        open={isDuplicated}
-        onOpenChange={setIsDuplicated}
-        filename={filename}
-        onClick={handleDuplicateDialogClose}
-      />
+      <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
     </>
   );
 }

@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import Table from 'cli-table3';
+import { LIMITS, Password, ROUTES } from '@codejam/common';
 import { getConfig } from '../config/index.js';
 import { ApiClient } from '../api/index.js';
 import { openRoomInBrowser, handleError } from '../utils/index.js';
@@ -9,8 +10,8 @@ import { openRoomInBrowser, handleError } from '../utils/index.js';
 interface StartOptions {
   env?: string;
   custom?: boolean;
-  password?: string;
-  hostPassword?: string;
+  password?: Password;
+  hostPassword?: Password;
   max?: string;
   browser?: boolean;
 }
@@ -18,8 +19,12 @@ interface StartOptions {
 function validateMaxParticipants(maxStr: string): number {
   const maxPts = parseInt(maxStr, 10);
 
-  if (isNaN(maxPts) || maxPts < 1 || maxPts > 150) {
-    console.error(chalk.red('Max participants must be between 1 and 150'));
+  if (isNaN(maxPts) || maxPts < LIMITS.MIN_PTS || maxPts > LIMITS.MAX_PTS) {
+    console.error(
+      chalk.red(
+        `Max participants must be between ${LIMITS.MIN_PTS} and ${LIMITS.MAX_PTS}`,
+      ),
+    );
     process.exit(1);
   }
 
@@ -29,11 +34,13 @@ function validateMaxParticipants(maxStr: string): number {
 async function createRoom(
   client: ApiClient,
   options: StartOptions,
-): Promise<{ roomCode: string; token: string }> {
+): Promise<{ roomCode: string; token?: string }> {
   const spinner = ora('Creating room...').start();
 
   if (options.custom) {
-    const maxPts = validateMaxParticipants(options.max || '6');
+    const maxPts = validateMaxParticipants(
+      options.max || String(LIMITS.MAX_CAN_EDIT),
+    );
 
     const response = await client.createCustomRoom({
       maxPts,
@@ -42,11 +49,12 @@ async function createRoom(
     });
 
     spinner.succeed(chalk.green('Custom room created!'));
-    return { roomCode: response.roomCode, token: response.token };
+    return { roomCode: response.roomCode };
   } else {
     const response = await client.createQuickRoom();
+
     spinner.succeed(chalk.green('Quick room created!'));
-    return { roomCode: response.roomCode, token: response.token };
+    return { roomCode: response.roomCode };
   }
 }
 
@@ -56,7 +64,7 @@ function displayRoomInfo(roomCode: string, options: StartOptions): void {
 
   if (options.custom) {
     headers.push(chalk.cyan.bold('Max Participants'));
-    values.push(chalk.white(options.max || '6'));
+    values.push(chalk.white(options.max || String(LIMITS.MAX_CAN_EDIT)));
 
     if (options.password) {
       headers.push(chalk.cyan.bold('Room Password'));
@@ -113,8 +121,13 @@ export const startCommand = new Command('start')
       const client = new ApiClient(config.serverUrl);
       const { roomCode, token } = await createRoom(client, options);
       displayRoomInfo(roomCode, options);
-      const roomUrl = `${config.clientUrl}/join/${roomCode}?token=${token}`;
-      await openRoomInBrowser(roomUrl, options.browser !== false);
+      if (!options.custom) {
+        const roomUrl = `${config.clientUrl}${ROUTES.ROOM(roomCode)}`;
+        await openRoomInBrowser(roomUrl, options.browser !== false);
+      } else {
+        const roomUrl = `${config.clientUrl}${ROUTES.JOIN(roomCode)}`;
+        await openRoomInBrowser(roomUrl, options.browser !== false);
+      }
     } catch (error) {
       handleError('Failed to create room', error);
     }

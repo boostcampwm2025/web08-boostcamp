@@ -1,0 +1,1 @@
+export { useConsolePanelResize } from './useConsolePanelResize';

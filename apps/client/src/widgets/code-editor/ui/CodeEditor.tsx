@@ -8,13 +8,14 @@ import { useAvatarMenu } from '../hooks/useAvatarMenu';
 import { useLineAvatars } from '../hooks/useLineAvatars';
 import { useEditorExtensions } from '../hooks/useEditorExtensions';
 import { useCodeMirror } from '../hooks/useCodeMirror';
+import { DEFAULT_LANGUAGE } from '@codejam/common';
 
 // Components
 import { AvatarGutterMenu } from './AvatarGutterMenu';
 
 export default function CodeEditor({
   fileId,
-  language = 'javascript',
+  language = DEFAULT_LANGUAGE,
   readOnly = false,
 }: CodeEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -64,7 +65,7 @@ export default function CodeEditor({
 
   return (
     <>
-      <div ref={containerRef} className="h-full" />
+      <div ref={containerRef} className="h-screen" />
       <AvatarGutterMenu
         isOpen={menuState.isOpen}
         position={menuState.position}

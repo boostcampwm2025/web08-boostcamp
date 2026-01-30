@@ -9,16 +9,17 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxValue,
-} from '@/shared/ui/combobox';
+  useComboboxAnchor,
+} from '@codejam/ui';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/ui/select';
-import { Button } from '@/shared/ui/button';
-import { Check, X, Pencil, Eye } from 'lucide-react';
+  RadixSelect as Select,
+  RadixSelectContent as SelectContent,
+  RadixSelectItem as SelectItem,
+  RadixSelectTrigger as SelectTrigger,
+  RadixSelectValue as SelectValue,
+} from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
+import { X, Pencil, Eye } from 'lucide-react';
 import type { FilterOption } from '../types';
 import type { SortKey } from '../lib/types';
 import { FILTER_OPTIONS, SORT_OPTIONS } from '../types';
@@ -45,6 +46,7 @@ export function ParticipantsFilterBar({
   isHost,
 }: ParticipantsFilterBarProps) {
   const [inputValue, setInputValue] = useState('');
+  const anchor = useComboboxAnchor();
 
   // 필터 옵션을 검색어로 필터링
   const filteredOptions = useMemo(() => {
@@ -59,12 +61,6 @@ export function ParticipantsFilterBar({
     onFiltersChange(values);
   };
 
-  // 개별 필터 제거
-  const handleRemoveFilter = (value: string) => {
-    const newFilters = selectedFilters.filter((f) => f.value !== value);
-    onFiltersChange(newFilters);
-  };
-
   return (
     <div className="space-y-2">
       {/* 필터 Combobox */}
@@ -77,14 +73,11 @@ export function ParticipantsFilterBar({
             onValueChange={handleValueChange}
             itemToStringValue={(item) => item.value}
           >
-            <div className="relative">
+            <div className="relative" ref={anchor}>
               <ComboboxChips>
                 <ComboboxValue>
                   {selectedFilters.map((filter) => (
-                    <ComboboxChip
-                      key={filter.value}
-                      onRemove={() => handleRemoveFilter(filter.value)}
-                    >
+                    <ComboboxChip key={filter.value}>
                       {filter.label}
                     </ComboboxChip>
                   ))}
@@ -98,29 +91,21 @@ export function ParticipantsFilterBar({
                 <button
                   type="button"
                   onClick={() => onFiltersChange([])}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm p-1 transition-colors"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
                   aria-label="Clear all filters"
                 >
                   <X className="size-4" />
                 </button>
               )}
             </div>
-            <ComboboxContent>
+            <ComboboxContent anchor={anchor} className="min-w-(--anchor-width)">
               <ComboboxEmpty>필터를 찾을 수 없습니다.</ComboboxEmpty>
               <ComboboxList>
-                {(item) => {
-                  const isSelected = selectedFilters.some(
-                    (f) => f.value === item.value,
-                  );
-                  return (
-                    <ComboboxItem key={item.value} value={item}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{item.label}</span>
-                        {isSelected && <Check className="size-4" />}
-                      </div>
-                    </ComboboxItem>
-                  );
-                }}
+                {filteredOptions.map((item) => (
+                  <ComboboxItem key={item.value} value={item}>
+                    {item.label}
+                  </ComboboxItem>
+                ))}
               </ComboboxList>
             </ComboboxContent>
           </Combobox>
@@ -131,7 +116,7 @@ export function ParticipantsFilterBar({
       <div className="flex items-center gap-2">
         {/* 정렬 Select */}
         <Select value={sortKey} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="w-30">
             <SelectValue placeholder="정렬" />
           </SelectTrigger>
           <SelectContent>
@@ -150,7 +135,7 @@ export function ParticipantsFilterBar({
               size="icon"
               variant="outline"
               onClick={onBulkEdit}
-              className="h-8 w-8 ml-auto"
+              className="ml-auto h-8 w-8"
               title="전체 편집 허용"
             >
               <Pencil className="size-4" />

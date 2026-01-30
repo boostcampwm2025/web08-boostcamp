@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Pt } from '@codejam/common';
+import { ROLE, type Pt } from '@codejam/common';
 
 interface PtsState {
   pts: Record<string, Pt>;
@@ -44,7 +44,7 @@ export const useCanEditCount = () => {
   return usePtsStore(
     (state) =>
       Object.values(state.pts).filter(
-        (pt) => pt.role === 'editor' || pt.role === 'host',
+        (pt) => pt.role === ROLE.EDITOR || pt.role === ROLE.HOST,
       ).length,
   );
 };

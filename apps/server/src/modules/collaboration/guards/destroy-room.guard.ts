@@ -4,9 +4,13 @@ import {
   ExecutionContext,
   Logger,
 } from '@nestjs/common';
-import { PtRole } from '../../pt/pt.entity';
+import {
+  MESSAGE,
+  ERROR_CODE,
+  type WhoCanDestroyRoom,
+  type PtRole,
+} from '@codejam/common';
 import { RoomService } from '../../room/room.service';
-import { WhoCanDestroyRoom } from '../../room/room.entity';
 import type { CollabSocket } from '../collaboration.types';
 
 @Injectable()
@@ -25,7 +29,7 @@ export class DestroyRoomGuard implements CanActivate {
         `Missing data: roomId=${roomId}, roomCode=${roomCode}, ptId=${ptId}, role=${role}`,
       );
       client.emit('error', {
-        type: 'PERMISSION_DENIED',
+        type: ERROR_CODE.PERMISSION_DENIED,
         message: '방 정보 또는 사용자 정보가 없습니다',
       });
       return false;
@@ -36,8 +40,8 @@ export class DestroyRoomGuard implements CanActivate {
     if (!room) {
       this.logger.warn(`Room not found: roomId=${roomId}`);
       client.emit('error', {
-        type: 'ROOM_NOT_FOUND',
-        message: '방을 찾을 수 없습니다',
+        type: ERROR_CODE.ROOM_NOT_FOUND,
+        message: MESSAGE.ERROR.ROOM_NOT_FOUND,
       });
       return false;
     }
@@ -51,7 +55,7 @@ export class DestroyRoomGuard implements CanActivate {
         `Permission denied: roomCode=${roomCode}, ptId=${ptId}, role=${role}, whoCanDestroyRoom=${whoCanDestroyRoom}`,
       );
       client.emit('error', {
-        type: 'PERMISSION_DENIED',
+        type: ERROR_CODE.PERMISSION_DENIED,
         message: '방을 폭파할 권한이 없습니다',
         currentRole: role,
         requiredRole: whoCanDestroyRoom,
@@ -67,21 +71,12 @@ export class DestroyRoomGuard implements CanActivate {
 
   /**
    * 권한 체크 로직
-   * - HOST: HOST만 가능
-   * - EDITOR: EDITOR만 가능
+   * - whoCanDestroyRoom과 role을 직접 비교
    */
   private checkPermission(
     role: PtRole,
     whoCanDestroyRoom: WhoCanDestroyRoom,
   ): boolean {
-    if (whoCanDestroyRoom === WhoCanDestroyRoom.HOST) {
-      return role === PtRole.HOST;
-    }
-
-    if (whoCanDestroyRoom === WhoCanDestroyRoom.EDITOR) {
-      return role === PtRole.EDITOR;
-    }
-
-    return false;
+    return role === whoCanDestroyRoom;
   }
 }

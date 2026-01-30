@@ -1,4 +1,4 @@
-import type { Pt } from '@codejam/common';
+import { ROLE, PRESENCE, type Pt } from '@codejam/common';
 import type { SortKey } from './lib/types';
 
 // 필터 옵션 타입
@@ -18,11 +18,11 @@ export type SortOption = {
 
 // 필터 옵션 목록
 export const FILTER_OPTIONS: FilterOption[] = [
-  { label: 'Online', value: 'online', type: 'presence' },
-  { label: 'Offline', value: 'offline', type: 'presence' },
-  { label: 'Host', value: 'host', type: 'role' },
-  { label: 'Editor', value: 'editor', type: 'role' },
-  { label: 'Viewer', value: 'viewer', type: 'role' },
+  { label: 'Online', value: PRESENCE.ONLINE, type: 'presence' },
+  { label: 'Offline', value: PRESENCE.OFFLINE, type: 'presence' },
+  { label: 'Host', value: ROLE.HOST, type: 'role' },
+  { label: 'Editor', value: ROLE.EDITOR, type: 'role' },
+  { label: 'Viewer', value: ROLE.VIEWER, type: 'role' },
 ];
 
 // 정렬 옵션 목록 (기존 정렬 키 사용)

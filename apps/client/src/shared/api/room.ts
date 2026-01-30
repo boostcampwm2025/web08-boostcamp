@@ -1,24 +1,20 @@
-import type { RoomJoinStatus, RoomToken } from '@codejam/common';
+import type {
+  RoomJoinStatus,
+  CreateQuickRoomResponse,
+  CreateCustomRoomResponse,
+  CreateCustomRoomRequest,
+} from '@codejam/common';
+import { API_ENDPOINTS } from '@codejam/common';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const ROOM_API_PREFIX = `${API_BASE_URL}/api/rooms`;
 
-interface CreateQuickRoomResponse {
-  roomCode: string;
-  token: RoomToken;
-}
-
-export interface CustomRoomData {
-  roomPassword?: string;
-  hostPassword?: string;
-  maxPts: number;
-}
-
-export async function checkRoomExists(
+export async function checkRoomJoinable(
   roomCode: string,
 ): Promise<RoomJoinStatus> {
   try {
-    const response = await fetch(`${ROOM_API_PREFIX}/${roomCode}/joinable`);
+    const response = await fetch(
+      `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOINABLE(roomCode)}`,
+    );
     const text = (await response.text()) as RoomJoinStatus;
     if (text === 'NOT_FOUND') {
       throw new Error('Room not found');
@@ -33,12 +29,21 @@ export async function checkRoomExists(
 
 export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
   try {
-    const response = await fetch(`${ROOM_API_PREFIX}/quick`, {
-      method: 'POST',
-    });
+    const response = await fetch(
+      `${API_BASE_URL}${API_ENDPOINTS.ROOM.CREATE_QUICK}`,
+      {
+        method: 'POST',
+      },
+    );
 
     if (!response.ok) {
-      const message = 'Failed to create quick room';
+      const errorData = await response.json().catch(() => null);
+
+      const message =
+        errorData?.error?.message ||
+        errorData?.message ||
+        'Failed to create quick room';
+
       throw new Error(message);
     }
 
@@ -49,19 +54,82 @@ export async function createQuickRoom(): Promise<CreateQuickRoomResponse> {
   }
 }
 
-export const createCustomRoom = async (data: CustomRoomData) => {
-  const response = await fetch(`${ROOM_API_PREFIX}/custom`, {
+export const createCustomRoom = async (
+  data: CreateCustomRoomRequest,
+): Promise<CreateCustomRoomResponse> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}${API_ENDPOINTS.ROOM.CREATE_CUSTOM}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      },
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+
+      const message =
+        errorData?.error?.message ||
+        errorData?.message ||
+        'Failed to create custom room';
+
+      throw new Error(message);
+    }
+
+    return response.json();
+  } catch (e) {
+    const error = e as Error;
+    throw error;
+  }
+};
+
+export const joinRoom = async (
+  roomCode: string,
+  nickname: string,
+  password: string | null,
+) => {
+  const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/join`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nickname, password }),
+    credentials: 'include',
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to create custom room');
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || 'Failed to join room');
   }
-
-  return response.json();
 };
+
+export async function verifyPassword(roomCode: string, password: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+
+      const message =
+        errorData?.error?.message ||
+        errorData?.message ||
+        'Failed to verify password';
+
+      throw new Error(message);
+    }
+
+    return await response.json();
+  } catch (e) {
+    const error = e as Error;
+    throw error;
+  }
+}

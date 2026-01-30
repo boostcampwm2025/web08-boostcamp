@@ -1,13 +1,18 @@
-import { RoomType, DefaultRolePolicy, WhoCanDestroyRoom } from './room.entity';
-import { PtRole } from '../pt/pt.entity';
+import type {
+  RoomType,
+  DefaultRolePolicy,
+  WhoCanDestroyRoom,
+  PtRole,
+  Password,
+  MaxPts,
+} from '@codejam/common';
 
 export interface RoomCreationOptions {
   roomType: RoomType;
-  roomPassword?: string;
-  hostPassword?: string;
-  maxPts: number;
+  roomPassword?: Password;
+  hostPassword?: Password;
+  maxPts: MaxPts;
   defaultRolePolicy: DefaultRolePolicy;
   whoCanDestroyRoom: WhoCanDestroyRoom;
-
   roomCreatorRole: PtRole;
 }

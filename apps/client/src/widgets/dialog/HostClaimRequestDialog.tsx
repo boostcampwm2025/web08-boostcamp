@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@/shared/ui';
+import { RadixButton as Button } from '@codejam/ui';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
+  RadixDialog as Dialog,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS } from '@codejam/common';
 import { useHostClaimStore } from '@/stores/hostClaim';
@@ -74,7 +74,7 @@ export function HostClaimRequestDialog() {
             </span>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-row justify-end gap-2 mt-4 border-t pt-4">
+        <DialogFooter className="mt-4 flex-row justify-end gap-2 border-t pt-4">
           <Button
             type="button"
             variant="secondary"
@@ -88,7 +88,7 @@ export function HostClaimRequestDialog() {
             variant="ghost"
             size="sm"
             onClick={handleAccept}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
+            className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
           >
             수락
           </Button>

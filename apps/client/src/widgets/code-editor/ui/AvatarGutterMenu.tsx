@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { type AvatarUser } from '../plugin/LineAvatars'; // 타입 import
+import { type AvatarUser } from '../plugin/LineAvatars';
 import { createPortal } from 'react-dom';
-import { getAvatarIcon } from '@/shared/ui/avatar-shared';
-import { Avatar } from '@/shared/ui';
+import { createAvatarGenerator, AvvvatarsProvider } from '@codejam/ui';
+
+const provider = new AvvvatarsProvider({ variant: 'shape' });
+const { Avatar } = createAvatarGenerator(provider);
 
 interface Props {
   isOpen: boolean;
@@ -32,27 +34,23 @@ export function AvatarGutterMenu({ isOpen, position, users, onClose }: Props) {
   return createPortal(
     <div
       ref={menuRef}
-      className="fixed z-50 flex flex-col gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-100"
+      className="animate-in fade-in zoom-in-95 fixed z-50 flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-xl duration-100 dark:border-gray-700 dark:bg-gray-800"
       style={{
         left: position.x + 15, // 클릭 위치보다 약간 오른쪽
         top: position.y - 10, // 클릭 위치보다 약간 위
       }}
     >
-      <div className="text-xs font-semibold text-gray-500 px-1 mb-1">
+      <div className="mb-1 px-1 text-xs font-semibold text-gray-500">
         Currently Editing ({users.length})
       </div>
-      <div className="flex flex-wrap gap-2 max-w-[200px]">
+      <div className="flex max-w-[200px] flex-wrap gap-2">
         {users.map((user) => (
           <div
             key={user.hash}
-            className="flex items-center gap-2 p-1 pr-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 rounded p-1 pr-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <Avatar
-              icon={getAvatarIcon(user.hash)}
-              color={user.color}
-              size={20}
-            />
-            <span className="text-sm truncate max-w-[100px] text-gray-800 dark:text-gray-200">
+            <Avatar id={user.hash} size={20} />
+            <span className="max-w-[100px] truncate text-sm text-gray-800 dark:text-gray-200">
               {user.name || 'Anonymous'}
             </span>
           </div>

@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { CLI_PACKAGE_NAME, PROJECT_NAME } from '@codejam/common';
 import { handleError } from '../utils/index.js';
 
 const execAsync = promisify(exec);
@@ -26,7 +27,7 @@ function getCurrentVersion(): string {
 
 async function getLatestVersion(): Promise<string> {
   try {
-    const { stdout } = await execAsync('npm view @codejam/cli version');
+    const { stdout } = await execAsync(`npm view ${CLI_PACKAGE_NAME} version`);
     return stdout.trim();
   } catch (error) {
     throw new Error('Failed to fetch latest version from npm registry');
@@ -35,14 +36,14 @@ async function getLatestVersion(): Promise<string> {
 
 async function updatePackage(): Promise<void> {
   try {
-    await execAsync('npm install -g @codejam/cli@latest');
+    await execAsync(`npm install -g ${CLI_PACKAGE_NAME}@latest`);
   } catch (error) {
     throw new Error('Failed to install latest version');
   }
 }
 
 export const updateCommand = new Command('update')
-  .description('Update CodeJam CLI to the latest version')
+  .description(`Update ${PROJECT_NAME} CLI to the latest version`)
   .action(async () => {
     try {
       const spinner = ora('Checking for updates...').start();

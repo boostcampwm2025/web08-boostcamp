@@ -5,7 +5,7 @@ import {
   applyAwarenessUpdate,
   encodeAwarenessUpdate,
 } from 'y-protocols/awareness';
-import { SOCKET_EVENTS } from '@codejam/common';
+import { SOCKET_EVENTS, LIMITS, type AwarenessUpdate } from '@codejam/common';
 import { v7 as uuidv7 } from 'uuid';
 import { createDecoder } from 'lib0/decoding';
 import { createEncoder, toUint8Array } from 'lib0/encoding';
@@ -13,18 +13,16 @@ import { readSyncMessage, writeUpdate } from 'y-protocols/sync';
 import { useSocketStore } from './socket';
 import { emitAwarenessUpdate, emitFileUpdate } from './socket-events';
 
-type AwarenessChanges = {
-  added: number[];
-  updated: number[];
-  removed: number[];
-};
-
 interface FileState {
   yDoc: Doc | null;
   awareness: Awareness | null;
   activeFileId: string | null;
+  viewerFileId: string | null;
   isInitialized: boolean;
   isInitialDocLoaded: boolean;
+
+  // 업로드 파일
+  tempFiles: File[];
 
   // Capacity State (용량 측정)
   capacityBytes: number;
@@ -35,20 +33,26 @@ interface FileState {
   initialize: (roomCode: string) => number;
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
+  setViewerFile: (fileId: string) => void;
   initializeActiveFile: () => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
   measureCapacity: () => number;
 
   // CRUD Actions
+  addTempFile: (file: File) => void;
+  shiftTempFile: () => void;
+  clearTempFile: () => void;
   createFile: (name: string, content?: string) => string;
   deleteFile: (fileId: string) => void;
   renameFile: (fileId: string, newName: string) => void;
   overwriteFile: (fileId: string, content?: string) => void;
   getFileId: (name: string) => string | undefined;
+  getTempFiles: () => File[];
   getFilesMap: () => YMap<YMap<unknown>> | null;
   getFileIdMap: () => YMap<string> | null;
 
+  getFileName: (fileId: string | null) => string | null;
   getFileContent: (fileId: string) => string | null;
   getActiveFileContent: () => string | null;
 }
@@ -57,8 +61,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   yDoc: null,
   awareness: null,
   activeFileId: null,
+  viewerFileId: null,
   isInitialized: false,
   isInitialDocLoaded: false,
+
+  tempFiles: [],
 
   // Capacity State 초기값
   capacityBytes: 0,
@@ -100,7 +107,7 @@ export const useFileStore = create<FileState>((set, get) => ({
 
     // Setup awareness update listener
 
-    const onAwarenessUpdate = (changes: AwarenessChanges, origin: unknown) => {
+    const onAwarenessUpdate = (changes: AwarenessUpdate, origin: unknown) => {
       if (origin === 'remote') return;
 
       const changed = changes.added.concat(changes.updated, changes.removed);
@@ -162,6 +169,10 @@ export const useFileStore = create<FileState>((set, get) => ({
         currentFileId: fileId,
       });
     }
+  },
+
+  setViewerFile: (fileId: string | null) => {
+    set({ viewerFileId: fileId });
   },
 
   applyRemoteDocUpdate: (message: Uint8Array) => {
@@ -285,6 +296,10 @@ export const useFileStore = create<FileState>((set, get) => ({
     return fileIdMap.get(name);
   },
 
+  getTempFiles: () => {
+    return get().tempFiles;
+  },
+
   // CRUD: 파일 덮어쓰기
   overwriteFile(fileId: string, content?: string) {
     const { yDoc } = get();
@@ -338,15 +353,52 @@ export const useFileStore = create<FileState>((set, get) => ({
       }
     });
 
-    const percentage = Math.min((total / 1_000_000) * 100, 100);
+    const percentage = Math.min(
+      (total / LIMITS.MAX_DOC_SIZE_CLIENT) * 100,
+      100,
+    );
 
     set({
       capacityBytes: total,
       capacityPercentage: percentage,
-      isOverLimit: total >= 1_000_000,
+      isOverLimit: total >= LIMITS.MAX_DOC_SIZE_CLIENT,
     });
 
     return total;
+  },
+
+  addTempFile: (file) => {
+    const target = get().tempFiles;
+    target.push(file);
+
+    set({ tempFiles: target });
+  },
+
+  shiftTempFile: () => {
+    const target = get().tempFiles;
+    target.shift();
+
+    set({ tempFiles: target });
+  },
+
+  clearTempFile: () => {
+    set({ tempFiles: [] });
+  },
+
+  // 파일 이름 가져오기
+  getFileName: (fileId: string | null) => {
+    if (!fileId) {
+      return null;
+    }
+    const { yDoc } = get();
+    if (!yDoc) return null;
+
+    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const fileMap = filesMap.get(fileId);
+    if (!fileMap) return null;
+
+    const name = fileMap.get('name') as string;
+    return name || null;
   },
 
   // 파일 내용 가져오기

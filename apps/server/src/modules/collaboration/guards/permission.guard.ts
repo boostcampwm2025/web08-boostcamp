@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   Logger,
 } from '@nestjs/common';
-import { PtRole } from '../../pt/pt.entity';
+import { MESSAGE, ERROR_CODE, ROLE } from '@codejam/common';
 import type { CollabSocket } from '../collaboration.types';
 
 @Injectable()
@@ -21,22 +21,22 @@ export class PermissionGuard implements CanActivate {
         `Missing data: roomCode=${roomCode}, ptId=${ptId}, role=${role}`,
       );
       client.emit('error', {
-        type: 'PERMISSION_DENIED',
+        type: ERROR_CODE.PERMISSION_DENIED,
         message: '방 정보 또는 사용자 정보가 없습니다',
       });
       return false;
     }
 
     // socket.data에서 직접 role 확인
-    if (role === PtRole.VIEWER) {
+    if (role === ROLE.VIEWER) {
       this.logger.warn(
         `Permission denied: roomCode=${roomCode}, ptId=${ptId}, role=${role}`,
       );
       client.emit('error', {
-        type: 'PERMISSION_DENIED',
-        message: '편집 권한이 없습니다',
+        type: ERROR_CODE.PERMISSION_DENIED,
+        message: MESSAGE.ERROR.UNAUTHORIZED,
         currentRole: role,
-        requiredRoles: [PtRole.EDITOR, PtRole.HOST],
+        requiredRoles: [ROLE.EDITOR, ROLE.HOST],
       });
       return false;
     }

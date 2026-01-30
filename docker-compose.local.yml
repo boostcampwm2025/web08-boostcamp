@@ -28,10 +28,38 @@ services:
       - codejam-net
     shm_size: 128mb
 
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: codejam-piston
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - '2000:2000'
+    volumes:
+      - piston_data:/piston
+    env_file:
+      - ./apps/piston/.env
+    networks:
+      - codejam-net
+
+  piston-setup:
+    build:
+      context: ./apps/piston
+    container_name: codejam-piston-setup
+    depends_on:
+      - piston
+    environment:
+      - PISTON_API_URL=http://piston:2000/api/v2
+    restart: 'no'
+    networks:
+      - codejam-net
+
 volumes:
   redis_data:
     driver: local
   postgres_data:
+    driver: local
+  piston_data:
     driver: local
 
 networks:

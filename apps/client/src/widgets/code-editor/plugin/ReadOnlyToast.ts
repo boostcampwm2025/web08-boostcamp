@@ -1,5 +1,6 @@
 import { EditorView } from 'codemirror';
-import { toast } from 'sonner';
+import { MESSAGE } from '@codejam/common';
+import { toast } from '@codejam/ui';
 
 export function readOnlyToast() {
   return EditorView.domEventHandlers({
@@ -38,7 +39,7 @@ export function readOnlyToast() {
         event.key === 'Backspace' ||
         event.key === 'Delete'
       ) {
-        toast.warning('편집 권한이 없습니다.');
+        toast.warning(MESSAGE.ERROR.UNAUTHORIZED);
         return true; // 이벤트 중단
       }
 

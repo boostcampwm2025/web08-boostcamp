@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   Logger,
 } from '@nestjs/common';
-import { PtRole } from '../../pt/pt.entity';
+import { ERROR_CODE, ROLE } from '@codejam/common';
 import type { CollabSocket } from '../collaboration.types';
 
 @Injectable()
@@ -21,13 +21,13 @@ export class NotHostGuard implements CanActivate {
         `Missing data: roomCode=${roomCode}, ptId=${ptId}, role=${role}`,
       );
       client.emit('error', {
-        type: 'PERMISSION_DENIED',
+        type: ERROR_CODE.PERMISSION_DENIED,
         message: '방 정보 또는 사용자 정보가 없습니다',
       });
       return false;
     }
 
-    if (role === PtRole.HOST) {
+    if (role === ROLE.HOST) {
       this.logger.warn(
         `Already host: roomCode=${roomCode}, ptId=${ptId}, role=${role}`,
       );

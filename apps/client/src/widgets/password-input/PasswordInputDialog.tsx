@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { passwordSchema } from '@codejam/common';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
+  RadixDialog as Dialog,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
+import { RadixButton as Button } from '@codejam/ui';
+import { RadixInput as Input } from '@codejam/ui';
+import { RadixLabel as Label } from '@codejam/ui';
 
 interface PasswordDialogProps {
   open: boolean;
@@ -58,7 +58,11 @@ export function PasswordDialogProps({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false}>
+      <DialogContent
+        showCloseButton={false}
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>비밀번호 입력</DialogTitle>
@@ -80,10 +84,10 @@ export function PasswordDialogProps({
                 maxLength={16}
               />
               {error && (
-                <p className="text-sm text-destructive text-red-600">{error}</p>
+                <p className="text-destructive text-sm text-red-600">{error}</p>
               )}
               {passwordError && (
-                <p className="text-sm text-destructive text-red-600">
+                <p className="text-destructive text-sm text-red-600">
                   {passwordError}
                 </p>
               )}

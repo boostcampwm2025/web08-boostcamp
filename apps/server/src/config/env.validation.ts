@@ -1,4 +1,5 @@
 import * as Joi from 'joi';
+import { JWT_ROOM_TOKEN_DEFAULT_EXPIRES } from '@codejam/common';
 
 export const validationSchema = Joi.object({
   // App
@@ -18,7 +19,12 @@ export const validationSchema = Joi.object({
 
   // JWT
   JWT_ROOM_TOKEN_SECRET: Joi.string().required(),
-  JWT_ROOM_TOKEN_EXPIRES_IN: Joi.string().default('24h'),
+  JWT_ROOM_TOKEN_EXPIRES_IN: Joi.string().default(
+    JWT_ROOM_TOKEN_DEFAULT_EXPIRES,
+  ),
+
+  // Piston (Code Execution)
+  PISTON_API_URL: Joi.string().required(),
 
   // Environment
   NODE_ENV: Joi.string()
