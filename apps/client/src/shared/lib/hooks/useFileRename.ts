@@ -10,16 +10,16 @@ import { extname } from '../file';
 
 export function useFileRename(roomCode: string | null) {
   const [isDuplicated, setIsDuplicated] = useState(false);
-  const {
-    getFileId,
-    createFile,
-    setActiveFile,
-    activeFileId,
-    measureCapacity,
-    addTempFile,
-    clearTempFile,
-    getTempFiles,
-  } = useFileStore();
+
+  const activeFileId = useFileStore((state) => state.activeFileId);
+
+  const getFileId = useFileStore((state) => state.getFileId);
+  const createFile = useFileStore((state) => state.createFile);
+  const setActiveFile = useFileStore((state) => state.setActiveFile);
+  const measureCapacity = useFileStore((state) => state.measureCapacity);
+  const addTempFile = useFileStore((state) => state.addTempFile);
+  const clearTempFile = useFileStore((state) => state.clearTempFile);
+  const getTempFiles = useFileStore((state) => state.getTempFiles);
 
   if (!roomCode) {
     throw new Error('Invalid roomCode');
