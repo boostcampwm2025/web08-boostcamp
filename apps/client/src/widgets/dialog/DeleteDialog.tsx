@@ -1,13 +1,13 @@
 import { socket } from '@/shared/api/socket';
-import { Button } from '@/shared/ui';
+import { RadixButton as Button } from '@codejam/ui';
 import {
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
+  RadixDialogClose as DialogClose,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { SOCKET_EVENTS } from '@codejam/common';
 import { type FormEvent } from 'react';
@@ -43,12 +43,12 @@ export function DeleteDialog({ fileId, fileName, onOpen }: DeleteDialogProps) {
             삭제하시겠습니까?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="sm:justify-start mt-4">
+        <DialogFooter className="mt-4 sm:justify-start">
           <Button
             type="submit"
             variant="default"
             size="sm"
-            className="text-red-400 border border-red-400"
+            className="border border-red-400 text-red-400"
           >
             삭제
           </Button>

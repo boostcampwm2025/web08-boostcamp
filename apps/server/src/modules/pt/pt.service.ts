@@ -1,4 +1,14 @@
-import { Pt, SOCKET_EVENTS, PtUpdatePayload } from '@codejam/common';
+import {
+  Pt,
+  SOCKET_EVENTS,
+  PtUpdatePayload,
+  ROLE,
+  PRESENCE,
+  LIMITS,
+  type PtRole,
+  type PtPresence,
+} from '@codejam/common';
+import { getAvatarColors } from '@codejam/common/avvvatars';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,9 +17,8 @@ import { customAlphabet } from 'nanoid';
 import { Server } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import { CollabSocket } from '../collaboration/collaboration.types';
-import { Pt as PtEntity, PtRole, PtPresence } from './pt.entity';
-import { Room, DefaultRolePolicy } from '../room/room.entity';
-import { MAX_EDITOR_COUNT, PT_HASH_LENGTH } from './pt.constants';
+import { Pt as PtEntity } from './pt.entity';
+import { Room } from '../room/room.entity';
 
 @Injectable()
 export class PtService {
@@ -22,15 +31,6 @@ export class PtService {
     private roomRepository: Repository<Room>,
   ) {}
 
-  private readonly colors = [
-    '#ef4444',
-    '#22c55e',
-    '#3b82f6',
-    '#eab308',
-    '#a855f7',
-    '#ec4899',
-  ];
-
   /** 클라이언트 연결 시 로깅 */
   handleConnection(client: CollabSocket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -42,11 +42,11 @@ export class PtService {
 
     this.logger.log(`Client disconnected: ${ptId} from room ${roomId}`);
 
-    await this.updatePtPresence(roomId, ptId, PtPresence.OFFLINE);
+    await this.updatePtPresence(roomId, ptId, PRESENCE.OFFLINE);
     this.notifyPtDisconnect(client, server);
 
     // EDITOR가 나가고 방 정책이 자동 승격을 허용하는 경우에만 승격 시도
-    if (role === PtRole.EDITOR && (await this.shouldAutoPromote(roomId))) {
+    if (role === ROLE.EDITOR && (await this.shouldAutoPromote(roomId))) {
       await this.promoteCandidates(client, server);
     }
   }
@@ -54,9 +54,12 @@ export class PtService {
   /** 새 참가자 생성 */
   async createPt(roomId: number, nickname: string): Promise<Pt> {
     const ptId = uuidv4();
-    const color = await this.generateRandomColor(roomId);
-    const role = await this.assignRole(roomId);
     const ptHash = this.generatePtHash();
+    const role = await this.assignRole(roomId);
+
+    // ptHash 기반으로 아바타 색상 결정 (서버/클라이언트 동기화)
+    const avatarColors = getAvatarColors(ptHash);
+    const color = avatarColors.shape;
 
     const ptEntity = this.ptRepository.create({
       ptId,
@@ -65,7 +68,7 @@ export class PtService {
       nickname,
       color,
       role,
-      presence: PtPresence.ONLINE,
+      presence: PRESENCE.ONLINE,
     });
 
     await this.ptRepository.save(ptEntity);
@@ -90,21 +93,30 @@ export class PtService {
   }
 
   /** 참가자 복원: ptId로 DB에서 조회하고 presence를 ONLINE으로 업데이트 */
-  async restorePt(roomId: number, ptId: string): Promise<Pt | null> {
+  async restorePt(
+    roomId: number,
+    ptId: string,
+  ): Promise<{ pt: Pt; wasAlreadyOnline: boolean } | null> {
     const ptEntity = await this.ptRepository.findOne({
       where: { roomId, ptId },
     });
 
     if (!ptEntity) return null;
 
+    // 업데이트 전 presence 상태 확인
+    const wasAlreadyOnline = ptEntity.presence === PRESENCE.ONLINE;
+
     // presence를 ONLINE으로 업데이트
     await this.ptRepository.update(
       { roomId, ptId },
-      { presence: PtPresence.ONLINE },
+      { presence: PRESENCE.ONLINE },
     );
 
-    ptEntity.presence = PtPresence.ONLINE;
-    return this.entityToPt(ptEntity);
+    ptEntity.presence = PRESENCE.ONLINE;
+    return {
+      pt: this.entityToPt(ptEntity),
+      wasAlreadyOnline,
+    };
   }
 
   /** 방의 모든 참가자 조회 */
@@ -139,21 +151,21 @@ export class PtService {
   /** 역할 할당: 방 정책에 따라 EDITOR 또는 VIEWER 할당 */
   async assignRole(roomId: number): Promise<PtRole> {
     const room = await this.roomRepository.findOne({ where: { roomId } });
-    if (!room) return PtRole.VIEWER;
+    if (!room) return ROLE.VIEWER;
 
     // VIEWER 정책: 무조건 VIEWER
-    if (room.defaultRolePolicy === DefaultRolePolicy.VIEWER) {
-      return PtRole.VIEWER;
+    if (room.defaultRolePolicy === ROLE.VIEWER) {
+      return ROLE.VIEWER;
     }
 
     // EDITOR 정책: 선착순 6명까지 EDITOR
     const editorCount = await this.countEditors(roomId);
 
-    if (editorCount < MAX_EDITOR_COUNT) {
-      return PtRole.EDITOR;
+    if (editorCount < LIMITS.MAX_CAN_EDIT) {
+      return ROLE.EDITOR;
     }
 
-    return PtRole.VIEWER;
+    return ROLE.VIEWER;
   }
 
   /** 참가자 업데이트 (소켓 + DB) */
@@ -222,7 +234,7 @@ export class PtService {
     if (!room) return false;
 
     // EDITOR 정책인 경우에만 자동 승격 허용
-    return room.defaultRolePolicy === DefaultRolePolicy.EDITOR;
+    return room.defaultRolePolicy === ROLE.EDITOR;
   }
 
   /** Viewer를 Editor로 승격 */
@@ -236,7 +248,7 @@ export class PtService {
 
     const { ptId: targetPtId } = oldestViewer;
 
-    await this.updatePt(client, server, targetPtId, { role: PtRole.EDITOR });
+    await this.updatePt(client, server, targetPtId, { role: ROLE.EDITOR });
     await this.notifyPtRoleUpdate(client, server, targetPtId);
 
     this.logger.log(`[PROMOTE] ${targetPtId} → EDITOR in room ${roomId}`);
@@ -247,8 +259,8 @@ export class PtService {
     return this.ptRepository.findOne({
       where: {
         roomId,
-        role: PtRole.VIEWER,
-        presence: PtPresence.ONLINE,
+        role: ROLE.VIEWER,
+        presence: PRESENCE.ONLINE,
       },
       order: { createdAt: 'ASC' },
     });
@@ -264,8 +276,8 @@ export class PtService {
     const editor = await this.ptRepository.findOne({
       where: {
         roomId,
-        role: PtRole.EDITOR,
-        presence: PtPresence.ONLINE,
+        role: ROLE.EDITOR,
+        presence: PRESENCE.ONLINE,
       },
       order: { createdAt: 'ASC' },
     });
@@ -275,8 +287,8 @@ export class PtService {
     return this.ptRepository.findOne({
       where: {
         roomId,
-        role: PtRole.VIEWER,
-        presence: PtPresence.ONLINE,
+        role: ROLE.VIEWER,
+        presence: PRESENCE.ONLINE,
       },
       order: { createdAt: 'ASC' },
     });
@@ -297,14 +309,14 @@ export class PtService {
 
   /** 참가자 해시 생성 (숫자 4자리) */
   public generatePtHash(): string {
-    const nanoid = customAlphabet('0123456789', PT_HASH_LENGTH);
+    const nanoid = customAlphabet('0123456789', LIMITS.PT_HASH_LENGTH);
     return nanoid();
   }
 
   /** EDITOR 역할을 가진 참가자 수 조회 */
   private async countEditors(roomId: number): Promise<number> {
     return this.ptRepository.count({
-      where: { roomId, role: PtRole.EDITOR },
+      where: { roomId, role: ROLE.EDITOR },
     });
   }
 
@@ -317,30 +329,13 @@ export class PtService {
       .substring(0, length);
   }
 
-  /** 랜덤 색상 생성 (최근 6명과 중복되지 않도록) */
-  private async generateRandomColor(roomId: number): Promise<string> {
-    // DB에서 직접 조회 (새 참가자 생성 시점에는 server가 없으므로)
-    const ptEntities = await this.ptRepository.find({
-      where: { roomId },
-      order: { createdAt: 'DESC' },
-      take: 6,
-    });
-    const ptColors = ptEntities.map((entity) => entity.color);
-    const availableColors = this.colors.filter(
-      (color) => !ptColors.includes(color),
-    );
-
-    const colors = availableColors.length > 0 ? availableColors : this.colors;
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
-
   /** PtEntity를 Pt (common 타입)으로 변환 */
   private entityToPt(entity: PtEntity): Pt {
     return {
       ptId: entity.ptId,
       nickname: entity.nickname,
       ptHash: entity.ptHash,
-      color: entity.color,
+      color: entity.color as Pt['color'],
       role: entity.role,
       presence: entity.presence,
       createdAt: entity.createdAt.toISOString(),

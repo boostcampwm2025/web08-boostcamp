@@ -1,8 +1,13 @@
 import { DefaultEventsMap, Socket } from 'socket.io';
-import { PtRole } from '../pt/pt.entity';
-import { RoomType } from '../room/room.entity';
 import {
   SOCKET_EVENTS,
+  type RoomType,
+  type RoomCode,
+  type PtRole,
+  type PtId,
+  type Nickname,
+  type PtColor,
+  type PtHash,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
@@ -14,17 +19,20 @@ import {
   type PtJoinedPayload,
   type PtDisconnectPayload,
   type PtLeftPayload,
+  type ChatMessageSendPayload,
+  type ChatMessagePayload,
 } from '@codejam/common';
 
 export interface SocketData {
   roomId: number;
-  roomCode: string;
+  roomCode: RoomCode;
   roomType: RoomType;
   docId: string;
-  ptId: string;
+  ptId: PtId;
   role: PtRole;
-  nickname?: string;
-  color?: string;
+  nickname?: Nickname;
+  color?: PtColor;
+  ptHash?: PtHash;
   createdAt?: string;
 }
 
@@ -36,6 +44,10 @@ export interface ClientToServerEvents {
   [SOCKET_EVENTS.REQUEST_AWARENESS]: () => void;
   [SOCKET_EVENTS.UPDATE_FILE]: (payload: FileUpdatePayload) => void;
   [SOCKET_EVENTS.UPDATE_AWARENESS]: (payload: AwarenessUpdatePayload) => void;
+  [SOCKET_EVENTS.CHAT_MESSAGE]: (
+    payload: ChatMessageSendPayload,
+    callback: (response: { success: boolean }) => void,
+  ) => void;
 }
 
 // Server -> Client 이벤트
@@ -49,6 +61,7 @@ export interface ServerToClientEvents {
   [SOCKET_EVENTS.PT_DISCONNECT]: (payload: PtDisconnectPayload) => void;
   [SOCKET_EVENTS.PT_LEFT]: (payload: PtLeftPayload) => void;
   [SOCKET_EVENTS.UPDATE_PT]: (payload: PtUpdatePayload) => void;
+  [SOCKET_EVENTS.CHAT_MESSAGE]: (payload: ChatMessagePayload) => void;
 }
 
 export type CollabSocket = Socket<

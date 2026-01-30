@@ -1,3 +1,4 @@
+import { ROLE, ROOM_TYPE } from '@codejam/common';
 import { usePt } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import type { EditableProps, ParticipantProps } from '../lib/types';
@@ -28,14 +29,17 @@ export function ParticipantInfo({
   const isMe = myPtId === ptId;
 
   // 호스트 배지는 절대 클릭 불가
-  const isInteractive = !!(canToggle && role !== 'host');
+  const isInteractive = !!(canToggle && role !== ROLE.HOST);
 
   // 본인 + Custom Room + 비호스트 + hostPassword 있음 → 호스트 권한 요청 UI 표시
   const showHostClaimSwitcher =
-    isMe && roomType === 'custom' && role !== 'host' && hasHostPassword;
+    isMe &&
+    roomType === ROOM_TYPE.CUSTOM &&
+    role !== ROLE.HOST &&
+    hasHostPassword;
 
   return (
-    <div className="flex flex-col min-w-0 gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       <ParticipantName
         editable={editable}
         onEditable={onEditable}
@@ -45,7 +49,7 @@ export function ParticipantInfo({
         isMe={isMe}
       />
 
-      <div className="flex items-center h-6">
+      <div className="flex h-6 items-center">
         {showHostClaimSwitcher ? (
           <HostClaimSwitcher role={role} hasHostPassword={hasHostPassword} />
         ) : (

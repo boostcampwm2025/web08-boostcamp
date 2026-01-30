@@ -8,15 +8,15 @@ export function EmptyView() {
   if (!roomCode) return null;
 
   return (
-    <div className="flex items-center justify-center h-full">
+    <div className="flex h-full items-center justify-center">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-100">
+        <h2 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-gray-100">
           No file open
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
           Create a new file or upload an existing one to get started
         </p>
-        <div className="flex gap-3 justify-center">
+        <div className="flex justify-center gap-3">
           <div className="scale-120">
             <NewFileButton roomCode={roomCode} />
             <FileUploadButton roomCode={roomCode} />

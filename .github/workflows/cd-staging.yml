@@ -19,6 +19,7 @@ jobs:
             client:
               - 'apps/client/**'
               - 'packages/common/**'
+              - 'packages/ui/**'
               - 'pnpm-lock.yaml'
             server:
               - 'apps/server/**'
@@ -45,11 +46,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Install dependencies and build common
+      - name: Install dependencies
         if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages for Client
+        if: steps.changes.outputs.client == 'true'
         run: |
-          pnpm install --frozen-lockfile
           pnpm --filter @codejam/common build
+          pnpm --filter @codejam/ui build
 
       - name: Install Vercel CLI
         if: steps.changes.outputs.client == 'true'

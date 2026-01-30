@@ -1,0 +1,72 @@
+@import './theme.css';
+
+@source '../**/*.{ts,tsx}';
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'calt' 1,
+      'case' 1;
+  }
+  p,
+  li,
+  blockquote,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'calt' 1,
+      'case' 1;
+  }
+}
+
+@layer base {
+  /* 스크롤바 전체 너비 */
+  ::-webkit-scrollbar {
+    width: 10px; /* 세로 스크롤바 너비 */
+    height: 10px; /* 가로 스크롤바 높이 */
+  }
+
+  /* 스크롤바 트랙 (배경) - 투명하게 해서 콘텐츠 배경색이 보이도록 */
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* 스크롤바 핸들 */
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 5px; /* 둥글게 처리 */
+    border: 2px solid transparent; /* 여백을 주기 위한 트릭 */
+    background-clip: content-box; /* border 안쪽만 색칠 */
+  }
+
+  /* 스크롤바 핸들 호버 */
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer base {
+  ::selection {
+    color: var(--primary-foreground);
+    background-color: var(--primary);
+  }
+}
+

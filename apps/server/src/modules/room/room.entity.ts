@@ -4,33 +4,14 @@ import {
   Column,
   CreateDateColumn,
 } from 'typeorm';
-
-/**
- * 방 설정
- */
-export enum RoomType {
-  QUICK = 'quick',
-  CUSTOM = 'custom',
-}
-
-/**
- * 기본 입장 권한 설정 정책
- */
-export enum DefaultRolePolicy {
-  /** 읽기 전용 (기본값) */
-  VIEWER = 'viewer',
-
-  /** 편집 가능 */
-  EDITOR = 'editor',
-}
-
-/**
- * 방을 폭파할 수 있는 권한 범위
- */
-export enum WhoCanDestroyRoom {
-  HOST = 'host',
-  EDITOR = 'editor',
-}
+import {
+  ROOM_TYPE,
+  WHO_CAN_DESTROY_ROOM,
+  DEFAULT_ROLE,
+  type RoomType,
+  type DefaultRolePolicy,
+  type WhoCanDestroyRoom,
+} from '@codejam/common';
 
 @Entity('rooms')
 export class Room {
@@ -42,8 +23,7 @@ export class Room {
 
   @Column({
     type: 'enum',
-    enum: RoomType,
-    default: RoomType.QUICK,
+    enum: Object.values(ROOM_TYPE),
   })
   roomType: RoomType;
 
@@ -58,15 +38,13 @@ export class Room {
 
   @Column({
     type: 'enum',
-    enum: DefaultRolePolicy,
-    default: DefaultRolePolicy.VIEWER,
+    enum: Object.values(DEFAULT_ROLE),
   })
   defaultRolePolicy: DefaultRolePolicy;
 
   @Column({
     type: 'enum',
-    enum: WhoCanDestroyRoom,
-    default: WhoCanDestroyRoom.HOST,
+    enum: Object.values(WHO_CAN_DESTROY_ROOM),
   })
   whoCanDestroyRoom: WhoCanDestroyRoom;
 

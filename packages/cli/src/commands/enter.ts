@@ -1,10 +1,14 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
+import {
+  ROOM_JOIN_STATUS,
+  roomCodeSchema,
+  type RoomJoinStatus,
+} from '@codejam/common';
 import { getConfig } from '../config/index.js';
 import { ApiClient } from '../api/index.js';
 import { openRoomInBrowser, handleError } from '../utils/index.js';
-import type { RoomJoinStatus } from '../api/types.js';
 
 interface EnterOptions {
   env?: string;
@@ -12,12 +16,9 @@ interface EnterOptions {
 }
 
 function validateRoomCode(roomCode: string): void {
-  if (!/^[A-Z0-9]{6}$/.test(roomCode)) {
-    console.error(
-      chalk.red(
-        'Invalid room code format. Room code must be 6 alphanumeric characters.',
-      ),
-    );
+  const result = roomCodeSchema.safeParse(roomCode);
+  if (!result.success) {
+    console.error(chalk.red(result.error.issues[0].message));
     process.exit(1);
   }
 }
@@ -29,13 +30,13 @@ async function checkRoomStatus(
   const spinner = ora('Checking room status...').start();
   const status: RoomJoinStatus = await client.checkJoinable(roomCode);
 
-  if (status === 'NOT_FOUND') {
+  if (status === ROOM_JOIN_STATUS.NOT_FOUND) {
     spinner.fail(chalk.red('Room not found'));
     console.error(chalk.gray(`The room code "${roomCode}" does not exist.`));
     process.exit(1);
   }
 
-  if (status === 'FULL') {
+  if (status === ROOM_JOIN_STATUS.FULL) {
     spinner.fail(chalk.red('Room is full'));
     console.error(
       chalk.gray(`The room "${roomCode}" has reached its maximum capacity.`),

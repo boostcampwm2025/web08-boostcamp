@@ -1,23 +1,27 @@
 import { socket } from '@/shared/api/socket';
 import type { ExtType } from '@/shared/lib/file';
-import { Button, Input, Label } from '@/shared/ui';
 import {
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
+  RadixButton as Button,
+  RadixInput as Input,
+  RadixLabel as Label,
+} from '@codejam/ui';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/ui/select';
+  RadixDialogClose as DialogClose,
+  RadixDialogContent as DialogContent,
+  RadixDialogDescription as DialogDescription,
+  RadixDialogFooter as DialogFooter,
+  RadixDialogHeader as DialogHeader,
+  RadixDialogTitle as DialogTitle,
+} from '@codejam/ui';
+import {
+  RadixSelect as Select,
+  RadixSelectContent as SelectContent,
+  RadixSelectGroup as SelectGroup,
+  RadixSelectItem as SelectItem,
+  RadixSelectLabel as SelectLabel,
+  RadixSelectTrigger as SelectTrigger,
+  RadixSelectValue as SelectValue,
+} from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { SOCKET_EVENTS } from '@codejam/common';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
@@ -91,7 +95,7 @@ export function RenameDialog({
           <DialogTitle>파일 이름 변경</DialogTitle>
           <DialogDescription>파일의 이름을 변경합니다.</DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2 mt-2 mb-2">
+        <div className="mt-2 mb-2 flex items-center space-x-2">
           <Label htmlFor="filename" className="sr-only">
             파일명
           </Label>
@@ -108,18 +112,22 @@ export function RenameDialog({
             <SelectContent className="bg-white">
               <SelectGroup>
                 <SelectLabel>확장자</SelectLabel>
-                <SelectItem value="js">.js</SelectItem>
-                <SelectItem value="ts">.ts</SelectItem>
-                <SelectItem value="jsx">.jsx</SelectItem>
-                <SelectItem value="tsx">.tsx</SelectItem>
-                <SelectItem value="html">.html</SelectItem>
+                <SelectItem value="c">.c</SelectItem>
+                <SelectItem value="cpp">.cpp</SelectItem>
                 <SelectItem value="css">.css</SelectItem>
+                <SelectItem value="html">.html</SelectItem>
+                <SelectItem value="java">.java</SelectItem>
+                <SelectItem value="js">.js</SelectItem>
+                <SelectItem value="jsx">.jsx</SelectItem>
+                <SelectItem value="py">.py</SelectItem>
+                <SelectItem value="ts">.ts</SelectItem>
+                <SelectItem value="tsx">.tsx</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
         </div>
         {helperMessage && (
-          <p className="text-[12px] text-destructive text-red-500">
+          <p className="text-destructive text-[12px] text-red-500">
             {helperMessage}
           </p>
         )}

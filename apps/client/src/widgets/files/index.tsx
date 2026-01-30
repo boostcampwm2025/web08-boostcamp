@@ -1,73 +1,96 @@
+import { ROLE } from '@codejam/common';
 import { useFileStore } from '@/stores/file';
-import { File } from './File';
+import { File } from './components/File';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
-import { useEffect, useState } from 'react';
-import { FileHeader } from './components/FileHeader';
+import { useEffect, useMemo, useState } from 'react';
+import { SidebarHeader } from '@codejam/ui';
+import { CapacityGauge } from '../capacity-gauge';
+import { FileHeaderActions } from './components/FileHeaderActions';
+import type { FileSortKey } from './lib/types';
+import { filterFiles, sortFiles } from './lib/file-logic';
+import { FileFilterBar } from './components/FileFilterBar';
 
-export function FileList() {
+type FileListProps = {
+  readOnly: boolean;
+};
+
+export function FileList({ readOnly }: FileListProps) {
   const getFileIdMap = useFileStore((state) => state.getFileIdMap);
-  const yDoc = useFileStore((state) => state.yDoc);
-
-  const [count, setCount] = useState(0);
+  const roomCode = useRoomStore((state) => state.roomCode);
   const [entries, setEntries] = useState<[string, string][]>([]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortKey, setSortKey] = useState<FileSortKey>('name-asc');
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const me = usePt(myPtId);
-  const hasPermission = me?.role === 'host' || me?.role === 'editor';
+  const hasPermission = me?.role === ROLE.HOST || me?.role === ROLE.EDITOR;
 
   useEffect(() => {
     const fileMap = getFileIdMap();
-    if (!fileMap) {
-      return;
-    }
+    if (!fileMap) return;
+    const update = () => setEntries(Object.entries(fileMap.toJSON()));
+    update();
+    fileMap.observe(update);
+    return () => fileMap.unobserve(update);
+  }, [getFileIdMap]);
 
-    // 초기값 설정
-    const updateFileList = () => {
-      const newEntries: [string, string][] = Object.entries(fileMap.toJSON());
-      setCount(newEntries.length);
-      setEntries(newEntries);
-    };
-
-    updateFileList();
-
-    // YMap 변경 감지
-    const observer = () => {
-      updateFileList();
-    };
-
-    fileMap.observe(observer);
-
-    return () => {
-      fileMap.unobserve(observer);
-    };
-  }, [yDoc, getFileIdMap]);
+  const processedFiles = useMemo(() => {
+    const filtered = filterFiles(entries, searchQuery);
+    return sortFiles(filtered, sortKey);
+  }, [entries, searchQuery, sortKey]);
 
   return (
-    <div className="w-full px-4">
-      <FileHeader
-        count={count}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-      />
+    <div className="flex h-full w-full flex-col">
+      {/* 헤더 */}
+      <div className="px-4">
+        <SidebarHeader
+          title="파일"
+          count={processedFiles.length}
+          action={
+            roomCode &&
+            hasPermission && <FileHeaderActions roomCode={roomCode} />
+          }
+        />
+      </div>
 
-      <div
-        className={`flex flex-col overflow-hidden transition-all duration-200 ease-in-out ${
-          isCollapsed ? 'max-h-0' : 'max-h-[600px]'
-        }`}
-      >
-        {entries.map(([fileName, fileId]) => (
-          <File
-            key={fileId}
-            fileId={fileId}
-            fileName={fileName}
-            hasPermission={hasPermission}
-          />
-        ))}
+      {/* 필터 & 검색 */}
+      <div className="border-border/40 border-b px-4 pb-3">
+        <FileFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortKey={sortKey}
+          onSortChange={setSortKey}
+        />
+      </div>
+
+      {/* 파일 리스트 */}
+      <div className="scrollbar-hide flex-1 overflow-y-auto px-4 py-2">
+        {processedFiles.length > 0 ? (
+          <div className="flex flex-col gap-0.5">
+            {processedFiles.map(([fileName, fileId]) => (
+              <File
+                key={fileId}
+                fileId={fileId}
+                fileName={fileName}
+                hasPermission={hasPermission}
+                readOnly={readOnly}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex h-40 flex-col items-center justify-center text-center">
+            <p className="text-muted-foreground text-sm">
+              {searchQuery ? '검색 결과가 없습니다.' : '파일이 없습니다.'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 용량 게이지 */}
+      <div className="border-border/40 bg-muted/5 mt-auto border-t px-4 py-3">
+        <CapacityGauge />
       </div>
     </div>
   );
 }
-
-export { File } from './File';

@@ -12,6 +12,7 @@
     "format:check": "turbo run format:check",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "validate": "bash scripts/validate-summary.sh",
     "clean": "rm -rf node_modules **/*/node_modules"
   },
   "keywords": [

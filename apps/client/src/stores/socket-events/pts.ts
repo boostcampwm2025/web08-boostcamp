@@ -1,7 +1,10 @@
 import { socket } from '@/shared/api/socket';
 import {
   SOCKET_EVENTS,
-  MAX_CAN_EDIT_COUNT,
+  LIMITS,
+  MESSAGE,
+  ROLE,
+  PRESENCE,
   type Pt,
   type PtJoinedPayload,
   type PtDisconnectPayload,
@@ -14,7 +17,7 @@ import {
 import { usePtsStore } from '../pts';
 import { useRoomStore } from '../room';
 import { useHostClaimStore } from '../hostClaim';
-import { toast } from 'sonner';
+import { toast } from '@codejam/ui';
 
 export const setupPtsEventHandlers = () => {
   const onPtJoined = (data: PtJoinedPayload) => {
@@ -26,7 +29,9 @@ export const setupPtsEventHandlers = () => {
     console.log(`👋 [PT_DISCONNECT] PtId: ${data.ptId}`);
     const pt = usePtsStore.getState().pts[data.ptId];
     if (!pt) return;
-    usePtsStore.getState().setPt(pt.ptId, { ...pt, presence: 'offline' });
+    usePtsStore
+      .getState()
+      .setPt(pt.ptId, { ...pt, presence: PRESENCE.OFFLINE });
   };
 
   const onPtLeft = (data: PtLeftPayload) => {
@@ -57,20 +62,20 @@ export const setupPtsEventHandlers = () => {
     const isMe = data.pt.ptId === myPtId;
 
     if (isMe && pt.role !== data.pt.role) {
-      if (data.pt.role === 'editor') {
+      if (data.pt.role === ROLE.EDITOR) {
         const canEditCount = Object.values(usePtsStore.getState().pts).filter(
-          (p) => p.role === 'editor' || p.role === 'host',
+          (p) => p.role === ROLE.EDITOR || p.role === ROLE.HOST,
         ).length;
 
-        if (canEditCount >= MAX_CAN_EDIT_COUNT) {
+        if (canEditCount >= LIMITS.MAX_CAN_EDIT) {
           toast.success('편집 권한이 부여되었습니다.', {
-            description: `현재 에디터가 ${canEditCount}명입니다. ${MAX_CAN_EDIT_COUNT}명 이상 동시 편집 시 작성 내역이 소실되거나 충돌이 발생할 수 있습니다.`,
+            description: `현재 에디터가 ${canEditCount}명입니다. ${LIMITS.MAX_CAN_EDIT}명 이상 동시 편집 시 작성 내역이 소실되거나 충돌이 발생할 수 있습니다.`,
             duration: 5000,
           });
         } else {
           toast.success('편집 권한이 부여되었습니다.');
         }
-      } else if (data.pt.role === 'viewer') {
+      } else if (data.pt.role === ROLE.VIEWER) {
         toast.info('뷰어로 변경되었습니다.');
       }
     }
@@ -79,20 +84,21 @@ export const setupPtsEventHandlers = () => {
     if (
       !isMe &&
       pt.role !== data.pt.role &&
-      data.pt.role === 'editor' &&
+      data.pt.role === ROLE.EDITOR &&
       myPtId
     ) {
       const myPt = usePtsStore.getState().pts[myPtId];
-      const canEdit = myPt && (myPt.role === 'host' || myPt.role === 'editor');
+      const canEdit =
+        myPt && (myPt.role === ROLE.HOST || myPt.role === ROLE.EDITOR);
 
       if (canEdit) {
         const canEditCount = Object.values(usePtsStore.getState().pts).filter(
-          (p) => p.role === 'editor' || p.role === 'host',
+          (p) => p.role === ROLE.EDITOR || p.role === ROLE.HOST,
         ).length;
 
-        if (canEditCount >= MAX_CAN_EDIT_COUNT) {
+        if (canEditCount >= LIMITS.MAX_CAN_EDIT) {
           toast.warning(`현재 에디터가 ${canEditCount}명입니다.`, {
-            description: `${MAX_CAN_EDIT_COUNT}명 이상 동시 편집 시 작성 내역이 소실되거나 충돌이 발생할 수 있습니다.`,
+            description: `${LIMITS.MAX_CAN_EDIT}명 이상 동시 편집 시 작성 내역이 소실되거나 충돌이 발생할 수 있습니다.`,
             duration: 5000,
           });
         }
@@ -148,17 +154,11 @@ export const setupPtsEventHandlers = () => {
   };
 
   // 요청자에게: 호스트 클레임 실패 알림
-  const CLAIM_FAIL_MESSAGES: Record<string, string> = {
-    INVALID_PASSWORD: '비밀번호가 일치하지 않습니다.',
-    CLAIM_ALREADY_PENDING: '이미 진행 중인 호스트 권한 요청이 있습니다.',
-    HOST_NOT_FOUND: '호스트를 찾을 수 없습니다.',
-    ROOM_NOT_FOUND: '방을 찾을 수 없습니다.',
-  };
-
   const onHostClaimFailed = (data: { reason: string }) => {
     console.log(`❌ [HOST_CLAIM_FAILED] ${data.reason}`);
     toast.error(
-      CLAIM_FAIL_MESSAGES[data.reason] || '호스트 권한 요청에 실패했습니다.',
+      MESSAGE.HOST_CLAIM_FAIL[data.reason] ||
+        '호스트 권한 요청에 실패했습니다.',
     );
   };
 

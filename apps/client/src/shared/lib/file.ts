@@ -1,35 +1,19 @@
-export type ExtType =
-  | 'js'
-  | 'ts'
-  | 'jsx'
-  | 'tsx'
-  | 'html'
-  | 'css'
-  | 'cjs'
-  | 'mjs'
-  | 'shtml'
-  | 'ehtml'
-  | undefined;
-export function extname(name: string | undefined): ExtType {
-  if (!name) return undefined;
-  const lastDot = name.trim().lastIndexOf('.');
+export { type ExtType, extname, purename } from '@codejam/common';
 
-  if (lastDot === -1) {
-    return undefined;
-  }
+const pistonLanguageMap: Record<string, string> = {
+  c: 'c',
+  cpp: 'c++',
+  java: 'java',
+  js: 'javascript',
+  ts: 'typescript',
+  py: 'python',
+};
 
-  return name
-    .trim()
-    .substring(lastDot + 1)
-    .toLowerCase() as ExtType;
-}
-
-export function purename(name: string): string {
-  const lastDot = name.trim().lastIndexOf('.');
-
-  if (lastDot === -1) {
-    return '';
-  }
-
-  return name.trim().substring(0, lastDot);
+/**
+ * Map file extension to Piston executable language
+ * @param extension - File extension
+ * @returns Piston language identifier or null if not executable
+ */
+export function getPistonLanguage(extension: string): string | null {
+  return pistonLanguageMap[extension.toLowerCase()] || null;
 }

@@ -1,4 +1,4 @@
-import { Progress } from '@/shared/ui/progress';
+import { RadixProgress as Progress, cn } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 
 function formatBytes(bytes: number): string {
@@ -13,28 +13,38 @@ export function CapacityGauge() {
   const isOverLimit = useFileStore((state) => state.isOverLimit);
 
   const getIndicatorColor = () => {
-    if (isOverLimit) return 'bg-red-500';
-    if (capacityPercentage >= 70) return 'bg-orange-400';
-    return 'bg-green-500';
+    if (isOverLimit) return 'bg-brand-red';
+    if (capacityPercentage >= 70) return 'bg-brand-orange';
+    return 'bg-brand-blue';
   };
 
-  const tooltipText = `${formatBytes(capacityBytes)} / 1 MB`;
-
   return (
-    <div className="relative flex items-center gap-2 group font-sans">
-      <div className="flex items-center gap-2">
-        <Progress
-          value={capacityPercentage}
-          className="w-16 h-2 border border-gray-300 dark:border-gray-600"
-          indicatorClassName={getIndicatorColor()}
-        />
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          {capacityPercentage.toFixed(0)}%
+    <div className="group flex flex-col gap-2 py-1 select-none">
+      <div className="text-muted-foreground flex items-center justify-between text-[11px] font-medium">
+        <div className="flex items-center gap-1">
+          <span>저장 용량</span>
+          <span
+            className={cn(
+              'font-semibold',
+              isOverLimit ? 'text-brand-red' : 'text-brand-blue',
+            )}
+          >
+            {capacityPercentage.toFixed(1)}%
+          </span>
+        </div>
+        <span className="tabular-nums opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          {formatBytes(capacityBytes)} / 1 MB
         </span>
       </div>
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-primary-foreground bg-white dark:bg-gray-800 border-[0.5px] border-gray-300 dark:border-gray-600 rounded shadow-lg whitespace-nowrap z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
-        {tooltipText}
-      </div>
+
+      <Progress
+        value={capacityPercentage}
+        className="bg-muted h-1.5 w-full overflow-hidden rounded-full border-none"
+        indicatorClassName={cn(
+          'transition-all duration-500',
+          getIndicatorColor(),
+        )}
+      />
     </div>
   );
 }

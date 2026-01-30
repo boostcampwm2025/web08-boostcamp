@@ -10,8 +10,10 @@ import {
   type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
+  type ExecuteCodePayload,
+  type ChatMessageSendPayload,
 } from '@codejam/common';
-import { UseGuards } from '@nestjs/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -29,7 +31,12 @@ import { HostGuard } from './guards/host.guard';
 import { DestroyRoomGuard } from './guards/destroy-room.guard';
 import { CustomRoomGuard } from './guards/custom-room.guard';
 import { NotHostGuard } from './guards/not-host.guard';
+import { WsToken } from '../../common/decorators/ws-token.decorator';
+import { Throttle } from '@nestjs/throttler';
+import { WsThrottlerGuard } from '../../common/guards/ws-throttler.guard';
+import { WsExceptionFilter } from '../../common/filters/ws-exception.filter';
 
+@UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   cors: {
     origin: '*', // 개발용: 모든 출처 허용 (배포 시 프론트 주소로 변경)
@@ -58,12 +65,14 @@ export class CollaborationGateway
   async handleJoinRoom(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: JoinRoomPayload,
+    @WsToken() token: string | null,
   ) {
     try {
       await this.collaborationService.handleJoinRoom(
         client,
         this.server,
         payload,
+        token,
       );
     } catch (error) {
       const errorMessage =
@@ -207,6 +216,38 @@ export class CollaborationGateway
   @SubscribeMessage(SOCKET_EVENTS.REJECT_HOST_CLAIM)
   handleRejectHostClaim(@ConnectedSocket() client: CollabSocket) {
     this.collaborationService.handleRejectHostClaim(client, this.server);
+  }
+
+  /** C -> S 채팅 메시지 전송 */
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
+  @UseGuards(WsThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 1000 } })
+  async handleChatMessage(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: ChatMessageSendPayload,
+  ): Promise<{ success: boolean }> {
+    await this.collaborationService.handleChatMessage(
+      client,
+      this.server,
+      payload,
+    );
+    return { success: true };
+  }
+
+  /** C -> S 코드 실행 요청 */
+  @UseGuards(PermissionGuard, WsThrottlerGuard)
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
+  @UseGuards(PermissionGuard)
+  @SubscribeMessage(SOCKET_EVENTS.EXECUTE_CODE)
+  async handleExecuteCode(
+    @ConnectedSocket() client: CollabSocket,
+    @MessageBody() payload: ExecuteCodePayload,
+  ) {
+    await this.collaborationService.handleExecuteCode(
+      client,
+      this.server,
+      payload,
+    );
   }
 
   /**

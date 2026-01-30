@@ -1,7 +1,7 @@
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { type Language } from './types';
+import { type Language } from '@codejam/common';
 
 export const getLanguageExtension = (language: Language) => {
   switch (language) {

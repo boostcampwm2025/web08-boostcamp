@@ -1,3 +1,3 @@
-export * from "./nickname.schema.js";
-export * from "./password.schema.js"
-export * from "./room-join.js"
+export * from './entities/index.js';
+export * from './api/index.js';
+export * from './socket/index.js';
