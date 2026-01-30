@@ -191,12 +191,16 @@ function FileViewer({ tabKey }: FileViewerProps) {
   const getFileName = useFileStore((state) => state.getFileName);
   const activeTab = useTabStore((state) => state.activeTab);
   const setActiveTab = useTabStore((state) => state.setActiveTab);
+  const myPtId = useRoomStore((state) => state.myPtId);
+  const myPt = usePt(myPtId || '');
 
   const fileTab = takeTab(tabKey) as FileViewerTab;
 
   if (!activeTab[tabKey] || !fileTab[activeTab[tabKey]]) return <EmptyView />;
 
-  const { fileId, readOnly } = fileTab[activeTab[tabKey]];
+  const { fileId } = fileTab[activeTab[tabKey]];
+  // 역할 변경(VIEWER→EDITOR) 시 즉시 반영되도록 현재 역할 기준으로 계산
+  const readOnly = myPt?.role === ROLE.VIEWER;
 
   const handleDeleteTab = (fileName: string) => {
     removeLinear(tabKey, fileName);
