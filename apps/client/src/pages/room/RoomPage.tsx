@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, type DragEvent } from 'react';
+import { useContext, useEffect, type DragEvent } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
 import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
@@ -78,7 +78,7 @@ function RoomPage() {
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const myPt = usePt(myPtId || '');
-  const isViewer = useMemo(() => myPt?.role === ROLE.VIEWER, [myPt?.role]);
+  const isViewer = myPt?.role === ROLE.VIEWER;
 
   const handleDragPrevent = (ev: DragEvent) => {
     ev.preventDefault();
@@ -138,7 +138,9 @@ function RoomPage() {
                   },
                 }}
               >
-                {(tabKey: number) => <FileViewer tabKey={tabKey} />}
+                {(tabKey: number) => (
+                  <FileViewer tabKey={tabKey} readOnly={isViewer} />
+                )}
               </LinearGrid>
             </div>
             <Chat />
@@ -175,6 +177,7 @@ function RoomPage() {
 
 interface FileViewerProps {
   tabKey: number;
+  readOnly: boolean;
 }
 
 type FileViewerTab = {
@@ -184,7 +187,7 @@ type FileViewerTab = {
   };
 };
 
-function FileViewer({ tabKey }: FileViewerProps) {
+function FileViewer({ tabKey, readOnly }: FileViewerProps) {
   const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
     useContext(LinearTabApiContext);
   const setActiveFileId = useFileStore((state) => state.setActiveFile);
@@ -196,7 +199,7 @@ function FileViewer({ tabKey }: FileViewerProps) {
 
   if (!activeTab[tabKey] || !fileTab[activeTab[tabKey]]) return <EmptyView />;
 
-  const { fileId, readOnly } = fileTab[activeTab[tabKey]];
+  const { fileId } = fileTab[activeTab[tabKey]];
 
   const handleDeleteTab = (fileName: string) => {
     removeLinear(tabKey, fileName);
