@@ -19,6 +19,11 @@ export class WsExceptionFilter implements ExceptionFilter {
       if (exception.targetEvent) {
         targetEvent = this.mapToErrorEvent(exception.targetEvent);
       }
+    } else if (
+      exception?.message === 'Forbidden resource' ||
+      exception?.error === 'Forbidden resource'
+    ) {
+      return;
     }
 
     client.emit(targetEvent, { type: code, message: message });
