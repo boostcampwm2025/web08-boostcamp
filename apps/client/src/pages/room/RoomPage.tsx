@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, type DragEvent } from 'react';
+import { useContext, useEffect, type DragEvent } from 'react';
 import { CodeEditor } from '@/widgets/code-editor';
 import { EmptyView } from './EmptyView';
 import { Header } from '@/widgets/header';
