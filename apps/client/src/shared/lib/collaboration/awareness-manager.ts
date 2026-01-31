@@ -21,16 +21,15 @@ export class AwarenessManager {
 
   /**
    * Register a callback to be called when Awareness is updated
-   * Callback receives encoded update ready to send to server
-   * Only triggers for local changes to prevent echo loops
+   * Callback receives encoded update and origin
+   *
+   * Note: Developer should check origin to prevent echo loops when sending to server.
+   * Example: if (origin === 'remote') return;
    */
   onUpdate(
     callback: (encodedUpdate: Uint8Array, origin: unknown) => void,
   ): void {
     this.awareness.on('update', (changes: AwarenessUpdate, origin: unknown) => {
-      // Skip remote updates to prevent sending them back to server (echo prevention)
-      if (origin === 'remote') return;
-
       const { added, updated, removed } = changes;
 
       const changed = added.concat(updated, removed);
