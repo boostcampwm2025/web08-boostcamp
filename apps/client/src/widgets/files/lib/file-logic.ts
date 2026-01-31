@@ -1,26 +1,27 @@
+import type { FileMetadata } from '@/shared/lib/collaboration';
 import type { FileSortKey } from './types';
 
 /** 파일 이름 기준 필터링 */
 export const filterFiles = (
-  entries: [string, string][],
+  files: FileMetadata[],
   searchQuery: string,
-) => {
-  if (!searchQuery) return entries;
-  return entries.filter(([name]) =>
-    name.toLowerCase().includes(searchQuery.toLowerCase()),
+): FileMetadata[] => {
+  if (!searchQuery) return files;
+  return files.filter((file) =>
+    file.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 };
 
 /** 정렬 로직 */
 export const sortFiles = (
-  entries: [string, string][],
+  files: FileMetadata[],
   sortKey: FileSortKey,
-) => {
-  const sorted = [...entries];
+): FileMetadata[] => {
+  const sorted = [...files];
 
   sorted.sort((a, b) => {
-    const nameA = a[0].toLowerCase();
-    const nameB = b[0].toLowerCase();
+    const nameA = a.name.toLowerCase();
+    const nameB = b.name.toLowerCase();
 
     if (sortKey === 'name-asc') return nameA.localeCompare(nameB);
     if (sortKey === 'name-desc') return nameB.localeCompare(nameA);
