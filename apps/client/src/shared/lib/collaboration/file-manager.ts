@@ -54,10 +54,20 @@ export class FileManager {
   }
 
   /**
-   * Register a callback to be called when files are updated
-   * Used by file store to update reactive state
+   * Register a callback when file change occurs
+   * Triggers on: file add, remove, rename, and content changes
+   * Use this when you need to track all changes including content edits
    */
-  onFilesUpdate(callback: () => void): void {
+  onFilesChange(callback: () => void): void {
+    this.files.observeDeep(() => callback());
+  }
+
+  /**
+   * Register a callback when file metadata changes
+   * Triggers on: file add, remove, rename
+   * Use this for UI file lists to avoid overhead from content edits
+   */
+  onFilesMetadataChange(callback: () => void): void {
     this.files.observe(() => callback());
   }
 

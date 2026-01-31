@@ -9,6 +9,7 @@ import {
   type YDocManager,
   type AwarenessManager,
   type FileManager,
+  type FileMetadata,
 } from '@/shared/lib/collaboration';
 
 interface FileState {
@@ -23,6 +24,9 @@ interface FileState {
   viewerFileId: string | null;
   isInitialized: boolean;
   isInitialDocLoaded: boolean;
+
+  // File metadata
+  files: FileMetadata[];
 
   // 업로드 파일
   tempFiles: File[];
@@ -73,6 +77,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   isInitialized: false,
   isInitialDocLoaded: false,
 
+  files: [],
   tempFiles: [],
 
   // Capacity State 초기값
@@ -92,11 +97,7 @@ export const useFileStore = create<FileState>((set, get) => ({
 
     // Setup YDoc update listener
     yDocManager.onUpdate((update, origin) => {
-      // Measure capacity on ALL updates (local and remote)
-      // Capacity represents total document size from all collaborators
-      get().measureCapacity();
-
-      // Skip remote updates to prevent echo (don't send back to server)
+      // Skip remote updates
       if (origin === 'remote') return;
 
       const { isConnected } = useSocketStore.getState();
@@ -107,7 +108,7 @@ export const useFileStore = create<FileState>((set, get) => ({
 
     // Setup awareness update listener
     awarenessManager.onUpdate((update, origin) => {
-      // Skip remote updates to prevent echo (don't send back to server)
+      // Skip remote updates
       if (origin === 'remote') return;
 
       const { isConnected, roomCode } = useSocketStore.getState();
@@ -116,14 +117,26 @@ export const useFileStore = create<FileState>((set, get) => ({
       emitAwarenessUpdate(roomCode, update);
     });
 
+    // Measure capacity on files updates
+    fileManager.onFilesChange(() => {
+      get().measureCapacity();
+    });
+
     // Setup file changes listener
-    fileManager.onFilesUpdate(() => {
+    fileManager.onFilesMetadataChange(() => {
       const { activeFileId } = get();
       if (!activeFileId) return;
 
       // Check if active file still exists
-      if (!fileManager.getFileNode(activeFileId)) return;
-      set({ activeFileId: null });
+      if (!fileManager.getFileNode(activeFileId)) {
+        set({ activeFileId: null });
+      }
+    });
+
+    // Setup file metadata listener (shallow - updates UI file list)
+    fileManager.onFilesMetadataChange(() => {
+      const metadata = fileManager.getFileTree();
+      set({ files: metadata });
     });
 
     // Save managers and instances
