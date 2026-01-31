@@ -19,18 +19,6 @@ export interface CollaborationContext {
 /**
  * Factory function to create a complete collaboration context
  * Creates Y.Doc, Awareness, and all managers for real-time collaboration
- *
- * @returns CollaborationContext with all collaboration instances and managers
- *
- * @example
- * ```typescript
- * const { yDoc, awareness, yDocManager, awarenessManager, fileManager } = createCollaborationContext();
- *
- * // Setup listeners
- * yDocManager.onUpdate((update) => { ... });
- * awarenessManager.onUpdate((update) => { ... });
- * fileManager.onFilesUpdate(() => { ... });
- * ```
  */
 export function createCollaborationContext(): CollaborationContext {
   // Create Y.Doc
