@@ -15,27 +15,16 @@ export interface FileMetadata {
 export class FileManager {
   private yDoc: YDoc;
   private files: YMap<YMap<unknown>>;
-  private fileIds: YMap<string>;
-  private initialized: boolean = false;
+  private names: YMap<string>;
+  private meta: YMap<unknown>;
 
   constructor(yDoc: YDoc) {
     this.yDoc = yDoc;
-    this.files = yDoc.getMap('files') as YMap<YMap<unknown>>;
-    this.fileIds = yDoc.getMap('map') as YMap<string>;
 
-    this.initialize();
-  }
-
-  /**
-   * Initialize Y.Doc structure
-   * Creates the necessary maps: files, map (fileId lookup), meta
-   */
-  private initialize(): void {
-    this.yDoc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
-    this.yDoc.getMap('map'); // File name -> File ID tracking
-    this.yDoc.getMap('meta'); // Future: snapshot version management
-
-    this.initialized = true;
+    // Initialize Y.Doc structure
+    this.files = yDoc.getMap('files'); // Y.Map<fileId, Y.Map<name, Y.Text>>
+    this.names = yDoc.getMap('names'); // File name -> File Id tracking
+    this.meta = yDoc.getMap('meta'); // Y.Doc Metadata
   }
 
   private generateId(): string {
@@ -50,12 +39,8 @@ export class FileManager {
     return this.files;
   }
 
-  getFileIdsMap(): YMap<string> {
-    return this.fileIds;
-  }
-
-  isInitialized(): boolean {
-    return this.initialized;
+  getFileNamesMap(): YMap<string> {
+    return this.names;
   }
 
   /**
@@ -73,17 +58,15 @@ export class FileManager {
    * Use this for UI file lists to avoid overhead from content edits
    */
   onFilesMetadataChange(callback: () => void): void {
-    this.fileIds.observe(() => callback());
+    this.names.observe(() => callback());
   }
 
   /**
    * Check if a file with the given name exists
    */
   hasFile(fileName: string): boolean {
-    if (!this.fileIds) {
-      return false;
-    }
-    return this.fileIds.has(fileName);
+    if (!this.names) return false;
+    return this.names.has(fileName);
   }
 
   /**
@@ -93,8 +76,7 @@ export class FileManager {
    * - Document has not been previously initialized
    */
   initializeDefaultFile(): string | null {
-    const meta = this.yDoc.getMap('meta');
-    const isInitialized = meta.get('initialized');
+    const isInitialized = this.meta.get('initialized');
 
     // Create if empty and not previously initialized
     if (this.files.size > 0 || isInitialized) return null;
@@ -105,7 +87,7 @@ export class FileManager {
     const fileId = this.createFile(name, template);
 
     // Mark doc as initialized to prevent recreation after deletion
-    meta.set('initialized', true);
+    this.meta.set('initialized', true);
 
     return fileId;
   }
@@ -116,7 +98,7 @@ export class FileManager {
     this.yDoc.transact(() => {
       const file = FileNode.create(fileId, name, content);
       this.files.set(fileId, file);
-      this.fileIds.set(name, fileId);
+      this.names.set(name, fileId);
     });
 
     return fileId;
@@ -131,7 +113,7 @@ export class FileManager {
 
     this.yDoc.transact(() => {
       this.files.delete(fileId);
-      this.fileIds.delete(fileName);
+      this.names.delete(fileName);
     });
   }
 
@@ -148,8 +130,8 @@ export class FileManager {
 
     this.yDoc.transact(() => {
       node.name = newName;
-      this.fileIds.delete(oldName);
-      this.fileIds.set(newName, fileId);
+      this.names.delete(oldName);
+      this.names.set(newName, fileId);
     });
   }
 
@@ -166,8 +148,7 @@ export class FileManager {
   }
 
   getFileId(name: string): string | null {
-    if (!this.fileIds) return null;
-    const fileId = this.fileIds.get(name);
+    const fileId = this.names.get(name);
     return fileId ?? null;
   }
 

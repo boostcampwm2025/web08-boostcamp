@@ -58,7 +58,7 @@ interface FileState {
   getFileId: (name: string) => string | null;
   getTempFiles: () => File[];
   getFilesMap: () => YMap<YMap<unknown>> | null;
-  getFileIdMap: () => YMap<string> | null;
+  getFileNamesMap: () => YMap<string> | null;
 
   getFileName: (fileId: string | null) => string | null;
   getFileContent: (fileId: string) => string | null;
@@ -294,11 +294,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   // CRUD: 파일 목록
-  getFileIdMap: (): YMap<string> | null => {
+  getFileNamesMap: (): YMap<string> | null => {
     const { fileManager } = get();
     if (!fileManager) return null;
 
-    return fileManager.getFileIdsMap();
+    return fileManager.getFileNamesMap();
   },
 
   // 용량 측정: 전체 파일의 텍스트 길이 합산

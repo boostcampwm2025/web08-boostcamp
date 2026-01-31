@@ -17,7 +17,6 @@ import {
   SOCKET_EVENTS,
   type AwarenessUpdate,
   LIMITS,
-  type Language,
   type FileId,
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
@@ -75,9 +74,6 @@ export class FileService {
     // Create Y.Doc
     const doc = new Doc();
     const awareness = new Awareness(doc);
-
-    // Initialize Y.Doc structure
-    this.initializeDoc(doc);
 
     // Hydrate Y.Doc (Redis + DB fallback)
     // Bind to Redis for persistence
@@ -358,16 +354,6 @@ export class FileService {
   }
 
   /**
-   * 멀티파일 구조를 위한 Y.Map 초기화
-   */
-
-  private initializeDoc(doc: Doc) {
-    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
-    doc.getMap('map'); // 파일 이름 -> 파일 ID 추적용
-    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
-  }
-
-  /**
    * Hydrate Y.Doc
    *
    * Load snapshot and clock from DB
@@ -423,9 +409,6 @@ export class FileService {
    */
   generateInitialSnapshot(): Buffer {
     const doc = new Doc();
-    this.initializeDoc(doc);
-
-    // Create empty snapshot
     const snapshot = encodeStateAsUpdate(doc);
     return Buffer.from(snapshot);
   }
