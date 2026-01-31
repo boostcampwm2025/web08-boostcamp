@@ -14,6 +14,8 @@ import { Map as YMap, Text as YText } from 'yjs';
  * - Use FileNode.create() to initialize a new file's Y.Map structure
  */
 
+const textEncoder = new TextEncoder();
+
 export class FileNode {
   private file: YMap<unknown>;
 
@@ -68,7 +70,9 @@ export class FileNode {
 
   get capacity(): number {
     const content = this.content;
-    return content ? content.toString().length : 0;
+    const text = content.toString(); // Inefficient
+    const bytes = textEncoder.encode(text).length;
+    return bytes;
   }
 
   getMetadata(): { id: string; name: string } {
