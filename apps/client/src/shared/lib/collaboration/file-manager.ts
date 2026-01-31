@@ -1,5 +1,10 @@
 import { Doc as YDoc, Map as YMap } from 'yjs';
 import { v7 as uuidv7 } from 'uuid';
+import {
+  DEFAULT_LANGUAGE,
+  getDefaultFileName,
+  getDefaultFileTemplate,
+} from '@codejam/common';
 import { FileNode } from './file-node';
 
 export interface FileMetadata {
@@ -79,6 +84,30 @@ export class FileManager {
       return false;
     }
     return this.fileIds.has(fileName);
+  }
+
+  /**
+   * Initializes the document with a default file if needed
+   * Creates a default file only if:
+   * - No files exist
+   * - Document has not been previously initialized
+   */
+  initializeDefaultFile(): string | null {
+    const meta = this.yDoc.getMap('meta');
+    const isInitialized = meta.get('initialized');
+
+    // Create if empty and not previously initialized
+    if (this.files.size > 0 || isInitialized) return null;
+
+    const language = DEFAULT_LANGUAGE;
+    const name = getDefaultFileName(language);
+    const template = getDefaultFileTemplate(language);
+    const fileId = this.createFile(name, template);
+
+    // Mark doc as initialized to prevent recreation after deletion
+    meta.set('initialized', true);
+
+    return fileId;
   }
 
   createFile(name: string, content?: string): string {

@@ -18,13 +18,10 @@ import {
   type AwarenessUpdate,
   LIMITS,
   type Language,
-  getDefaultFileName,
-  getDefaultFileTemplate,
   type FileId,
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
-import { v7 as uuidv7 } from 'uuid';
 import type { FileInfo } from './file.types';
 
 export type RoomDoc = {
@@ -420,46 +417,17 @@ export class FileService {
     await pdoc.synced; // Wait for hydration from DB + Redis
   }
 
-  /** Generate File ID - UUID v7 */
-
-  private generateFileId() {
-    const id = uuidv7();
-    return id;
-  }
-
   /**
-   * Generate initial Y.Doc snapshot with template code
+   * Generate initial Y.Doc snapshot
+   * Creates empty Y.Doc structure - client will create initial files
    */
-  generateInitialSnapshot(language?: Language): Buffer {
+  generateInitialSnapshot(): Buffer {
     const doc = new Doc();
     this.initializeDoc(doc);
 
-    // Create initial file with template code
-    const fileId = this.generateFileId();
-    const name = getDefaultFileName(language);
-    const template = getDefaultFileTemplate(language);
-
-    const filesMap = doc.getMap('files');
-    const fileIdMap = doc.getMap('map');
-
-    doc.transact(() => {
-      const fileMap = new YMap<unknown>();
-      const yText = new YText();
-
-      yText.insert(0, template);
-
-      fileMap.set('name', name);
-      fileMap.set('content', yText);
-      filesMap.set(fileId, fileMap);
-      fileIdMap.set(name, fileId);
-    });
-
+    // Create empty snapshot
     const snapshot = encodeStateAsUpdate(doc);
     return Buffer.from(snapshot);
-  }
-
-  private initialCode(language?: Language): string {
-    return getDefaultFileTemplate(language);
   }
 
   private docListener() {

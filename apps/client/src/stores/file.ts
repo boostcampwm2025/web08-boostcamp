@@ -41,6 +41,7 @@ interface FileState {
   destroy: () => void;
   setActiveFile: (fileId: string) => void;
   setViewerFile: (fileId: string) => void;
+  initializeDefaultFile: () => void;
   initializeActiveFile: () => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
@@ -192,6 +193,16 @@ export const useFileStore = create<FileState>((set, get) => ({
     if (yDocManager.isInitialDocLoaded() && !get().isInitialDocLoaded) {
       set({ isInitialDocLoaded: true });
     }
+  },
+
+  initializeDefaultFile() {
+    const { fileManager, setActiveFile } = get();
+    if (!fileManager) return;
+
+    const fileId = fileManager.initializeDefaultFile();
+    if (!fileId) return;
+
+    setActiveFile(fileId);
   },
 
   initializeActiveFile: () => {
