@@ -26,7 +26,10 @@ export function DuplicateDialog({
   onClick,
   file,
 }: DuplicateDialogProps) {
-  const { overwriteFile, createFile, getFileId, getFileIdMap } = useFileStore();
+  const overwriteFile = useFileStore((state) => state.overwriteFile);
+  const createFile = useFileStore((state) => state.createFile);
+  const getFileId = useFileStore((state) => state.getFileId);
+  const getFileNamesMap = useFileStore((state) => state.getFileNamesMap);
 
   const handleOverwrite = async () => {
     const fileId = getFileId(filename);
@@ -47,13 +50,13 @@ export function DuplicateDialog({
     }
 
     const newName = (): string => {
-      const fileIdMap = getFileIdMap();
-      if (!fileIdMap) {
+      const fileNamesMap = getFileNamesMap();
+      if (!fileNamesMap) {
         return filename;
       }
 
       const entries: [string, string][] = Object.entries(
-        fileIdMap.toJSON(),
+        fileNamesMap.toJSON(),
       ).filter(([name]) => {
         const pure = purename(filename);
         const size = pure.length;

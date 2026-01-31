@@ -17,9 +17,6 @@ type DeleteDialogProps = {
 };
 
 export function DeleteDialog({ fileId, fileName, onOpen }: DeleteDialogProps) {
-  const setActiveFile = useFileStore((store) => store.setActiveFile);
-  const activeFileId = useFileStore((store) => store.activeFileId);
-
   const deleteFile = useFileStore((store) => store.deleteFile);
 
   const handleOnSubmit = (ev: FormEvent) => {
