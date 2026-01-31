@@ -68,7 +68,7 @@ export class FileManager {
    * Use this for UI file lists to avoid overhead from content edits
    */
   onFilesMetadataChange(callback: () => void): void {
-    this.files.observe(() => callback());
+    this.fileIds.observe(() => callback());
   }
 
   /**

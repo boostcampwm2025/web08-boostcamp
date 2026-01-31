@@ -133,9 +133,11 @@ export const useFileStore = create<FileState>((set, get) => ({
       }
     });
 
-    // Setup file metadata listener (shallow - updates UI file list)
+    // Setup file metadata listener
     fileManager.onFilesMetadataChange(() => {
       const metadata = fileManager.getFileTree();
+      console.log(metadata);
+
       set({ files: metadata });
     });
 
