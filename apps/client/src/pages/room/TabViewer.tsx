@@ -1,6 +1,6 @@
 import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 import { useFileStore } from '@/stores/file';
-import { useContext, useEffect } from 'react';
+import { lazy, Suspense, useContext, useEffect } from 'react';
 import { EmptyView } from './EmptyView';
 import {
   ContextMenu,
@@ -15,7 +15,6 @@ import {
   TabsTrigger,
 } from '@codejam/ui';
 import { Trash2 } from 'lucide-react';
-import { CodeEditor } from '@/widgets/code-editor';
 import { ActiveTabContext } from '@/contexts/TabProvider';
 
 type TabViewerProps = {
@@ -28,6 +27,10 @@ type FileViewerTab = {
     fileName: string;
   };
 };
+
+const CodeEditor = lazy(
+  () => import('../../widgets/code-editor/ui/CodeEditor'),
+);
 
 export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
   const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
@@ -105,7 +108,9 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
         myTabs.map((fileId) => (
           <TabsContent key={fileId} value={fileId}>
             {getFileName(fileId) ? (
-              <CodeEditor fileId={fileId} readOnly={readOnly} />
+              <Suspense fallback={<></>}>
+                <CodeEditor fileId={fileId} readOnly={readOnly} />
+              </Suspense>
             ) : (
               <EmptyView />
             )}
