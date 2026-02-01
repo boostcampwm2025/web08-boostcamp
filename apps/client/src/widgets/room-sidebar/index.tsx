@@ -13,13 +13,7 @@ import { DoorOpen } from 'lucide-react';
 import { LeaveRoomDialog } from '../dialog/LeaveRoomDialog';
 import { emitLeftRoom } from '@/stores/socket-events/room';
 
-export function RoomSidebar({
-  className,
-  readOnly,
-}: {
-  className?: string;
-  readOnly: boolean;
-}) {
+export function RoomSidebar({ className }: { className?: string }) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('PARTICIPANTS');
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
 
@@ -63,7 +57,7 @@ export function RoomSidebar({
       </nav>
       <SidebarPanel isOpen={isOpen}>
         {activeTab === 'PARTICIPANTS' && <Participants />}
-        {activeTab === 'FILES' && <FileList readOnly={readOnly} />}
+        {activeTab === 'FILES' && <FileList />}
         {activeTab === 'MORE' && <MoreTabContent />}
         {activeTab === 'SETTINGS' && <SettingsTabContent />}
       </SidebarPanel>

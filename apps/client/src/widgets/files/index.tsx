@@ -11,11 +11,7 @@ import type { FileSortKey } from './lib/types';
 import { filterFiles, sortFiles } from './lib/file-logic';
 import { FileFilterBar } from './components/FileFilterBar';
 
-type FileListProps = {
-  readOnly: boolean;
-};
-
-export function FileList({ readOnly }: FileListProps) {
+export function FileList() {
   const files = useFileStore((state) => state.files);
   const roomCode = useRoomStore((state) => state.roomCode);
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,7 +60,6 @@ export function FileList({ readOnly }: FileListProps) {
                 fileId={file.id}
                 fileName={file.name}
                 hasPermission={hasPermission}
-                readOnly={readOnly}
               />
             ))}
           </div>

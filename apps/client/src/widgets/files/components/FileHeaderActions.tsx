@@ -1,14 +1,18 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useContext, useRef, useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
 import { RadixButton as Button } from '@codejam/ui';
 import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
 import { useFileStore } from '@/stores/file';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
+import { ActiveTabContext } from '@/contexts/TabProvider';
+import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 
 export function FileHeaderActions({ roomCode }: { roomCode: string }) {
+  const { appendLinear } = useContext(LinearTabApiContext);
+  const { activeTab } = useContext(ActiveTabContext);
   const uploadRef = useRef<HTMLInputElement>(null);
-  const { getFileId, createFile, setActiveFile } = useFileStore();
+  const { getFileId, createFile, setActiveFile, getFileName } = useFileStore();
   const { handleCheckRename } = useFileRename(roomCode);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -55,6 +59,9 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
       const result = await handleCheckRename(fullNames);
       if (result) {
         const fileId = createFile(fullNames, '');
+        appendLinear(activeTab.active, fileId, {
+          fileName: getFileName(fileId),
+        });
         setActiveFile(fileId);
       }
     }

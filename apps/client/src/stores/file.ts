@@ -39,7 +39,7 @@ interface FileState {
   // Actions
   initialize: (roomCode: string) => number;
   destroy: () => void;
-  setActiveFile: (fileId: string) => void;
+  setActiveFile: (fileId: string | null) => void;
   setViewerFile: (fileId: string) => void;
   initializeDefaultFile: () => void;
   initializeActiveFile: () => void;
@@ -137,7 +137,6 @@ export const useFileStore = create<FileState>((set, get) => ({
     // Setup file metadata listener
     fileManager.onFilesMetadataChange(() => {
       const metadata = fileManager.getFileTree();
-      console.log(metadata);
 
       set({ files: metadata });
     });
@@ -163,14 +162,13 @@ export const useFileStore = create<FileState>((set, get) => ({
     return yDoc.clientID;
   },
 
-  setActiveFile: (fileId: string) => {
+  setActiveFile: (fileId: string | null) => {
     set({ activeFileId: fileId });
 
     // Update awareness with current file
     const { awarenessManager } = get();
     if (!awarenessManager) return;
-
-    awarenessManager.setCurrentFileId(fileId);
+    if (fileId) awarenessManager.setCurrentFileId(fileId);
   },
 
   setViewerFile: (fileId: string | null) => {

@@ -1,8 +1,10 @@
 import { useFileStore } from '@/stores/file';
 import { EXT_TYPES } from '@codejam/common';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { toast } from '@codejam/ui';
 import { extname } from '../file';
+import { LinearTabApiContext } from '@/contexts/ProviderAPI';
+import { ActiveTabContext } from '@/contexts/TabProvider';
 
 export function useFileRename(roomCode: string | null) {
   const [isDuplicated, setIsDuplicated] = useState(false);
@@ -10,12 +12,15 @@ export function useFileRename(roomCode: string | null) {
   const activeFileId = useFileStore((state) => state.activeFileId);
 
   const getFileId = useFileStore((state) => state.getFileId);
+  const getFileName = useFileStore((state) => state.getFileName);
   const createFile = useFileStore((state) => state.createFile);
   const setActiveFile = useFileStore((state) => state.setActiveFile);
   const measureCapacity = useFileStore((state) => state.measureCapacity);
   const addTempFile = useFileStore((state) => state.addTempFile);
   const clearTempFile = useFileStore((state) => state.clearTempFile);
   const getTempFiles = useFileStore((state) => state.getTempFiles);
+  const { appendLinear } = useContext(LinearTabApiContext);
+  const { activeTab } = useContext(ActiveTabContext);
 
   if (!roomCode) {
     throw new Error('Invalid roomCode');
@@ -90,6 +95,9 @@ export function useFileRename(roomCode: string | null) {
         if (result) {
           const content = await file.text();
           const fileId = createFile(file.name, content);
+          appendLinear(activeTab.active, fileId, {
+            fileName: getFileName(fileId),
+          });
           if (!activeFileId) {
             setActiveFile(fileId);
           }
