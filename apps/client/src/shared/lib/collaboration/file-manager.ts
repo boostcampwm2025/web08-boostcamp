@@ -137,11 +137,14 @@ export class FileManager {
     });
   }
 
-  overwriteFile(fileId: string, text: string): void {
+  overwriteFile(fileId: string, text: string, type?: FileType): void {
     const node = this.getFileNode(fileId);
     if (!node) return;
 
-    this.yDoc.transact(() => (node.text = text));
+    this.yDoc.transact(() => {
+      node.text = text;
+      if (type) node.type = type;
+    });
   }
 
   getFileNode(fileId: string): FileNode | null {

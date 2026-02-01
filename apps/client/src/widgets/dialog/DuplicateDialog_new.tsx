@@ -37,8 +37,8 @@ export function DuplicateDialog({
     if (!fileId || !file) return;
 
     try {
-      const { content } = await uploadFile(file);
-      overwriteFile(fileId, content);
+      const { content, type } = await uploadFile(file);
+      overwriteFile(fileId, content, type);
       onOpenChange(false);
       onClick();
     } catch (error) {

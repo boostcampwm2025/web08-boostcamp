@@ -40,8 +40,8 @@ export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
     }
 
     try {
-      const { content } = await uploadFile(tempFiles[0]);
-      overwriteFile(fileId, content);
+      const { content, type } = await uploadFile(tempFiles[0]);
+      overwriteFile(fileId, content, type);
       checkRepeat();
     } catch (error) {
       console.error('Failed to overwrite file:', error);

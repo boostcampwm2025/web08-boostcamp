@@ -54,7 +54,7 @@ interface FileState {
   createFile: (name: string, content?: string, type?: FileType) => string;
   deleteFile: (fileId: string) => void;
   renameFile: (fileId: string, newName: string) => void;
-  overwriteFile: (fileId: string, content?: string) => void;
+  overwriteFile: (fileId: string, content: string, type?: FileType) => void;
   getFileId: (name: string) => string | null;
   getTempFiles: () => File[];
   getFilesMap: () => YMap<YMap<unknown>> | null;
@@ -279,11 +279,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   // CRUD: 파일 덮어쓰기
-  overwriteFile(fileId: string, content?: string) {
+  overwriteFile(fileId: string, content: string, type?: FileType) {
     const { fileManager } = get();
     if (!fileManager) return;
 
-    fileManager.overwriteFile(fileId, content || '');
+    fileManager.overwriteFile(fileId, content, type);
   },
 
   // CRUD: filesMap 반환 (Observer 등록용)
