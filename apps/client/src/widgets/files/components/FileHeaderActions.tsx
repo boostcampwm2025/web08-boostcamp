@@ -60,8 +60,8 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   );
 
   // 새 파일 생성
-  const handleNewFile = async (name: string, ext: string) => {
-    const fullNames = `${name}.${ext}`;
+  const handleNewFile = async (name: string) => {
+    const fullNames = name;
     if (getFileId(fullNames)) {
       setCurrentDuplicate({ name: fullNames });
       setIsDialogOpen(true);
