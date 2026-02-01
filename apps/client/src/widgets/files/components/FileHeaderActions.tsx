@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
-import { Plus, Upload } from 'lucide-react';
+import { Plus, Upload, Image } from 'lucide-react';
 import { RadixButton as Button } from '@codejam/ui';
 import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
+import { ImageUploadDialog } from '@/widgets/dialog/ImageUploadDialog';
 import { useFileStore } from '@/stores/file';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { uploadFile } from '@/shared/lib/file';
@@ -18,6 +19,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   const { getFileId, createFile, setActiveFile } = useFileStore();
   const { handleCheckRename } = useFileRename(roomCode);
 
+  const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [currentDuplicate, setCurrentDuplicate] = useState<{
@@ -82,6 +84,16 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
     if (uploadRef.current) uploadRef.current.value = '';
   };
 
+  const handleImageUploadSubmit = (name: string, url: string) => {
+    if (getFileId(name)) {
+      const file = new File([url], name, { type: 'image/url' });
+      setCurrentDuplicate({ name, file });
+      setIsDialogOpen(true);
+    } else {
+      createFile(name, url, 'image');
+    }
+  };
+
   return (
     <div className="flex items-center gap-0.5">
       <NewFileDialog onSubmit={handleNewFile}>
@@ -107,6 +119,21 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
         />
         <Upload size={16} />
       </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
+        title="이미지 공유"
+        onClick={() => setIsUrlDialogOpen(true)}
+      >
+        <Image size={16} />
+      </Button>
+      <ImageUploadDialog
+        open={isUrlDialogOpen}
+        onOpenChange={setIsUrlDialogOpen}
+        onSubmit={handleImageUploadSubmit}
+      />
 
       {currentDuplicate && (
         <DuplicateDialog
