@@ -1,5 +1,8 @@
 import type { Language } from '../types/entities.js';
 
+// 파일 타입
+export const FILE_TYPES = ['text', 'image'];
+
 // 언어 타입
 export const LANGUAGES = ['javascript', 'html', 'css'] as const;
 
