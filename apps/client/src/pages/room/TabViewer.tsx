@@ -1,6 +1,6 @@
 import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 import { useFileStore } from '@/stores/file';
-import { lazy, Suspense, useContext, useEffect } from 'react';
+import { lazy, Suspense, useContext, useEffect, type MouseEvent } from 'react';
 import { EmptyView } from './EmptyView';
 import {
   ContextMenu,
