@@ -21,13 +21,6 @@ export const EXT_TYPES = [
   'py',
 ] as const;
 
-// 파일명 체크 결과 타입
-export const FILENAME_CHECK_RESULT_TYPES = [
-  'ext',
-  'duplicate',
-  'no_room',
-] as const;
-
 export const DEFAULT_LANGUAGE: Language = 'javascript';
 
 export const DEFAULT_FILE_NAME: Record<Language, string> = {

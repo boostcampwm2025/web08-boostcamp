@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FileService } from './file.service';
 import { YRedisService } from '../y-redis/y-redis.service';
 import { DocumentService } from '../document/document.service';
-import { DEFAULT_LANGUAGE, DEFAULT_FILE_NAME } from '@codejam/common';
 
 const mockYRedisService = {
   bind: jest.fn().mockReturnValue({
@@ -83,65 +82,6 @@ describe('FileService', () => {
     });
   });
 
-  describe('createFile', () => {
-    it('Y.Map 계층 구조로 파일을 생성한다', async () => {
-      // Arrange
-      const docId = 'doc-1';
-      await service.createDoc(docId);
-      const fileId = 'test-uuid-123';
-      const fileName = 'test.js';
-
-      // Act
-      service.createFile(docId, fileId, fileName, DEFAULT_LANGUAGE);
-
-      // Assert
-      const roomDoc = service.getDoc(docId);
-      const filesMap = roomDoc.doc.getMap('files');
-      const fileMap = filesMap.get(fileId) as any;
-
-      expect(fileMap).toBeDefined();
-      expect(fileMap.get('name')).toBe(fileName);
-      expect(fileMap.get('content')).toBeDefined();
-    });
-
-    it('JavaScript 파일에 기본 코드가 삽입된다', async () => {
-      // Arrange
-      const docId = 'doc-1';
-      await service.createDoc(docId);
-      const fileId = 'test-uuid-456';
-
-      // Act
-      service.createFile(
-        docId,
-        fileId,
-        DEFAULT_FILE_NAME.javascript,
-        DEFAULT_LANGUAGE,
-      );
-
-      // Assert
-      const roomDoc = service.getDoc(docId);
-      const filesMap = roomDoc.doc.getMap('files');
-      const fileMap = filesMap.get(fileId) as any;
-      const content = fileMap.get('content');
-
-      expect(content.toString()).toContain('console.log');
-    });
-
-    it('files Set에 fileId가 추가된다', async () => {
-      // Arrange
-      const docId = 'doc-1';
-      await service.createDoc(docId);
-      const fileId = 'test-uuid-789';
-
-      // Act
-      service.createFile(docId, fileId, DEFAULT_FILE_NAME.css, 'css');
-
-      // Assert
-      const roomDoc = service.getDoc(docId);
-      expect(roomDoc.files.has(fileId)).toBe(true);
-    });
-  });
-
   describe('getDoc', () => {
     it('존재하는 docId에 대해 RoomDoc을 반환한다', async () => {
       // Arrange
@@ -163,49 +103,6 @@ describe('FileService', () => {
       expect(() => service.getDoc(docId)).toThrow(
         'Y.Doc not found for document: doc-999',
       );
-    });
-  });
-
-  describe('Y.Map 구조 검증', () => {
-    it('files Y.Map에 여러 파일을 저장할 수 있다', async () => {
-      // Arrange
-      const docId = 'doc-1';
-      await service.createDoc(docId);
-
-      // Act
-      service.createFile(
-        docId,
-        'file-1',
-        DEFAULT_FILE_NAME.javascript,
-        DEFAULT_LANGUAGE,
-      );
-      service.createFile(docId, 'file-2', DEFAULT_FILE_NAME.css, 'css');
-      service.createFile(docId, 'file-3', DEFAULT_FILE_NAME.html, 'html');
-
-      // Assert
-      const roomDoc = service.getDoc(docId);
-      const filesMap = roomDoc.doc.getMap('files');
-      expect(filesMap.size).toBe(3);
-    });
-
-    it('각 파일은 name과 content를 가진다', async () => {
-      // Arrange
-      const docId = 'doc-1';
-      await service.createDoc(docId);
-      const fileId = 'test-file';
-      const fileName = 'app.js';
-
-      // Act
-      service.createFile(docId, fileId, fileName, DEFAULT_LANGUAGE);
-
-      // Assert
-      const roomDoc = service.getDoc(docId);
-      const filesMap = roomDoc.doc.getMap('files');
-      const fileMap = filesMap.get(fileId) as any;
-
-      expect(fileMap.has('name')).toBe(true);
-      expect(fileMap.has('content')).toBe(true);
-      expect(fileMap.get('name')).toBe(fileName);
     });
   });
 });

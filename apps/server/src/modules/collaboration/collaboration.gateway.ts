@@ -4,10 +4,6 @@ import {
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
   type PtUpdateRolePayload,
-  type FilenameCheckPayload,
-  type FilenameCheckResultPayload,
-  type FileRenamePayload,
-  type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
   type ExecuteCodePayload,
@@ -151,36 +147,6 @@ export class CollaborationGateway
       this.server,
       payload,
     );
-  }
-
-  /** C -> S 파일 이름 유효성 확인 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHECK_FILENAME)
-  async handleCheckFileName(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FilenameCheckPayload,
-  ): Promise<FilenameCheckResultPayload> {
-    return await this.collaborationService.handleCheckFileName(client, payload);
-  }
-
-  /** C -> S 파일 이름 변경 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.RENAME_FILE)
-  handleRenameFile(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FileRenamePayload,
-  ) {
-    this.collaborationService.handleFileRename(this.server, client, payload);
-  }
-
-  /** C- > S 파일 삭제 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.DELETE_FILE)
-  handleDeleteFile(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FileDeletePayload,
-  ) {
-    this.collaborationService.handleFileDelete(this.server, client, payload);
   }
 
   /** C -> S 방 폭파 요청 */

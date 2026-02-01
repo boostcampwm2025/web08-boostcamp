@@ -16,14 +16,13 @@ interface DuplicateDialogProps {
 }
 
 export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
-  const {
-    overwriteFile,
-    createFile,
-    getFileId,
-    getFileIdMap,
-    tempFiles,
-    shiftTempFile,
-  } = useFileStore();
+  const overwriteFile = useFileStore((state) => state.overwriteFile);
+  const createFile = useFileStore((state) => state.createFile);
+  const getFileId = useFileStore((state) => state.getFileId);
+  const getFileNamesMap = useFileStore((state) => state.getFileNamesMap);
+  const tempFiles = useFileStore((state) => state.tempFiles);
+  const shiftTempFile = useFileStore((state) => state.shiftTempFile);
+
   const fileName = tempFiles && tempFiles[0] ? tempFiles[0].name : '';
 
   const checkRepeat = () => {
@@ -52,13 +51,13 @@ export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
     }
 
     const newName = (): string => {
-      const fileIdMap = getFileIdMap();
-      if (!fileIdMap) {
+      const fileNamesMap = getFileNamesMap();
+      if (!fileNamesMap) {
         return fileName;
       }
 
       const entries: [string, string][] = Object.entries(
-        fileIdMap.toJSON(),
+        fileNamesMap.toJSON(),
       ).filter(([name]) => {
         const pure = purename(fileName);
         const size = pure.length;

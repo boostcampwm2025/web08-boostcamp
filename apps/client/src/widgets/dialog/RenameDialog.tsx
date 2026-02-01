@@ -1,4 +1,3 @@
-import { socket } from '@/shared/api/socket';
 import type { ExtType } from '@/shared/lib/file';
 import {
   RadixButton as Button,
@@ -23,7 +22,6 @@ import {
   RadixSelectValue as SelectValue,
 } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
-import { SOCKET_EVENTS } from '@codejam/common';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 
 type RenameDialogProps = {
@@ -43,6 +41,7 @@ export function RenameDialog({
   const [helperMessage, setHelperMessage] = useState('');
   const [extname, setExtname] = useState<ExtType>(fileExt);
   const getFileId = useFileStore((state) => state.getFileId);
+  const renameFile = useFileStore((state) => state.renameFile);
 
   const errorPass = (): boolean => {
     if (filename.trim().length === 0) {
@@ -81,10 +80,10 @@ export function RenameDialog({
       return;
     }
 
-    socket.emit(SOCKET_EVENTS.RENAME_FILE, {
-      fileId,
-      newName: `${filename.trim()}.${extname}`,
-    });
+    // Rename file
+    const newName = `${filename.trim()}.${extname}`;
+    renameFile(fileId, newName);
+
     clear();
   };
 
