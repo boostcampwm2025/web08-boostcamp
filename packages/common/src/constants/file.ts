@@ -4,22 +4,45 @@ import type { Language } from '../types/entities.js';
 export const LANGUAGES = ['javascript', 'html', 'css'] as const;
 
 // 파일 확장자 타입
+
+// prettier-ignore
 export const EXT_TYPES = [
-  'js',
-  'ts',
-  'jsx',
-  'tsx',
-  'html',
-  'css',
-  'cjs',
-  'mjs',
-  'shtml',
-  'ehtml',
-  'c',
-  'cpp',
-  'java',
-  'py',
-] as const;
+  // Web Core
+  "html", "css", "js", "ts", "jsx", "tsx", "mjs", "cjs",
+  
+  // Stylesheets
+  "scss", "sass", "less", "postcss",
+  
+  // Modern Frameworks
+  "vue", "svelte", "astro",
+  
+  // Config / Data
+  "json", "jsonc", "json5", "yaml", "yml", "toml", "xml", "env",
+  
+  // Documentation
+  "md", "mdx", "txt",
+  
+  // Programming Languages
+  "py", "pyw", // Python
+  "go", // Go
+  "rs", // Rust
+  "java", "jar", // Java
+  "c", "cpp", "h", "hpp", // C/C++
+  "cs", // C#
+  "php", // PHP
+  "rb", // Ruby
+  "swift", // Swift
+  "kt", "kts", // Kotlin
+  "dart", // Dart
+  
+  // Shell / Database
+  "sh", "bash", "ps1", // Shell scripts
+  "sql", "prisma", // Database
+  "graphql", "gql", // GraphQL
+  
+  // Infrastructure
+  "dockerfile", "dockerignore"
+];
 
 export const DEFAULT_LANGUAGE: Language = 'javascript';
 
