@@ -5,6 +5,7 @@ import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
 import { useFileStore } from '@/stores/file';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
+import { uploadFile } from '@/shared/lib/file';
 
 export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -19,7 +20,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   } | null>(null);
 
   const processNextPending = useCallback(
-    function internalProcess(remaining: File[]) {
+    async function internalProcess(remaining: File[]) {
       if (remaining.length === 0) {
         setIsDialogOpen(false);
         setCurrentDuplicate(null);
@@ -30,16 +31,21 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
       const nextFile = remaining[0];
       const nextRemaining = remaining.slice(1);
 
+      // 파일 이름 중복 체크
       if (getFileId(nextFile.name)) {
         setCurrentDuplicate({ name: nextFile.name, file: nextFile });
         setPendingFiles(nextRemaining);
         setIsDialogOpen(true);
-      } else {
-        // 중복이 아니면 바로 생성하고 다음 파일 확인
-        nextFile.text().then((content) => {
-          createFile(nextFile.name, content);
-          internalProcess(nextRemaining);
-        });
+        return;
+      }
+
+      try {
+        const { content, type } = await uploadFile(nextFile);
+        createFile(nextFile.name, content, type);
+        internalProcess(nextRemaining);
+      } catch (error) {
+        console.error('File upload failed:', error);
+        internalProcess(nextRemaining);
       }
     },
     [createFile, getFileId],
@@ -90,6 +96,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
           multiple
           ref={uploadRef}
           className="hidden"
+          accept="text/*,image/*"
           onChange={handleUploadFile}
         />
         <Upload size={16} />

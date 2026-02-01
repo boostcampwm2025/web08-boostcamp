@@ -9,6 +9,7 @@ import {
 import { RadixButton as Button } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { extname, purename } from '@/shared/lib/file';
+import { uploadFile } from '@/shared/lib/file';
 
 interface DuplicateDialogProps {
   open: boolean;
@@ -38,9 +39,13 @@ export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
       return;
     }
 
-    const content = await tempFiles[0].text();
-    overwriteFile(fileId, content);
-    checkRepeat();
+    try {
+      const { content } = await uploadFile(tempFiles[0]);
+      overwriteFile(fileId, content);
+      checkRepeat();
+    } catch (error) {
+      console.error('Failed to overwrite file:', error);
+    }
   };
 
   const handleRename = async () => {
@@ -78,9 +83,14 @@ export function DuplicateDialog({ open, onOpenChange }: DuplicateDialogProps) {
 
       return `${pure.replace(/\((\d+)\)$/i, `(${(parseInt(fileMatch[1]) + 1).toString()})`)}.${ext}`;
     };
-    const content = (await tempFiles[0].text()) ?? '';
-    createFile(newName(), content);
-    checkRepeat();
+
+    try {
+      const { content, type } = await uploadFile(tempFiles[0]);
+      createFile(newName(), content, type);
+      checkRepeat();
+    } catch (error) {
+      console.error('Failed to rename file:', error);
+    }
   };
 
   const handleCancel = () => {
