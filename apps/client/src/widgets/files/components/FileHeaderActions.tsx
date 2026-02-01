@@ -6,6 +6,12 @@ import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
 import { useFileStore } from '@/stores/file';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { uploadFile } from '@/shared/lib/file';
+import { EXT_TYPES } from '@codejam/common';
+
+const getAcceptedExtensions = () => {
+  const extensions = EXT_TYPES.map((ext) => `.${ext}`);
+  return ['text/*', ...extensions].join(',');
+};
 
 export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -96,7 +102,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
           multiple
           ref={uploadRef}
           className="hidden"
-          accept="text/*,image/*"
+          accept={getAcceptedExtensions()}
           onChange={handleUploadFile}
         />
         <Upload size={16} />
