@@ -48,6 +48,7 @@ export const WithBadge: Story = {
 };
 
 export const DifferentIds: Story = {
+  args: { id: '1234' },
   render: () => (
     <div className="flex items-center gap-4">
       {['1001', '1002', '1003', '1004', '1005'].map((id) => (
@@ -58,6 +59,7 @@ export const DifferentIds: Story = {
 };
 
 export const DifferentSizes: Story = {
+  args: { id: '1234' },
   render: () => (
     <div className="flex items-center gap-4">
       {[24, 32, 40, 56, 72].map((size) => (
@@ -68,6 +70,7 @@ export const DifferentSizes: Story = {
 };
 
 export const VariantBeam: Story = {
+  args: { id: '1234' },
   render: () => {
     const { Avatar } = createAvatarGenerator(
       new BoringAvatarProvider({ variant: 'beam' }),
@@ -83,6 +86,7 @@ export const VariantBeam: Story = {
 };
 
 export const VariantMarble: Story = {
+  args: { id: '1234' },
   render: () => {
     const { Avatar } = createAvatarGenerator(
       new BoringAvatarProvider({ variant: 'marble' }),
@@ -98,6 +102,7 @@ export const VariantMarble: Story = {
 };
 
 export const VariantPixel: Story = {
+  args: { id: '1234' },
   render: () => {
     const { Avatar } = createAvatarGenerator(
       new BoringAvatarProvider({ variant: 'pixel' }),
@@ -113,6 +118,7 @@ export const VariantPixel: Story = {
 };
 
 export const VariantSunset: Story = {
+  args: { id: '1234' },
   render: () => {
     const { Avatar } = createAvatarGenerator(
       new BoringAvatarProvider({ variant: 'sunset' }),
@@ -128,6 +134,7 @@ export const VariantSunset: Story = {
 };
 
 export const VariantRing: Story = {
+  args: { id: '1234' },
   render: () => {
     const { Avatar } = createAvatarGenerator(
       new BoringAvatarProvider({ variant: 'ring' }),
@@ -143,6 +150,7 @@ export const VariantRing: Story = {
 };
 
 export const VariantBauhaus: Story = {
+  args: { id: '1234' },
   render: () => {
     const { Avatar } = createAvatarGenerator(
       new BoringAvatarProvider({ variant: 'bauhaus' }),
@@ -158,6 +166,7 @@ export const VariantBauhaus: Story = {
 };
 
 export const CustomColors: Story = {
+  args: { id: '1234' },
   render: () => {
     const customColors = [
       '#264653',
@@ -197,6 +206,7 @@ export const CustomColors: Story = {
 };
 
 export const AllVariants: Story = {
+  args: { id: '1234' },
   render: () => {
     const variants: BoringAvatarVariant[] = [
       'beam',
