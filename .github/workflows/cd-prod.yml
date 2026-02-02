@@ -103,6 +103,7 @@ jobs:
               --name server-prod \
               --restart unless-stopped \
               -p 3000:3000 \
+              -p 9091:9091 \
               --env-file /root/.env.prod \
               ${{ secrets.NCP_REGISTRY_URL }}/server:prod-${{ github.sha }}
             docker image prune -af

@@ -152,6 +152,7 @@ jobs:
               --name server-staging \
               --restart unless-stopped \
               -p 3001:3000 \
+              -p 9091:9091 \
               --env-file /root/.env.staging \
               ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
             docker image prune -af
