@@ -124,16 +124,18 @@ function SearchFilterCombobox({
     );
     onFiltersChange([...otherFilters, newFilter]);
 
-    // Clear search input after selection
-    onSearchChange('');
-
     // Close dropdown after selection
     setOpen(false);
+
+    // Clear search after closing dropdown to prevent flash
+    onSearchChange('');
   };
 
   const handleValueRemoved = (value: string) => {
     onFiltersChange(selectedFilters.filter((f) => f.value !== value));
-    setOpen(false); // Close dropdown after removal
+
+    // Close dropdown after removal
+    setOpen(false);
   };
 
   const handleValueChange = (newValues: string[]) => {
@@ -157,6 +159,7 @@ function SearchFilterCombobox({
         onValueChange={handleValueChange}
         open={open}
         onOpenChange={setOpen}
+        autoHighlight
         multiple
       >
         <ComboboxInput
