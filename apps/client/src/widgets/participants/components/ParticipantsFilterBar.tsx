@@ -49,28 +49,30 @@ export function ParticipantsFilterBar({
         onFiltersChange={onFiltersChange}
       />
 
-      <div className="flex items-center gap-1">
-        <SortButton
-          active={sortKey === 'time'}
-          onClick={() => onSortChange('time')}
-          icon={<Clock size={14} />}
-          label="입장순"
-        />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <SortButton
+            active={sortKey === 'time'}
+            onClick={() => onSortChange('time')}
+            icon={<Clock size={14} />}
+            label="입장순"
+          />
 
-        <SortButton
-          active={sortKey === 'name'}
-          onClick={() => onSortChange('name')}
-          icon={<User size={14} />}
-          label="이름순"
+          <SortButton
+            active={sortKey === 'name'}
+            onClick={() => onSortChange('name')}
+            icon={<User size={14} />}
+            label="이름순"
+          />
+        </div>
+
+        <BulkActions
+          isHost={isHost}
+          filteredCount={filteredCount}
+          onBulkEdit={onBulkEdit}
+          onBulkView={onBulkView}
         />
       </div>
-
-      <BulkActions
-        isHost={isHost}
-        filteredCount={filteredCount}
-        onBulkEdit={onBulkEdit}
-        onBulkView={onBulkView}
-      />
     </div>
   );
 }
@@ -324,24 +326,22 @@ function BulkActions({
   return (
     <div className="flex items-center gap-1">
       <Button
-        variant="ghost"
-        size="sm"
+        variant="outline"
+        size="icon-sm"
         onClick={onBulkEdit}
-        className="text-muted-foreground hover:bg-muted/40 hover:text-foreground h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200"
+        className="text-muted-foreground hover:text-foreground p-0 text-sm font-medium transition-colors duration-200"
         title="전체 또는 선택된 참가자에 대해 편집 허용"
       >
         <Pencil size={14} />
-        <span>편집 허용</span>
       </Button>
       <Button
-        variant="ghost"
-        size="sm"
+        variant="outline"
+        size="icon-sm"
         onClick={onBulkView}
-        className="text-muted-foreground hover:bg-muted/40 hover:text-foreground h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200"
+        className="text-muted-foreground hover:text-foreground p-0 text-sm font-medium transition-colors duration-200"
         title="전체 또는 선택된 참가자에 대해 읽기 허용"
       >
         <Eye size={14} />
-        <span>읽기 허용</span>
       </Button>
     </div>
   );
