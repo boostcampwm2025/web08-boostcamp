@@ -15,11 +15,14 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { PrometheusSocketIo } from 'socket.io-prometheus-v3';
+import * as http from 'http';
 import { CollaborationService } from './collaboration.service';
 import type { CollabSocket } from './collaboration.types';
 import { PermissionGuard } from './guards/permission.guard';
@@ -39,12 +42,34 @@ import { WsExceptionFilter } from '../../common/filters/ws-exception.filter';
   },
 })
 export class CollaborationGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  private prometheus: ReturnType<typeof PrometheusSocketIo.init>;
+
   constructor(private readonly collaborationService: CollaborationService) {}
 
   @WebSocketServer()
   server: Server;
+
+  /** Socket.io 서버 초기화 시 메트릭 수집 시작 (9091 포트) */
+  afterInit(server: Server) {
+    this.prometheus = PrometheusSocketIo.init({
+      io: server as any,
+      collectDefaultMetrics: true,
+    });
+
+    // 메트릭 HTTP 서버 (9091 포트)
+    const metricsServer = http.createServer(async (req, res) => {
+      if (req.url === '/metrics') {
+        res.setHeader('Content-Type', 'text/plain');
+        res.end(await this.prometheus.getMetrics());
+      } else {
+        res.statusCode = 404;
+        res.end('Not Found');
+      }
+    });
+    metricsServer.listen(9091);
+  }
 
   /** 클라이언트 연결 시 초기화 */
   handleConnection(client: CollabSocket) {
