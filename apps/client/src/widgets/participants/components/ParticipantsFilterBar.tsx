@@ -53,7 +53,7 @@ export function ParticipantsFilterBar({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="참가자 검색..."
-          className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors outline-none focus-visible:ring-1"
+          className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-none transition-colors outline-none focus-visible:ring-1"
         />
         {searchQuery && (
           <button
