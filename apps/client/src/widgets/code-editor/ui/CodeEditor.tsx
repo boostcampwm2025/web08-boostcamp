@@ -64,14 +64,14 @@ export default function CodeEditor({
   });
 
   return (
-    <>
-      <div ref={containerRef} className="h-screen" />
+    <div className="relative flex min-h-0 flex-1">
+      <div ref={containerRef} className="min-h-0 flex-1" />
       <AvatarGutterMenu
         isOpen={menuState.isOpen}
         position={menuState.position}
         users={menuState.users}
         onClose={closeMenu}
       />
-    </>
+    </div>
   );
 }

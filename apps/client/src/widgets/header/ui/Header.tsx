@@ -11,7 +11,7 @@ type HeaderProps = {
 
 export default function Header({ roomCode }: HeaderProps) {
   return (
-    <header className="bg-background border-border scrollbar-hide flex h-14 items-center gap-2 overflow-x-auto border-b px-4 sm:gap-4">
+    <header className="bg-background border-border scrollbar-hide flex h-14 shrink-0 items-center gap-2 overflow-x-auto border-b px-4 sm:gap-4">
       <Logo />
 
       <RoomCode roomCode={roomCode} />

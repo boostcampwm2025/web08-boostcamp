@@ -166,7 +166,7 @@ export function TabLayout({
   }, [draggingSignal]);
 
   return (
-    <div ref={myRef} className="flex h-screen w-full">
+    <div ref={myRef} className="flex h-full min-h-0 w-full flex-1">
       {linearTab &&
         linearTabWidth &&
         Object.entries(linearTab).map(([tabKey]) => {
@@ -211,14 +211,13 @@ function TabLayoutChildren({
         flex: `${width} 1 0%`,
         minWidth: 0,
       }}
-      className="h-full overflow-hidden"
+      className="flex min-h-0 flex-1"
       onClick={handleClick}
     >
       {tabKey == draggingTab && draggingSignal.signal && (
         <div
-          className="h-full overflow-hidden"
+          className="absolute h-screen"
           style={{
-            position: 'fixed',
             backgroundColor: 'rgba(0, 0, 255, 0.1)',
             width: `${halfOver ? width / 2 : width}px`,
             zIndex: 9999,

@@ -24,7 +24,7 @@ export function RoomSidebar({ className }: { className?: string }) {
   const isOpen = activeTab !== null;
 
   return (
-    <div className={cn('flex h-full shrink-0', className)}>
+    <div className={cn('flex', className)}>
       <nav className="bg-muted/10 z-10 flex w-[72px] flex-col items-center gap-2 border-r py-4">
         {SIDEBAR_TABS.map((tab) => (
           <SidebarButton

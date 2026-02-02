@@ -89,44 +89,48 @@ function RoomPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header roomCode={paramCode!} />
-      {roomError && (
-        <div className="bg-red-500 p-4 text-center text-white">{roomError}</div>
-      )}
-      <main className="flex flex-1 overflow-hidden">
-        <TabProvider>
-          <ProviderAPI>
-            <RoomSidebar />
-            <div
-              className="bg-background h-full flex-1"
-              onDragOver={handleDragPrevent}
-              onDrop={handleFileDrop}
-            >
-              <TabLayout
-                min={1}
-                max={2}
-                keyName="fileId"
-                convertProcessFn={convertProcessFn}
-                onCreateLinearTab={handleOnActiveTab}
-                onAppendLinearTab={handleOnActiveTab}
-                initialTabValue={{
-                  key: activeFileId,
-                  value: {
-                    fileName: getFileName(activeFileId),
-                  },
-                }}
+      <div className="flex min-h-0 flex-1">
+        {roomError && (
+          <div className="bg-red-500 p-4 text-center text-white">
+            {roomError}
+          </div>
+        )}
+        <main className="flex min-h-0 flex-1">
+          <TabProvider>
+            <ProviderAPI>
+              <RoomSidebar />
+              <div
+                className="bg-background flex h-full min-h-0 flex-1 flex-col"
+                onDragOver={handleDragPrevent}
+                onDrop={handleFileDrop}
               >
-                {(tabKey: number) => (
-                  <TabViewer tabKey={tabKey} readOnly={isViewer} />
-                )}
-              </TabLayout>
-            </div>
-            <Chat />
-          </ProviderAPI>
-        </TabProvider>
-        <Output variant={isDark ? 'dark' : 'light'} />
-      </main>
+                <TabLayout
+                  min={1}
+                  max={2}
+                  keyName="fileId"
+                  convertProcessFn={convertProcessFn}
+                  onCreateLinearTab={handleOnActiveTab}
+                  onAppendLinearTab={handleOnActiveTab}
+                  initialTabValue={{
+                    key: activeFileId,
+                    value: {
+                      fileName: getFileName(activeFileId),
+                    },
+                  }}
+                >
+                  {(tabKey: number) => (
+                    <TabViewer tabKey={tabKey} readOnly={isViewer} />
+                  )}
+                </TabLayout>
+              </div>
+              <Chat />
+            </ProviderAPI>
+          </TabProvider>
+          <Output variant={isDark ? 'dark' : 'light'} />
+        </main>
+      </div>
       {loader === 'FULL' ? (
         <ErrorDialog
           title="사람이 가득 찼습니다!"

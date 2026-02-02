@@ -37,6 +37,8 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
   const setActiveFileId = useFileStore((state) => state.setActiveFile);
   const getFileName = useFileStore((state) => state.getFileName);
 
+  useFileStore((state) => state.files);
+
   const fileTab = takeTab(tabKey) as FileViewerTab;
 
   useEffect(() => {
@@ -70,9 +72,13 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
   const myTabs = Object.keys(fileTab);
 
   return (
-    <Tabs value={activeTab[tabKey]} onValueChange={handleValueChange}>
-      <ScrollArea className="overflow-x-auto">
-        <TabsList variant="line">
+    <Tabs
+      value={activeTab[tabKey]}
+      onValueChange={handleValueChange}
+      className="flex min-h-0 flex-1"
+    >
+      <ScrollArea>
+        <TabsList variant="line" className="overflow-hidden">
           {myTabs.map((fileId) => (
             <ContextMenu key={fileId}>
               <ContextMenuTrigger>
@@ -104,7 +110,11 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
       </ScrollArea>
       {myTabs.length > 0 ? (
         myTabs.map((fileId) => (
-          <TabsContent key={fileId} value={fileId}>
+          <TabsContent
+            key={fileId}
+            value={fileId}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             {activeTab[tabKey] == fileId ? (
               getFileName(fileId) ? (
                 <Suspense fallback={null}>
