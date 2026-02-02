@@ -130,7 +130,7 @@ function SearchFilterCombobox({
     setOpen(false);
 
     // Clear search after closing dropdown to prevent flash
-    onSearchChange('');
+    setTimeout(() => onSearchChange(''), 0);
   };
 
   const handleValueRemoved = (value: string) => {
