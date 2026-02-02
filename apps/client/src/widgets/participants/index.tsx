@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ComponentProps } from 'react';
 import { Participant } from './components';
 import { ParticipantsFilterBar } from './components/ParticipantsFilterBar';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
-import { SOCKET_EVENTS, ROLE } from '@codejam/common';
+import { SOCKET_EVENTS, ROLE, type Pt } from '@codejam/common';
 import { SidebarHeader, toast } from '@codejam/ui';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
@@ -98,34 +98,51 @@ export function Participants() {
       <div className="px-4">
         <SidebarHeader title="참가자" count={totalCount} />
       </div>
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
-        {/* 필터 바 */}
-        <div border-b>
-          <ParticipantsFilterBar
-            selectedFilters={selectedFilters}
-            onFiltersChange={setSelectedFilters}
-            sortKey={sortKey}
-            onSortChange={handleSortChange}
-            filteredCount={others.length}
-            onBulkEdit={handleBulkEdit}
-            onBulkView={handleBulkView}
-            isHost={iAmHost}
-          />
-        </div>
-
-        {/* 참가자 */}
-        <div className="flex-1 overflow-y-auto">
-          {me && <Participant ptId={me.ptId} hasPermission={false} />}
-
-          {me && others.length > 0 && (
-            <div className="mx-3 my-1 border-t border-gray-300 opacity-50 dark:border-gray-600" />
-          )}
-
-          {others.map((p) => (
-            <Participant key={p.ptId} ptId={p.ptId} hasPermission={iAmHost} />
-          ))}
-        </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <FilterSection
+          selectedFilters={selectedFilters}
+          onFiltersChange={setSelectedFilters}
+          sortKey={sortKey}
+          onSortChange={handleSortChange}
+          filteredCount={others.length}
+          onBulkEdit={handleBulkEdit}
+          onBulkView={handleBulkView}
+          isHost={iAmHost}
+        />
+        <ParticipantList me={me} others={others} iAmHost={iAmHost} />
       </div>
+    </div>
+  );
+}
+
+function FilterSection(props: ComponentProps<typeof ParticipantsFilterBar>) {
+  return (
+    <div className="border-b border-gray-200 px-4 pb-3 dark:border-gray-700">
+      <ParticipantsFilterBar {...props} />
+    </div>
+  );
+}
+
+function ParticipantList({
+  me,
+  others,
+  iAmHost,
+}: {
+  me?: Pt;
+  others: Pt[];
+  iAmHost: boolean;
+}) {
+  return (
+    <div className="flex-1 overflow-y-auto px-4 py-2">
+      {me && <Participant ptId={me.ptId} hasPermission={false} />}
+
+      {me && others.length > 0 && (
+        <div className="mx-3 my-1 border-t border-gray-300 opacity-50 dark:border-gray-600" />
+      )}
+
+      {others.map((p) => (
+        <Participant key={p.ptId} ptId={p.ptId} hasPermission={iAmHost} />
+      ))}
     </div>
   );
 }
