@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Slider, Label } from '@codejam/ui';
+import { useState } from 'react';
 
 const meta = {
   title: 'Base/Slider',
@@ -39,6 +40,19 @@ export const Range: Story = {
   ),
 };
 
+export const MultipleThumbs: Story = {
+  args: {
+    defaultValue: [10, 40, 70, 90],
+    max: 100,
+  },
+  render: (args) => (
+    <div className="w-[300px] space-y-4">
+      <Label>다중 선택</Label>
+      <Slider {...args} />
+    </div>
+  ),
+};
+
 export const WithStep: Story = {
   args: {
     defaultValue: [50],
@@ -65,4 +79,35 @@ export const Disabled: Story = {
       <Slider {...args} />
     </div>
   ),
+};
+
+export const Vertical: Story = {
+  args: {
+    defaultValue: [50],
+    max: 100,
+    orientation: 'vertical',
+  },
+  render: (args) => (
+    <div className="flex h-[200px] items-center gap-4">
+      <Slider {...args} />
+    </div>
+  ),
+};
+
+export const Controlled: Story = {
+  render: (args) => {
+    const [value, setValue] = useState([50]);
+    return (
+      <div className="w-[300px] space-y-4">
+        <Label>현재 값: {value[0]}</Label>
+        <Slider
+          {...args}
+          value={value}
+          onValueChange={(vals) => setValue(vals)}
+          max={100}
+          step={1}
+        />
+      </div>
+    );
+  },
 };

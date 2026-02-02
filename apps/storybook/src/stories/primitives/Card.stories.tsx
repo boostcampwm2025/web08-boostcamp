@@ -46,7 +46,7 @@ export const Default: Story = {
   ),
 };
 
-export const Small: Story = {
+export const Size: Story = {
   args: {
     size: 'sm',
   },
@@ -112,7 +112,7 @@ export const OnlyHeader: Story = {
   ),
 };
 
-export const Multiple: Story = {
+export const Layout: Story = {
   render: () => (
     <div className="grid grid-cols-2 gap-4">
       <Card>

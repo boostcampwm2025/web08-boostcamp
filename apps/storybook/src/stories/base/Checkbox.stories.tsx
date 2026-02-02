@@ -13,35 +13,48 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const Basic: Story = {
   render: (args) => (
-    <div className="flex items-center gap-2">
-      <Checkbox id="checkbox-base" {...args} />
-      <Label htmlFor="checkbox-base">동의합니다</Label>
+    <div className="flex items-center space-x-2">
+      <Checkbox id="terms" {...args} />
+      <Label htmlFor="terms">Accept terms and conditions</Label>
     </div>
   ),
 };
 
-export const Checked: Story = {
-  args: {
-    checked: true,
-  },
+export const WithText: Story = {
   render: (args) => (
-    <div className="flex items-center gap-2">
-      <Checkbox id="checkbox-base-checked" {...args} />
-      <Label htmlFor="checkbox-base-checked">동의합니다</Label>
+    <div className="items-top flex space-x-2">
+      <Checkbox id="terms1" {...args} />
+      <div className="grid gap-1.5 leading-none">
+        <Label htmlFor="terms1">Accept terms and conditions</Label>
+        <p className="text-muted-foreground text-sm">
+          You agree to our Terms of Service and Privacy Policy.
+        </p>
+      </div>
     </div>
   ),
 };
 
 export const Disabled: Story = {
-  args: {
-    disabled: true,
-  },
   render: (args) => (
-    <div className="flex items-center gap-2">
-      <Checkbox id="checkbox-base-disabled" {...args} />
-      <Label htmlFor="checkbox-base-disabled">동의합니다 (비활성화)</Label>
+    <div className="flex items-center space-x-2">
+      <Checkbox id="terms2" disabled {...args} />
+      <Label htmlFor="terms2">Accept terms and conditions</Label>
+    </div>
+  ),
+};
+
+export const Form: Story = {
+  render: () => (
+    <div className="items-top flex space-x-2">
+      <Checkbox id="terms3" />
+      <div className="grid gap-1.5 leading-none">
+        <Label htmlFor="terms3">Accept terms and conditions</Label>
+        <p className="text-muted-foreground text-sm">
+          You agree to our Terms of Service and Privacy Policy.
+        </p>
+      </div>
     </div>
   ),
 };

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Button } from '@codejam/ui';
+import { Button, ButtonGroup } from '@codejam/ui';
+import { ChevronRight, Loader2, Mail } from 'lucide-react';
 
 const meta = {
   title: 'Base/Button',
@@ -19,16 +20,24 @@ const meta = {
         'ghost',
         'link',
       ],
-      description: '버튼 변형',
+      description: 'The visual style of the button',
     },
     size: {
       control: 'select',
-      options: ['default', 'sm', 'lg', 'icon', 'icon-sm', 'icon-lg'],
-      description: '버튼 크기',
+      options: [
+        'default',
+        'sm',
+        'lg',
+        'icon',
+        'icon-xs',
+        'icon-sm',
+        'icon-lg',
+      ],
+      description: 'The size of the button',
     },
     disabled: {
       control: 'boolean',
-      description: '비활성화 상태',
+      description: 'Whether the button is disabled',
     },
   },
 } satisfies Meta<typeof Button>;
@@ -43,9 +52,16 @@ export const Default: Story = {
   },
 };
 
+export const Secondary: Story = {
+  args: {
+    children: 'Secondary',
+    variant: 'secondary',
+  },
+};
+
 export const Destructive: Story = {
   args: {
-    children: 'Delete',
+    children: 'Destructive',
     variant: 'destructive',
   },
 };
@@ -54,13 +70,6 @@ export const Outline: Story = {
   args: {
     children: 'Outline',
     variant: 'outline',
-  },
-};
-
-export const Secondary: Story = {
-  args: {
-    children: 'Secondary',
-    variant: 'secondary',
   },
 };
 
@@ -78,36 +87,79 @@ export const Link: Story = {
   },
 };
 
-export const Small: Story = {
+export const Icon: Story = {
   args: {
-    children: 'Small',
-    size: 'sm',
+    size: 'icon',
+    variant: 'outline',
+    children: <ChevronRight />,
   },
 };
 
-export const Large: Story = {
+export const WithIcon: Story = {
   args: {
-    children: 'Large',
-    size: 'lg',
+    children: (
+      <>
+        <Mail /> Login with Email
+      </>
+    ),
   },
 };
 
-export const Disabled: Story = {
+export const Rounded: Story = {
   args: {
-    children: 'Disabled',
+    className: 'rounded-full',
+    children: 'Rounded Button',
+  },
+};
+
+export const Spinner: Story = {
+  args: {
     disabled: true,
+    children: (
+      <>
+        <Loader2 className="animate-spin" />
+        Please wait
+      </>
+    ),
   },
 };
 
-export const AllVariants: Story = {
+export const AsLink: Story = {
+  args: {
+    render: <a href="#" />,
+    children: 'Login',
+  },
+};
+
+export const ButtonGroupUsage: Story = {
   render: () => (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="default">Default</Button>
-      <Button variant="destructive">Destructive</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="secondary">Secondary</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="link">Link</Button>
+    <ButtonGroup>
+      <Button variant="outline">Year</Button>
+      <Button variant="outline">Month</Button>
+      <Button variant="outline">Day</Button>
+    </ButtonGroup>
+  ),
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <div className="flex flex-col gap-4 items-center">
+      <div className="flex gap-2 items-center">
+        <Button size="default">Default</Button>
+        <Button size="sm">Small</Button>
+        <Button size="lg">Large</Button>
+      </div>
+      <div className="flex gap-2 items-center">
+        <Button size="icon" variant="outline">
+          <ChevronRight />
+        </Button>
+        <Button size="icon-sm" variant="outline">
+          <ChevronRight />
+        </Button>
+        <Button size="icon-lg" variant="outline">
+          <ChevronRight />
+        </Button>
+      </div>
     </div>
   ),
 };
