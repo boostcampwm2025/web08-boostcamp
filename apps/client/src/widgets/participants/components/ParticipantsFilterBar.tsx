@@ -7,6 +7,8 @@ import {
   ComboboxContent,
   ComboboxList,
   ComboboxItem,
+  ComboboxGroup,
+  ComboboxLabel,
 } from '@codejam/ui';
 import { Pencil, Eye, User, Clock, X, RotateCcw } from 'lucide-react';
 import type { FilterOption } from '../types';
@@ -93,25 +95,42 @@ function SearchFilterCombobox({
     );
   }, [searchQuery]);
 
+  // Group options by type dynamically
+  const groupedOptions = useMemo(() => {
+    return matchedOptions.reduce(
+      (groups, option) => {
+        const type = option.type;
+        if (!groups[type]) groups[type] = [];
+        groups[type].push(option);
+        return groups;
+      },
+      {} as Record<string, FilterOption[]>,
+    );
+  }, [matchedOptions]);
+
   // Get selected filter values for Combobox
   const selectedValues = selectedFilters.map((f) => f.value);
 
   const handleValueChange = (newValues: string[]) => {
     // Find newly added value
-    const addedValue = newValues.find((v) => !selectedValues.includes(v));
-    if (addedValue) {
-      const newFilter = FILTER_OPTIONS.find((opt) => opt.value === addedValue);
+    const added = newValues.find((v) => !selectedValues.includes(v));
+    if (added) {
+      const newFilter = FILTER_OPTIONS.find((opt) => opt.value === added);
       if (newFilter) {
-        onFiltersChange([...selectedFilters, newFilter]);
+        // Remove any existing filter of the same type (mutually exclusive within group)
+        const otherFilters = selectedFilters.filter(
+          (f) => f.type !== newFilter.type,
+        );
+        onFiltersChange([...otherFilters, newFilter]);
         onSearchChange(''); // Clear search input after selection
       }
       return;
     }
 
-    // Find removed value (toggle off)
-    const removedValue = selectedValues.find((v) => !newValues.includes(v));
-    if (removedValue) {
-      onFiltersChange(selectedFilters.filter((f) => f.value !== removedValue));
+    // Find removed value
+    const removed = selectedValues.find((v) => !newValues.includes(v));
+    if (removed) {
+      onFiltersChange(selectedFilters.filter((f) => f.value !== removed));
     }
   };
 
@@ -136,21 +155,30 @@ function SearchFilterCombobox({
 
         <ComboboxContent>
           <ComboboxList>
-            {matchedOptions.map((option) => {
-              const isSelected = selectedValues.includes(option.value);
-              return (
-                <ComboboxItem
-                  key={option.value}
-                  value={option.value}
-                  className={cn(
-                    'data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors outline-none select-none',
-                    isSelected && 'bg-accent/50',
-                  )}
-                >
-                  {option.label}
-                </ComboboxItem>
-              );
-            })}
+            {Object.entries(groupedOptions).map(([type, options]) =>
+              options.length > 0 ? (
+                <ComboboxGroup key={type}>
+                  <ComboboxLabel>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </ComboboxLabel>
+                  {options.map((option) => {
+                    const isSelected = selectedValues.includes(option.value);
+                    return (
+                      <ComboboxItem
+                        key={option.value}
+                        value={option.value}
+                        className={cn(
+                          'data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors outline-none select-none',
+                          isSelected && 'bg-accent/50',
+                        )}
+                      >
+                        {option.label}
+                      </ComboboxItem>
+                    );
+                  })}
+                </ComboboxGroup>
+              ) : null,
+            )}
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
