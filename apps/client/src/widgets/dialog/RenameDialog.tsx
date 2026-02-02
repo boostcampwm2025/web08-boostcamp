@@ -2,8 +2,6 @@ import {
   RadixButton as Button,
   RadixInput as Input,
   RadixLabel as Label,
-} from '@codejam/ui';
-import {
   RadixDialogClose as DialogClose,
   RadixDialogContent as DialogContent,
   RadixDialogDescription as DialogDescription,
@@ -12,7 +10,9 @@ import {
   RadixDialogTitle as DialogTitle,
 } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useContext, useState, type ChangeEvent, type FormEvent } from 'react';
+import { LinearTabApiContext } from '@/contexts/ProviderAPI';
+import { ActiveTabContext } from '@/contexts/TabProvider';
 
 type RenameDialogProps = {
   fileId: string;
@@ -25,6 +25,8 @@ export function RenameDialog({ fileId, fileName, onOpen }: RenameDialogProps) {
   const [helperMessage, setHelperMessage] = useState('');
   const getFileId = useFileStore((state) => state.getFileId);
   const renameFile = useFileStore((state) => state.renameFile);
+  const { updateLinearTab } = useContext(LinearTabApiContext);
+  const { activeTab } = useContext(ActiveTabContext);
 
   const errorPass = (): boolean => {
     const name = newFilename.trim();
@@ -61,6 +63,9 @@ export function RenameDialog({ fileId, fileName, onOpen }: RenameDialogProps) {
     // Rename file
     const newName = newFilename.trim();
     renameFile(fileId, newName);
+    updateLinearTab(activeTab.active, fileId, {
+      fileName: newName,
+    });
 
     clear();
   };
