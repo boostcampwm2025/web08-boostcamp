@@ -330,7 +330,7 @@ function BulkActions({
         size="icon-sm"
         onClick={onBulkEdit}
         className="text-muted-foreground hover:text-foreground p-0 text-sm font-medium transition-colors duration-200"
-        title="전체 또는 선택된 참가자에 대해 편집 허용"
+        title="전체 편집 허용"
       >
         <Pencil size={14} />
       </Button>
@@ -339,7 +339,7 @@ function BulkActions({
         size="icon-sm"
         onClick={onBulkView}
         className="text-muted-foreground hover:text-foreground p-0 text-sm font-medium transition-colors duration-200"
-        title="전체 또는 선택된 참가자에 대해 읽기 허용"
+        title="전체 읽기 허용"
       >
         <Eye size={14} />
       </Button>
