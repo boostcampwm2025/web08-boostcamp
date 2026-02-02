@@ -124,7 +124,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
           accept={getAcceptedExtensions()}
           onChange={handleUploadFile}
         />
-        <Upload size={10} />
+        <Upload size={16} />
       </Button>
 
       <Button
