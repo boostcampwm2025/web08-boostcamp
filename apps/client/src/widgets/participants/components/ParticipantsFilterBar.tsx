@@ -329,7 +329,7 @@ function BulkActions({
         variant="outline"
         size="icon-sm"
         onClick={onBulkEdit}
-        className="text-muted-foreground hover:text-foreground p-0 text-sm font-medium transition-colors duration-200"
+        className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 text-sm font-medium transition-colors duration-200"
         title="전체 편집 허용"
       >
         <Pencil size={14} />
@@ -338,7 +338,7 @@ function BulkActions({
         variant="outline"
         size="icon-sm"
         onClick={onBulkView}
-        className="text-muted-foreground hover:text-foreground p-0 text-sm font-medium transition-colors duration-200"
+        className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 text-sm font-medium transition-colors duration-200"
         title="전체 읽기 허용"
       >
         <Eye size={14} />
