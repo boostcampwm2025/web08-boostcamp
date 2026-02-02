@@ -113,37 +113,44 @@ function SearchFilterCombobox({
   // Get selected filter values for Combobox
   const selectedValues = selectedFilters.map((f) => f.value);
 
-  const handleValueChange = (newValues: string[]) => {
-    // Find newly added value
-    const added = newValues.find((v) => !selectedValues.includes(v));
-    if (added) {
-      const newFilter = FILTER_OPTIONS.find((opt) => opt.value === added);
-      if (newFilter) {
-        // Remove any existing filter of the same type (mutually exclusive within group)
-        const otherFilters = selectedFilters.filter(
-          (f) => f.type !== newFilter.type,
-        );
-        onFiltersChange([...otherFilters, newFilter]);
-        onSearchChange(''); // Clear search input after selection
-        setOpen(false); // Close dropdown after selection
-      }
-      return;
-    }
+  const handleValueAdded = (value: string) => {
+    const newFilter = FILTER_OPTIONS.find((opt) => opt.value === value);
+    if (!newFilter) return;
 
-    // Find removed value
+    // Remove any existing filter of the same type
+    // Mutually exclusive within group
+    const otherFilters = selectedFilters.filter(
+      (f) => f.type !== newFilter.type,
+    );
+    onFiltersChange([...otherFilters, newFilter]);
+
+    // Clear search input after selection
+    onSearchChange('');
+
+    // Close dropdown after selection
+    setOpen(false);
+  };
+
+  const handleValueRemoved = (value: string) => {
+    onFiltersChange(selectedFilters.filter((f) => f.value !== value));
+  };
+
+  const handleValueChange = (newValues: string[]) => {
+    // Check if a value was added
+    const added = newValues.find((v) => !selectedValues.includes(v));
+    if (added) handleValueAdded(added);
+
+    // Check if a value was removed
     const removed = selectedValues.find((v) => !newValues.includes(v));
-    if (removed) {
-      onFiltersChange(selectedFilters.filter((f) => f.value !== removed));
-    }
+    if (removed) handleValueRemoved(removed);
   };
 
   const handleRemoveFilter = (filterValue: string) => {
-    onFiltersChange(selectedFilters.filter((f) => f.value !== filterValue));
+    handleValueRemoved(filterValue);
   };
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Input with dropdown */}
       <Combobox
         value={selectedValues}
         onValueChange={handleValueChange}
