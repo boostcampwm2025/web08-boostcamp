@@ -87,18 +87,19 @@ export function ParticipantsFilterBar({
             selectedFilters={selectedFilters}
             onFiltersChange={onFiltersChange}
           />
-          <BulkActions
-            isHost={isHost}
-            filteredCount={filteredCount}
-            onBulkEdit={onBulkEdit}
-            onBulkView={onBulkView}
-          />
         </div>
       </div>
 
       <FilterChips
         selectedFilters={selectedFilters}
         onFiltersChange={onFiltersChange}
+      />
+
+      <BulkActions
+        isHost={isHost}
+        filteredCount={filteredCount}
+        onBulkEdit={onBulkEdit}
+        onBulkView={onBulkView}
       />
     </div>
   );
@@ -270,25 +271,27 @@ function BulkActions({
   if (!isHost || filteredCount === 0) return null;
 
   return (
-    <>
+    <div className="flex items-center gap-1">
       <Button
-        size="icon"
-        variant="outline"
+        variant="ghost"
+        size="sm"
         onClick={onBulkEdit}
-        className="h-8 w-8"
+        className="text-muted-foreground hover:bg-muted/40 hover:text-foreground h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200"
         title="전체 편집 허용"
       >
-        <Pencil className="size-4" />
+        <Pencil size={14} />
+        <span>전체 편집 허용</span>
       </Button>
       <Button
-        size="icon"
-        variant="outline"
+        variant="ghost"
+        size="sm"
         onClick={onBulkView}
-        className="h-8 w-8"
+        className="text-muted-foreground hover:bg-muted/40 hover:text-foreground h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200"
         title="전체 읽기 허용"
       >
-        <Eye className="size-4" />
+        <Eye size={14} />
+        <span>전체 읽기 허용</span>
       </Button>
-    </>
+    </div>
   );
 }
