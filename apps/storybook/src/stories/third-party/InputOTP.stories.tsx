@@ -9,9 +9,15 @@ import {
 } from '@codejam/ui';
 import { useState } from 'react';
 
-const meta = {
+type InputOTPArgs = {
+  maxLength: number;
+  disabled?: boolean;
+  pattern?: string;
+  'aria-invalid'?: boolean;
+};
+
+const meta: Meta<InputOTPArgs> = {
   title: 'ThirdParty/InputOTP',
-  component: InputOTP,
   parameters: {
     layout: 'centered',
   },
@@ -20,10 +26,10 @@ const meta = {
     maxLength: { control: 'number' },
     disabled: { control: 'boolean' },
   },
-} satisfies Meta<typeof InputOTP>;
+};
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<InputOTPArgs>;
 
 export const Default: Story = {
   args: {
@@ -66,7 +72,6 @@ export const WithSeparator: Story = {
 
 export const Controlled: Story = {
   render: () => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [value, setValue] = useState('');
 
     return (
@@ -86,11 +91,7 @@ export const Controlled: Story = {
           </InputOTPGroup>
         </InputOTP>
         <div className="text-center text-sm">
-          {value === '' ? (
-            <>코드를 입력해주세요.</>
-          ) : (
-            <>입력된 코드: {value}</>
-          )}
+          {value === '' ? <>코드를 입력해주세요.</> : <>입력된 코드: {value}</>}
         </div>
       </div>
     );
@@ -119,7 +120,6 @@ export const Disabled: Story = {
 export const Invalid: Story = {
   args: {
     maxLength: 6,
-    // @ts-expect-error - aria-invalid is not in the types but is passed to DOM
     'aria-invalid': true,
   },
   render: (args) => (

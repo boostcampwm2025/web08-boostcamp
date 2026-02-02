@@ -7,7 +7,6 @@ import {
   ComboboxGroup,
   ComboboxItem,
   ComboboxList,
-  ComboboxTrigger,
 } from '@codejam/ui';
 import { useState, useEffect } from 'react';
 
@@ -75,11 +74,16 @@ export const Async: Story = {
 
     return (
       <Combobox open={open} onOpenChange={setOpen}>
-        <ComboboxInput className="w-[200px]" placeholder="Select framework..." />
+        <ComboboxInput
+          className="w-[200px]"
+          placeholder="Select framework..."
+        />
         <ComboboxContent>
           <ComboboxList>
             {loading ? (
-              <div className="text-muted-foreground p-2 text-sm">Loading...</div>
+              <div className="text-muted-foreground p-2 text-sm">
+                Loading...
+              </div>
             ) : (
               <ComboboxGroup>
                 {items.map((item) => (

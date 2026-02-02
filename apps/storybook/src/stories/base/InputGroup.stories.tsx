@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@codejam/ui';
-import { SearchIcon, CopyIcon } from 'lucide-react';
+import { SearchIcon } from 'lucide-react';
 
 const meta = {
   title: 'Base/InputGroup',
