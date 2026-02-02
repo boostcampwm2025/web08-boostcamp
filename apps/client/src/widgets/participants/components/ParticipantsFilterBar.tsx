@@ -1,18 +1,21 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
-  Combobox,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxChip,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  useComboboxAnchor,
+  RadixPopover as Popover,
+  RadixPopoverContent as PopoverContent,
+  RadixPopoverTrigger as PopoverTrigger,
+  RadixButton as Button,
+  cn,
 } from '@codejam/ui';
-import { RadixButton as Button, cn } from '@codejam/ui';
-import { X, Pencil, Eye, User, Clock } from 'lucide-react';
+import {
+  X,
+  Pencil,
+  Eye,
+  User,
+  Clock,
+  ListFilter,
+  ChevronDown,
+  Check,
+} from 'lucide-react';
 import type { FilterOption } from '../types';
 import type { SortKey } from '../lib/types';
 import { FILTER_OPTIONS } from '../types';
@@ -43,7 +46,7 @@ export function ParticipantsFilterBar({
   isHost,
 }: ParticipantsFilterBarProps) {
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       <div className="relative">
         <input
           type="text"
@@ -61,10 +64,6 @@ export function ParticipantsFilterBar({
           </button>
         )}
       </div>
-      <FilterCombobox
-        selectedFilters={selectedFilters}
-        onFiltersChange={onFiltersChange}
-      />
 
       <div className="flex items-center gap-1">
         <SortButton
@@ -81,6 +80,11 @@ export function ParticipantsFilterBar({
           label="입장순"
         />
 
+        <FilterButton
+          selectedFilters={selectedFilters}
+          onFiltersChange={onFiltersChange}
+        />
+
         <div className="ml-auto flex items-center gap-2">
           <BulkActions
             isHost={isHost}
@@ -90,6 +94,11 @@ export function ParticipantsFilterBar({
           />
         </div>
       </div>
+
+      <FilterChips
+        selectedFilters={selectedFilters}
+        onFiltersChange={onFiltersChange}
+      />
     </div>
   );
 }
@@ -123,68 +132,112 @@ function SortButton({
   );
 }
 
-function FilterCombobox({
+function FilterButton({
   selectedFilters,
   onFiltersChange,
 }: {
   selectedFilters: FilterOption[];
   onFiltersChange: (filters: FilterOption[]) => void;
 }) {
-  const [inputValue, setInputValue] = useState('');
-  const anchor = useComboboxAnchor();
+  const [open, setOpen] = useState(false);
 
-  const filteredOptions = useMemo(() => {
-    if (!inputValue) return FILTER_OPTIONS;
-    return FILTER_OPTIONS.filter((option) =>
-      option.label.toLowerCase().includes(inputValue.toLowerCase()),
-    );
-  }, [inputValue]);
+  const handleToggle = (option: FilterOption) => {
+    const isSelected = selectedFilters.some((f) => f.value === option.value);
+    if (isSelected) {
+      onFiltersChange(selectedFilters.filter((f) => f.value !== option.value));
+    } else {
+      onFiltersChange([...selectedFilters, option]);
+    }
+  };
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1">
-        <Combobox
-          items={filteredOptions}
-          multiple
-          value={selectedFilters}
-          onValueChange={onFiltersChange}
-          itemToStringValue={(item) => item.value}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            'h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200',
+            open || selectedFilters.length > 0
+              ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
+              : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
+          )}
         >
-          <div className="relative" ref={anchor}>
-            <ComboboxChips>
-              <ComboboxValue>
-                {selectedFilters.map((filter) => (
-                  <ComboboxChip key={filter.value}>{filter.label}</ComboboxChip>
-                ))}
-              </ComboboxValue>
-              <ComboboxChipsInput
-                placeholder="필터 검색..."
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-            </ComboboxChips>
-            {selectedFilters.length > 0 && (
-              <button
-                type="button"
-                onClick={() => onFiltersChange([])}
-                className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
-                aria-label="Clear all filters"
+          <ListFilter size={14} />
+          <span>필터</span>
+          <ChevronDown size={12} className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-40 p-1">
+        <div className="space-y-0.5">
+          {FILTER_OPTIONS.map((option) => {
+            const isSelected = selectedFilters.some(
+              (f) => f.value === option.value,
+            );
+            return (
+              <div
+                key={option.value}
+                onClick={() => handleToggle(option)}
+                className={cn(
+                  'hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors outline-none select-none',
+                  isSelected && 'bg-accent/50',
+                )}
               >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-          <ComboboxContent anchor={anchor} className="min-w-(--anchor-width)">
-            <ComboboxEmpty>필터를 찾을 수 없습니다.</ComboboxEmpty>
-            <ComboboxList>
-              {filteredOptions.map((item) => (
-                <ComboboxItem key={item.value} value={item}>
-                  {item.label}
-                </ComboboxItem>
-              ))}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
-      </div>
+                <div
+                  className={cn(
+                    'border-primary/30 flex size-3.5 items-center justify-center rounded-sm border',
+                    isSelected
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'opacity-50',
+                  )}
+                >
+                  {isSelected && <Check size={10} />}
+                </div>
+                <span>{option.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function FilterChips({
+  selectedFilters,
+  onFiltersChange,
+}: {
+  selectedFilters: FilterOption[];
+  onFiltersChange: (filters: FilterOption[]) => void;
+}) {
+  if (selectedFilters.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+      {selectedFilters.map((filter) => (
+        <div
+          key={filter.value}
+          className="bg-muted text-muted-foreground flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+        >
+          <span>{filter.label}</span>
+          <button
+            onClick={() =>
+              onFiltersChange(
+                selectedFilters.filter((f) => f.value !== filter.value),
+              )
+            }
+            className="hover:bg-background hover:text-foreground rounded-full"
+          >
+            <X size={10} />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={() => onFiltersChange([])}
+        className="text-muted-foreground hover:text-foreground px-1 text-[10px] hover:underline"
+      >
+        초기화
+      </button>
     </div>
   );
 }
