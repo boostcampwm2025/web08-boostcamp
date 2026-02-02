@@ -1,14 +1,16 @@
 interface ErrorMessageProps {
-  message: string;
+  message?: string;
 }
 
 export function ErrorMessage({ message }: ErrorMessageProps) {
-  if (!message) return null;
-
   return (
-    <div className="-mt-2 min-h-5 w-full">
-      <p className="wrap-break-words text-center font-mono text-sm whitespace-pre-line text-red-500">
-        {message}
+    <div className="w-full">
+      <p
+        className={`wrap-break-words text-center text-lg whitespace-pre-line text-red-500 ${
+          message ? 'visible' : 'invisible'
+        }`}
+      >
+        {message || '\u00A0'}
       </p>
     </div>
   );

@@ -4,26 +4,27 @@ import type {
   CreateCustomRoomResponse,
   CreateCustomRoomRequest,
 } from '@codejam/common';
-import { API_ENDPOINTS } from '@codejam/common';
+import { API_ENDPOINTS, ROOM_JOIN_STATUS, MESSAGE } from '@codejam/common';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export async function checkRoomJoinable(
   roomCode: string,
 ): Promise<RoomJoinStatus> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOINABLE(roomCode)}`,
-    );
-    const text = (await response.text()) as RoomJoinStatus;
-    if (text === 'NOT_FOUND') {
-      throw new Error('Room not found');
-    }
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOINABLE(roomCode)}`,
+  );
+  const status = (await response.text()) as RoomJoinStatus;
 
-    return text;
-  } catch (e) {
-    const error = e as Error;
-    throw error;
+  switch (status) {
+    case ROOM_JOIN_STATUS.NOT_FOUND:
+      throw new Error(MESSAGE.ERROR.ROOM_NOT_FOUND);
+    case ROOM_JOIN_STATUS.FULL:
+      throw new Error(MESSAGE.ERROR.ROOM_FULL);
+    case ROOM_JOIN_STATUS.JOINABLE:
+      return status;
+    default:
+      throw new Error(MESSAGE.ERROR.SERVER_ERROR);
   }
 }
 
