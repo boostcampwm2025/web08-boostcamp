@@ -38,6 +38,7 @@ import { LinearTabApiContext, ProviderAPI } from '@/contexts/ProviderAPI';
 import { TabProvider } from '@/contexts/TabProvider';
 import { Trash2 } from 'lucide-react';
 import { useTabStore } from '@/stores/tab';
+import { ImageViewer } from '@/widgets/viewer/ImageViewer';
 
 function RoomPage() {
   const {
@@ -248,11 +249,41 @@ function FileViewer({ tabKey, readOnly }: FileViewerProps) {
       </ScrollArea>
       {Object.keys(fileTab).map((fileName) => (
         <TabsContent key={fileName} value={fileTab[fileName].fileId}>
-          <CodeEditor fileId={fileTab[fileName].fileId} readOnly={readOnly} />
+          <FileContentViewer
+            fileId={fileTab[fileName].fileId}
+            readOnly={readOnly}
+          />
         </TabsContent>
       ))}
     </Tabs>
   );
+}
+
+interface FileContentViewerProps {
+  fileId: string;
+  readOnly: boolean;
+}
+
+/**
+ * FileContentViewer - Renders viewer based on file type
+ * - CodeEditor for text files
+ * - ImageViewer for image files
+ */
+function FileContentViewer({ fileId, readOnly }: FileContentViewerProps) {
+  const getFileType = useFileStore((state) => state.getFileType);
+  const getFileContent = useFileStore((state) => state.getFileContent);
+
+  const fileType = getFileType(fileId);
+  const fileContent = getFileContent(fileId);
+
+  switch (fileType) {
+    case 'text':
+      return <CodeEditor fileId={fileId} readOnly={readOnly} />;
+    case 'image':
+      return <ImageViewer url={fileContent || ''} />;
+    default:
+      return <CodeEditor fileId={fileId} readOnly={readOnly} />;
+  }
 }
 
 export default RoomPage;

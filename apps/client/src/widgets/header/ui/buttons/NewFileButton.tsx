@@ -18,8 +18,8 @@ export function NewFileButton({ roomCode }: NewFileButtonProps) {
   const { getFileId, createFile, setActiveFile } = useFileStore();
   const { setIsDuplicated, isDuplicated, handleCheckRename } =
     useFileRename(roomCode);
-  const handleNewFile = async (name: string, ext: string) => {
-    const newFilename = `${name}.${ext}`;
+  const handleNewFile = async (name: string) => {
+    const newFilename = name;
     if (getFileId(newFilename)) {
       setIsDuplicated(true);
     } else {

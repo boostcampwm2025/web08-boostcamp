@@ -4,12 +4,14 @@ import {
   DEFAULT_LANGUAGE,
   getDefaultFileName,
   getDefaultFileTemplate,
+  type FileType,
 } from '@codejam/common';
 import { FileNode } from './file-node';
 
 export interface FileMetadata {
   id: string;
   name: string;
+  type: FileType;
 }
 
 export class FileManager {
@@ -92,11 +94,11 @@ export class FileManager {
     return fileId;
   }
 
-  createFile(name: string, content?: string): string {
+  createFile(name: string, content?: string, type: FileType = 'text'): string {
     const fileId = this.generateId();
 
     this.yDoc.transact(() => {
-      const file = FileNode.create(fileId, name, content);
+      const file = FileNode.create(fileId, name, content, type);
       this.files.set(fileId, file);
       this.names.set(name, fileId);
     });
@@ -135,11 +137,14 @@ export class FileManager {
     });
   }
 
-  overwriteFile(fileId: string, text: string): void {
+  overwriteFile(fileId: string, text: string, type?: FileType): void {
     const node = this.getFileNode(fileId);
     if (!node) return;
 
-    this.yDoc.transact(() => (node.text = text));
+    this.yDoc.transact(() => {
+      node.text = text;
+      if (type) node.type = type;
+    });
   }
 
   getFileNode(fileId: string): FileNode | null {
@@ -162,6 +167,11 @@ export class FileManager {
     if (!node) return null;
 
     return node.text;
+  }
+
+  getFileType(fileId: string): FileType | null {
+    const node = this.getFileNode(fileId);
+    return node ? node.type : null;
   }
 
   getFileTree(): FileMetadata[] {

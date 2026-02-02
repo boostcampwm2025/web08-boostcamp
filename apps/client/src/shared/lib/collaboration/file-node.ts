@@ -1,4 +1,5 @@
 import { Map as YMap, Text as YText } from 'yjs';
+import type { FileType } from '@codejam/common';
 
 /**
  * FileNode - Wrapper for Y.Map file structure
@@ -27,13 +28,19 @@ export class FileNode {
    * Create and initialize a new file Y.Map
    * Used by FileManager when creating new files
    */
-  static create(id: string, name: string, content?: string): YMap<unknown> {
+  static create(
+    id: string,
+    name: string,
+    content?: string,
+    type: FileType = 'text',
+  ): YMap<unknown> {
     const file = new YMap<unknown>();
     const yText = new YText();
 
     file.set('id', id);
     file.set('name', name);
     file.set('content', yText);
+    file.set('type', type);
 
     if (content) yText.insert(0, content || '');
     return file;
@@ -75,10 +82,19 @@ export class FileNode {
     return bytes;
   }
 
-  getMetadata(): { id: string; name: string } {
+  get type(): FileType {
+    return this.file.get('type') as FileType;
+  }
+
+  set type(value: FileType) {
+    this.file.set('type', value);
+  }
+
+  getMetadata(): { id: string; name: string; type: FileType } {
     return {
       id: this.id,
       name: this.name,
+      type: this.type,
     };
   }
 }
