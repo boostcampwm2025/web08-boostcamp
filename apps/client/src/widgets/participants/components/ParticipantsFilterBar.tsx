@@ -11,18 +11,11 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from '@codejam/ui';
-import {
-  RadixSelect as Select,
-  RadixSelectContent as SelectContent,
-  RadixSelectItem as SelectItem,
-  RadixSelectTrigger as SelectTrigger,
-  RadixSelectValue as SelectValue,
-} from '@codejam/ui';
-import { RadixButton as Button } from '@codejam/ui';
-import { X, Pencil, Eye } from 'lucide-react';
+import { RadixButton as Button, cn } from '@codejam/ui';
+import { X, Pencil, Eye, User, Clock } from 'lucide-react';
 import type { FilterOption } from '../types';
 import type { SortKey } from '../lib/types';
-import { FILTER_OPTIONS, SORT_OPTIONS } from '../types';
+import { FILTER_OPTIONS } from '../types';
 
 interface ParticipantsFilterBarProps {
   selectedFilters: FilterOption[];
@@ -52,16 +45,60 @@ export function ParticipantsFilterBar({
         onFiltersChange={onFiltersChange}
       />
 
-      <div className="flex items-center gap-2">
-        <SortSelect sortKey={sortKey} onSortChange={onSortChange} />
-        <BulkActions
-          isHost={isHost}
-          filteredCount={filteredCount}
-          onBulkEdit={onBulkEdit}
-          onBulkView={onBulkView}
+      <div className="flex items-center gap-1">
+        <SortButton
+          active={sortKey === 'name'}
+          onClick={() => onSortChange('name')}
+          icon={<User size={14} />}
+          label="이름순"
         />
+
+        <SortButton
+          active={sortKey === 'time'}
+          onClick={() => onSortChange('time')}
+          icon={<Clock size={14} />}
+          label="입장순"
+        />
+
+        <div className="ml-auto flex items-center gap-2">
+          <BulkActions
+            isHost={isHost}
+            filteredCount={filteredCount}
+            onBulkEdit={onBulkEdit}
+            onBulkView={onBulkView}
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+function SortButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className={cn(
+        'h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200',
+        active
+          ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
+          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </Button>
   );
 }
 
@@ -131,29 +168,6 @@ function FilterCombobox({
   );
 }
 
-function SortSelect({
-  sortKey,
-  onSortChange,
-}: {
-  sortKey: SortKey;
-  onSortChange: (sortKey: SortKey) => void;
-}) {
-  return (
-    <Select value={sortKey} onValueChange={onSortChange}>
-      <SelectTrigger className="w-30">
-        <SelectValue placeholder="정렬" />
-      </SelectTrigger>
-      <SelectContent>
-        {SORT_OPTIONS.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
 function BulkActions({
   isHost,
   filteredCount,
@@ -173,7 +187,7 @@ function BulkActions({
         size="icon"
         variant="outline"
         onClick={onBulkEdit}
-        className="ml-auto h-8 w-8"
+        className="h-8 w-8"
         title="전체 편집 허용"
       >
         <Pencil className="size-4" />
