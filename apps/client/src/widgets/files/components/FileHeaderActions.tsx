@@ -104,7 +104,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   return (
     <div className="flex items-center gap-0.5">
       <NewFileDialog onSubmit={handleNewFile}>
-        <Button variant="ghost" size="icon" className="h-7 w-7" title="새 파일">
+        <Button variant="ghost" size="icon" className="h-6 w-6" title="새 파일">
           <Plus size={16} />
         </Button>
       </NewFileDialog>
@@ -112,7 +112,7 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
       <Button
         variant="ghost"
         size="icon"
-        className="h-7 w-7"
+        className="h-6 w-6"
         title="파일 업로드"
         onClick={() => uploadRef.current?.click()}
       >
@@ -124,13 +124,13 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
           accept={getAcceptedExtensions()}
           onChange={handleUploadFile}
         />
-        <Upload size={16} />
+        <Upload size={10} />
       </Button>
 
       <Button
         variant="ghost"
         size="icon"
-        className="h-7 w-7"
+        className="h-6 w-6"
         title="이미지 공유"
         onClick={() => setIsUrlDialogOpen(true)}
       >

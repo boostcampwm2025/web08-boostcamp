@@ -136,7 +136,7 @@ function Divider() {
 
 function FilterSection(props: ComponentProps<typeof ParticipantsFilterBar>) {
   return (
-    <div className="px-4 pb-3 dark:border-gray-700">
+    <div className="px-4 pt-0.5 pb-3 dark:border-gray-700">
       <ParticipantsFilterBar {...props} />
     </div>
   );

@@ -89,7 +89,7 @@ function FilterSection({
   onSortChange: (key: FileSortKey) => void;
 }) {
   return (
-    <div className="px-4 pb-3">
+    <div className="px-4 pt-0.5 pb-3">
       <FileFilterBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
