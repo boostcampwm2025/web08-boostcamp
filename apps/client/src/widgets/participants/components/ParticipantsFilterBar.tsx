@@ -171,36 +171,49 @@ function FilterButton({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-40 p-1">
         <div className="space-y-0.5">
-          {FILTER_OPTIONS.map((option) => {
-            const isSelected = selectedFilters.some(
-              (f) => f.value === option.value,
-            );
-            return (
-              <div
-                key={option.value}
-                onClick={() => handleToggle(option)}
-                className={cn(
-                  'hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors outline-none select-none',
-                  isSelected && 'bg-accent/50',
-                )}
-              >
-                <div
-                  className={cn(
-                    'border-primary/30 flex size-3.5 items-center justify-center rounded-sm border',
-                    isSelected
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'opacity-50',
-                  )}
-                >
-                  {isSelected && <Check size={10} />}
-                </div>
-                <span>{option.label}</span>
-              </div>
-            );
-          })}
+          {FILTER_OPTIONS.map((option) => (
+            <FilterOptionItem
+              key={option.value}
+              option={option}
+              isSelected={selectedFilters.some((f) => f.value === option.value)}
+              onToggle={() => handleToggle(option)}
+            />
+          ))}
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function FilterOptionItem({
+  option,
+  isSelected,
+  onToggle,
+}: {
+  option: FilterOption;
+  isSelected: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div
+      onClick={onToggle}
+      className={cn(
+        'hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors outline-none select-none',
+        isSelected && 'bg-accent/50',
+      )}
+    >
+      <div
+        className={cn(
+          'border-primary/30 flex size-3.5 items-center justify-center rounded-sm border',
+          isSelected
+            ? 'bg-primary text-primary-foreground border-primary'
+            : 'opacity-50',
+        )}
+      >
+        {isSelected && <Check size={10} />}
+      </div>
+      <span>{option.label}</span>
+    </div>
   );
 }
 
