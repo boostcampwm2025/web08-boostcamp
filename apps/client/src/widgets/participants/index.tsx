@@ -94,12 +94,13 @@ export function Participants() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col px-4">
-      <SidebarHeader title="참가자" count={totalCount} />
-
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="flex h-full w-full flex-col">
+      <div className="px-4">
+        <SidebarHeader title="참가자" count={totalCount} />
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
         {/* 필터 바 */}
-        <div className="p-1">
+        <div border-b>
           <ParticipantsFilterBar
             selectedFilters={selectedFilters}
             onFiltersChange={setSelectedFilters}
@@ -112,6 +113,7 @@ export function Participants() {
           />
         </div>
 
+        {/* 참가자 */}
         <div className="flex-1 overflow-y-auto">
           {me && <Participant ptId={me.ptId} hasPermission={false} />}
 

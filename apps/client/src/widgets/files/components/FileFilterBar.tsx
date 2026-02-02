@@ -26,7 +26,7 @@ export function FileFilterBar({
   const isNameSort = sortKey.startsWith('name');
 
   return (
-    <div className="flex flex-col gap-2 p-1">
+    <div className="flex flex-col gap-2">
       <div className="relative">
         <input
           type="text"
