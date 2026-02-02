@@ -133,6 +133,7 @@ function SearchFilterCombobox({
 
   const handleValueRemoved = (value: string) => {
     onFiltersChange(selectedFilters.filter((f) => f.value !== value));
+    setOpen(false); // Close dropdown after removal
   };
 
   const handleValueChange = (newValues: string[]) => {
@@ -165,34 +166,11 @@ function SearchFilterCombobox({
           className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent py-1 text-sm shadow-none transition-colors outline-none focus-visible:ring-1"
         />
 
-        <ComboboxContent>
-          <ComboboxList>
-            {Object.entries(groupedOptions).map(([type, options]) =>
-              options.length > 0 ? (
-                <ComboboxGroup key={type}>
-                  <ComboboxLabel>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </ComboboxLabel>
-                  {options.map((option) => {
-                    const isSelected = selectedValues.includes(option.value);
-                    return (
-                      <ComboboxItem
-                        key={option.value}
-                        value={option.value}
-                        className={cn(
-                          'data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors outline-none select-none',
-                          isSelected && 'bg-accent/50',
-                        )}
-                      >
-                        {option.label}
-                      </ComboboxItem>
-                    );
-                  })}
-                </ComboboxGroup>
-              ) : null,
-            )}
-          </ComboboxList>
-        </ComboboxContent>
+        <FilterOptions
+          groupedOptions={groupedOptions}
+          matchedOptions={matchedOptions}
+          selectedValues={selectedValues}
+        />
       </Combobox>
 
       <CustomChips
@@ -201,6 +179,47 @@ function SearchFilterCombobox({
         onClearAll={() => onFiltersChange([])}
       />
     </div>
+  );
+}
+
+function FilterOptions({
+  groupedOptions,
+  matchedOptions,
+  selectedValues,
+}: {
+  groupedOptions: Record<string, FilterOption[]>;
+  matchedOptions: FilterOption[];
+  selectedValues: string[];
+}) {
+  if (matchedOptions.length === 0) return null;
+
+  return (
+    <ComboboxContent>
+      <ComboboxList>
+        {Object.entries(groupedOptions).map(([type, options]) => (
+          <ComboboxGroup key={type}>
+            <ComboboxLabel>
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </ComboboxLabel>
+            {options.map((option) => {
+              const isSelected = selectedValues.includes(option.value);
+              return (
+                <ComboboxItem
+                  key={option.value}
+                  value={option.value}
+                  className={cn(
+                    'data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors outline-none select-none',
+                    isSelected && 'bg-accent/50',
+                  )}
+                >
+                  {option.label}
+                </ComboboxItem>
+              );
+            })}
+          </ComboboxGroup>
+        ))}
+      </ComboboxList>
+    </ComboboxContent>
   );
 }
 
