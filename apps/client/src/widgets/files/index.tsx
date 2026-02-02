@@ -40,6 +40,7 @@ export function FileList() {
         sortKey={sortKey}
         onSortChange={setSortKey}
       />
+      <Divider />
       <FileItems
         files={processedFiles}
         hasPermission={hasPermission}
@@ -48,6 +49,10 @@ export function FileList() {
       <GaugeSection />
     </div>
   );
+}
+
+function Divider() {
+  return <div className="mx-4 border-b border-gray-200 dark:border-gray-700" />;
 }
 
 function HeaderSection({
@@ -84,7 +89,7 @@ function FilterSection({
   onSortChange: (key: FileSortKey) => void;
 }) {
   return (
-    <div className="border-border/40 border-b px-4 pb-3">
+    <div className="px-4 pb-3">
       <FileFilterBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}

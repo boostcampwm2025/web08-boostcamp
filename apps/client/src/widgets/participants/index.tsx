@@ -131,7 +131,7 @@ export function Participants() {
 }
 
 function Divider() {
-  return <div className="mx-4 border-b border-gray-100 dark:border-gray-700" />;
+  return <div className="mx-4 border-b border-gray-200 dark:border-gray-700" />;
 }
 
 function FilterSection(props: ComponentProps<typeof ParticipantsFilterBar>) {
