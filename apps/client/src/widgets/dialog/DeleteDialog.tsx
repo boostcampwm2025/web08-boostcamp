@@ -1,4 +1,3 @@
-import { socket } from '@/shared/api/socket';
 import { RadixButton as Button } from '@codejam/ui';
 import {
   RadixDialogClose as DialogClose,
@@ -9,7 +8,6 @@ import {
   RadixDialogTitle as DialogTitle,
 } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
-import { SOCKET_EVENTS } from '@codejam/common';
 import { type FormEvent } from 'react';
 
 type DeleteDialogProps = {
@@ -19,17 +17,14 @@ type DeleteDialogProps = {
 };
 
 export function DeleteDialog({ fileId, fileName, onOpen }: DeleteDialogProps) {
-  const setActiveFile = useFileStore((store) => store.setActiveFile);
-  const activeFileId = useFileStore((store) => store.activeFileId);
+  const deleteFile = useFileStore((store) => store.deleteFile);
 
   const handleOnSubmit = (ev: FormEvent) => {
     ev.preventDefault();
-    socket.emit(SOCKET_EVENTS.DELETE_FILE, {
-      fileId,
-    });
-    if (activeFileId === fileId) {
-      setActiveFile('');
-    }
+
+    // Delete file
+    deleteFile(fileId);
+
     onOpen(false);
   };
 

@@ -1,5 +1,6 @@
 import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 import {
+  ActiveTabContext,
   DraggingTabContext,
   DropSignalContext,
   FullWidthContext,
@@ -7,12 +8,11 @@ import {
   LinearTabContext,
   LinearTabWidthContext,
   PositionContext,
-  type LinearValue,
 } from '@/contexts/TabProvider';
-import { useTabStore } from '@/stores/tab';
+import type { LinearValue } from '@/types/tab-provider';
 import React, { useContext, useEffect, type HTMLAttributes } from 'react';
 
-type LinearGridProps = {
+type TabLayoutProps = {
   min: number;
   max: number;
   keyName: string;
@@ -20,26 +20,28 @@ type LinearGridProps = {
     key: string | null;
     value: LinearValue;
   };
+  onCreateLinearTab?: (linearKey: number, tabKey: string) => void;
+  onAppendLinearTab?: (linearKey: number, tabKey: string) => void;
   convertProcessFn?: (key: string) => { [x: string]: LinearValue };
-  convertKeyName?: (key: string) => string;
   control?: boolean;
   children: (tabKey: number) => React.ReactNode;
 };
 
-type LinearChildProps = {
+type TabLayoutChildProps = {
   width: number;
   tabKey: number;
 } & HTMLAttributes<HTMLDivElement>;
 
-export function LinearGrid({
+export function TabLayout({
   min,
   max,
   keyName,
   initialTabValue,
+  onCreateLinearTab,
+  onAppendLinearTab,
   convertProcessFn,
-  convertKeyName,
   children,
-}: LinearGridProps) {
+}: TabLayoutProps) {
   const myRef = useContext(LinearRefContext);
   const position = useContext(PositionContext);
   const { linearTabWidth } = useContext(LinearTabWidthContext);
@@ -48,7 +50,7 @@ export function LinearGrid({
   const { dropSignal, setDropSignal } = useContext(DropSignalContext);
   const fullWidth = useContext(FullWidthContext);
   const { createLinearTab, appendLinear } = useContext(LinearTabApiContext);
-  const setActiveTabKey = useTabStore((state) => state.setActiveTabKey);
+  const { setActiveTab } = useContext(ActiveTabContext);
 
   useEffect(() => {
     if (!myRef || !myRef.current) {
@@ -62,19 +64,19 @@ export function LinearGrid({
       return;
     }
 
-    Array.from({ length: Math.max(1, min) }).forEach(() => {
-      setActiveTabKey(
-        createLinearTab(initialTabValue.key!, initialTabValue.value),
-      );
-    });
+    for (let i = 0; i < Math.max(1, min); i++) {
+      const now = Date.now();
+      createLinearTab(now, initialTabValue.key, initialTabValue.value);
+      setActiveTab(now, initialTabValue.key);
+    }
   }, [
-    myRef,
-    min,
+    createLinearTab,
     initialTabValue.key,
     initialTabValue.value,
     linearTab,
-    createLinearTab,
-    setActiveTabKey,
+    min,
+    myRef,
+    setActiveTab,
   ]);
 
   useEffect(() => {
@@ -114,29 +116,18 @@ export function LinearGrid({
       }
 
       const input = convertProcessFn ? convertProcessFn(key) : json;
-      const newKey = convertKeyName ? convertKeyName(key) : key;
       if (isHalfOver && entries.length < max) {
-        createLinearTab(newKey, input);
+        const now = Date.now();
+        createLinearTab(now, key, input);
+        onCreateLinearTab?.(now, key);
       } else {
-        appendLinear(draggingTab, newKey, input);
+        appendLinear(draggingTab, key, input);
+        onAppendLinearTab?.(draggingTab, key);
       }
     } finally {
       setDropSignal({ signal: false });
     }
-  }, [
-    dropSignal,
-    position,
-    linearTabWidth,
-    draggingTab,
-    fullWidth,
-    keyName,
-    convertProcessFn,
-    convertKeyName,
-    max,
-    createLinearTab,
-    appendLinear,
-    setDropSignal,
-  ]);
+  }, [dropSignal]);
 
   return (
     <div ref={myRef} className="flex h-screen w-full">
@@ -145,18 +136,21 @@ export function LinearGrid({
         Object.entries(linearTab).map(([tabKey]) => {
           const width = linearTabWidth[parseInt(tabKey)] as number;
           return (
-            <LinearChild key={tabKey} width={width} tabKey={parseInt(tabKey)}>
+            <TabLayoutChildren
+              key={tabKey}
+              width={width}
+              tabKey={parseInt(tabKey)}
+            >
               {children(parseInt(tabKey))}
-            </LinearChild>
+            </TabLayoutChildren>
           );
         })}
     </div>
   );
 }
 
-function LinearChild({ width, tabKey, children }: LinearChildProps) {
-  const setActiveTabKey = useTabStore((state) => state.setActiveTabKey);
-  const setActiveTabContent = useTabStore((state) => state.setActiveTabContent);
+function TabLayoutChildren({ width, tabKey, children }: TabLayoutChildProps) {
+  const { setActiveTab } = useContext(ActiveTabContext);
   const { linearTab } = useContext(LinearTabContext);
 
   const handleClick = () => {
@@ -164,8 +158,7 @@ function LinearChild({ width, tabKey, children }: LinearChildProps) {
       return;
     }
 
-    setActiveTabKey(tabKey);
-    setActiveTabContent(linearTab[tabKey]);
+    setActiveTab(tabKey);
   };
 
   return (

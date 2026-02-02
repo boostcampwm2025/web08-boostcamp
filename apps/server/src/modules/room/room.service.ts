@@ -19,6 +19,7 @@ import {
   ERROR_MESSAGES,
   ROOM_CONFIG,
   DEFAULT_HOST,
+  getAvatarColors,
 } from '@codejam/common';
 import { customAlphabet } from 'nanoid';
 import { Pt } from '../pt/pt.entity';
@@ -136,12 +137,15 @@ export class RoomService {
         // 2. Host Pt 생성 및 토큰 발급 (Quick Room 제외)
         let token: string | undefined;
         if (options.roomType !== ROOM_TYPE.QUICK) {
+          const ptHash = this.ptService.generatePtHash();
+          const avatarColors = getAvatarColors(ptHash);
+
           const hostPt = manager.create(Pt, {
             room: savedRoom,
-            ptHash: this.ptService.generatePtHash(),
+            ptHash,
             role: options.roomCreatorRole,
             nickname: DEFAULT_HOST.NICKNAME,
-            color: DEFAULT_HOST.COLOR,
+            color: avatarColors.shape,
             presence: PRESENCE.ONLINE,
           });
           const savedPt = await manager.save(hostPt);

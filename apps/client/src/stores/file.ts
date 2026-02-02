@@ -1,25 +1,32 @@
 import { create } from 'zustand';
-import { Doc, Map as YMap, Text as YText } from 'yjs';
-import {
-  Awareness,
-  applyAwarenessUpdate,
-  encodeAwarenessUpdate,
-} from 'y-protocols/awareness';
-import { SOCKET_EVENTS, LIMITS, type AwarenessUpdate } from '@codejam/common';
-import { v7 as uuidv7 } from 'uuid';
-import { createDecoder } from 'lib0/decoding';
-import { createEncoder, toUint8Array } from 'lib0/encoding';
-import { readSyncMessage, writeUpdate } from 'y-protocols/sync';
+import { Doc, Map as YMap } from 'yjs';
+import { Awareness } from 'y-protocols/awareness';
+import { SOCKET_EVENTS, LIMITS, type FileType } from '@codejam/common';
 import { useSocketStore } from './socket';
 import { emitAwarenessUpdate, emitFileUpdate } from './socket-events';
+import {
+  createCollaborationContext,
+  type YDocManager,
+  type AwarenessManager,
+  type FileManager,
+  type FileMetadata,
+} from '@/shared/lib/collaboration';
 
 interface FileState {
   yDoc: Doc | null;
   awareness: Awareness | null;
+
+  yDocManager: YDocManager | null;
+  awarenessManager: AwarenessManager | null;
+  fileManager: FileManager | null;
+
   activeFileId: string | null;
   viewerFileId: string | null;
   isInitialized: boolean;
   isInitialDocLoaded: boolean;
+
+  // File metadata
+  files: FileMetadata[];
 
   // 업로드 파일
   tempFiles: File[];
@@ -32,8 +39,9 @@ interface FileState {
   // Actions
   initialize: (roomCode: string) => number;
   destroy: () => void;
-  setActiveFile: (fileId: string) => void;
+  setActiveFile: (fileId: string | null) => void;
   setViewerFile: (fileId: string) => void;
+  initializeDefaultFile: () => void;
   initializeActiveFile: () => void;
   applyRemoteDocUpdate: (message: Uint8Array) => void;
   applyRemoteAwarenessUpdate: (message: Uint8Array) => void;
@@ -43,28 +51,35 @@ interface FileState {
   addTempFile: (file: File) => void;
   shiftTempFile: () => void;
   clearTempFile: () => void;
-  createFile: (name: string, content?: string) => string;
+  createFile: (name: string, content?: string, type?: FileType) => string;
   deleteFile: (fileId: string) => void;
   renameFile: (fileId: string, newName: string) => void;
-  overwriteFile: (fileId: string, content?: string) => void;
-  getFileId: (name: string) => string | undefined;
+  overwriteFile: (fileId: string, content: string, type?: FileType) => void;
+  getFileId: (name: string) => string | null;
   getTempFiles: () => File[];
   getFilesMap: () => YMap<YMap<unknown>> | null;
-  getFileIdMap: () => YMap<string> | null;
+  getFileNamesMap: () => YMap<string> | null;
 
   getFileName: (fileId: string | null) => string | null;
   getFileContent: (fileId: string) => string | null;
+  getFileType: (fileId: string) => FileType | null;
   getActiveFileContent: () => string | null;
 }
 
 export const useFileStore = create<FileState>((set, get) => ({
   yDoc: null,
   awareness: null,
+
+  yDocManager: null,
+  awarenessManager: null,
+  fileManager: null,
+
   activeFileId: null,
   viewerFileId: null,
   isInitialized: false,
   isInitialDocLoaded: false,
 
+  files: [],
   tempFiles: [],
 
   // Capacity State 초기값
@@ -78,75 +93,66 @@ export const useFileStore = create<FileState>((set, get) => ({
       return state.yDoc!.clientID;
     }
 
-    // Create Y.Doc and Awareness
-
-    const yDoc = new Doc();
-    const awareness = new Awareness(yDoc);
-
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    // Create collaboration context
+    const { yDoc, awareness, yDocManager, awarenessManager, fileManager } =
+      createCollaborationContext();
 
     // Setup YDoc update listener
-
-    const onYDocUpdate = (update: Uint8Array, origin: unknown) => {
-      // 용량 측정 (로컬/리모트 모두)
-      get().measureCapacity();
-
+    yDocManager.onUpdate((update, origin) => {
+      // Skip remote updates
       if (origin === 'remote') return;
-
-      const encoder = createEncoder();
-      writeUpdate(encoder, update);
-      const data = toUint8Array(encoder);
 
       const { isConnected } = useSocketStore.getState();
       if (!isConnected || !roomCode) return;
 
-      emitFileUpdate(roomCode, data);
-    };
-
-    yDoc.on('update', onYDocUpdate);
+      emitFileUpdate(roomCode, update);
+    });
 
     // Setup awareness update listener
-
-    const onAwarenessUpdate = (changes: AwarenessUpdate, origin: unknown) => {
+    awarenessManager.onUpdate((update, origin) => {
+      // Skip remote updates
       if (origin === 'remote') return;
-
-      const changed = changes.added.concat(changes.updated, changes.removed);
-      if (changed.length === 0) return;
-
-      const message = encodeAwarenessUpdate(awareness, changed);
 
       const { isConnected, roomCode } = useSocketStore.getState();
       if (!isConnected || !roomCode) return;
 
-      emitAwarenessUpdate(roomCode, message);
-    };
+      emitAwarenessUpdate(roomCode, update);
+    });
 
-    awareness.on('update', onAwarenessUpdate);
+    // Measure capacity on files updates
+    fileManager.onFilesChange(() => {
+      get().measureCapacity();
+    });
 
-    // Detect file changes
-
-    const onFilesMapUpdate = () => {
+    // Setup file changes listener
+    fileManager.onFilesMetadataChange(() => {
       const { activeFileId } = get();
       if (!activeFileId) return;
 
       // Check if active file still exists
-      if (!filesMap.has(activeFileId)) {
+      if (!fileManager.getFileNode(activeFileId)) {
         set({ activeFileId: null });
       }
-    };
+    });
 
-    filesMap.observe(onFilesMapUpdate);
+    // Setup file metadata listener
+    fileManager.onFilesMetadataChange(() => {
+      const metadata = fileManager.getFileTree();
 
-    // Save YDoc and awareness
+      set({ files: metadata });
+    });
 
+    // Save managers and instances
     set({
       yDoc,
+      yDocManager,
       awareness,
+      awarenessManager,
+      fileManager,
       isInitialized: true,
     });
 
     // Request initial state from server
-
     const { send, isConnected } = useSocketStore.getState();
 
     if (isConnected) {
@@ -157,18 +163,13 @@ export const useFileStore = create<FileState>((set, get) => ({
     return yDoc.clientID;
   },
 
-  setActiveFile: (fileId: string) => {
+  setActiveFile: (fileId: string | null) => {
     set({ activeFileId: fileId });
 
     // Update awareness with current file
-    const state = get();
-    if (state.awareness) {
-      const currentState = state.awareness.getLocalState();
-      state.awareness.setLocalStateField('user', {
-        ...currentState?.user,
-        currentFileId: fileId,
-      });
-    }
+    const { awarenessManager } = get();
+    if (!awarenessManager) return;
+    if (fileId) awarenessManager.setCurrentFileId(fileId);
   },
 
   setViewerFile: (fileId: string | null) => {
@@ -176,35 +177,38 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   applyRemoteDocUpdate: (message: Uint8Array) => {
-    const { yDoc, isInitialDocLoaded } = get();
-    if (!yDoc) return;
+    const { yDocManager } = get();
+    if (!yDocManager) return;
 
-    const update =
-      message instanceof Uint8Array ? message : new Uint8Array(message);
-
-    const decoder = createDecoder(update);
-    const encoder = createEncoder();
-
-    readSyncMessage(decoder, encoder, yDoc, 'remote');
+    const reply = yDocManager.applyRemoteUpdate(message);
 
     // Send reply if needed (sync protocol)
-    const reply = toUint8Array(encoder);
-    if (reply.byteLength > 0) {
+    if (reply) {
       const { roomCode } = useSocketStore.getState();
       if (roomCode) emitFileUpdate(roomCode, reply);
     }
 
     // Flag Y.Doc as initialized
-    if (!isInitialDocLoaded) {
+    if (yDocManager.isInitialDocLoaded() && !get().isInitialDocLoaded) {
       set({ isInitialDocLoaded: true });
     }
   },
 
-  initializeActiveFile: () => {
-    const { yDoc, activeFileId, setActiveFile } = get();
-    if (!yDoc || activeFileId) return;
+  initializeDefaultFile() {
+    const { fileManager, setActiveFile } = get();
+    if (!fileManager) return;
 
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
+    const fileId = fileManager.initializeDefaultFile();
+    if (!fileId) return;
+
+    setActiveFile(fileId);
+  },
+
+  initializeActiveFile: () => {
+    const { fileManager, activeFileId, setActiveFile } = get();
+    if (!fileManager || activeFileId) return;
+
+    const filesMap = fileManager.getFilesMap();
     const firstFileId = Array.from(filesMap.keys())[0];
     if (!firstFileId) return;
 
@@ -212,88 +216,60 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   applyRemoteAwarenessUpdate: (message: Uint8Array) => {
-    const state = get();
-    if (!state.awareness) return;
+    const { awarenessManager } = get();
+    if (!awarenessManager) return;
 
-    const update =
-      message instanceof Uint8Array ? message : new Uint8Array(message);
-
-    applyAwarenessUpdate(state.awareness, update, 'remote');
+    awarenessManager.applyRemoteUpdate(message);
   },
 
   destroy: () => {
-    const { yDoc, awareness } = get();
-    yDoc?.destroy();
-    awareness?.destroy();
+    const { yDocManager, awarenessManager } = get();
+    yDocManager?.destroy();
+    awarenessManager?.destroy();
 
     set({
       yDoc: null,
       awareness: null,
+
+      yDocManager: null,
+      awarenessManager: null,
+      fileManager: null,
+
       activeFileId: null,
       isInitialized: false,
     });
   },
 
   // CRUD: 파일 생성
-  createFile: (name: string, content?: string) => {
-    const { yDoc } = get();
-    if (!yDoc) return '';
+  createFile: (name: string, content?: string, type: FileType = 'text') => {
+    const { fileManager } = get();
+    if (!fileManager) return '';
 
-    const fileId = uuidv7();
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
-    const fileIdMap = yDoc.getMap('map') as YMap<string>;
-
-    yDoc.transact(() => {
-      const fileMap = new YMap<unknown>();
-      const yText = new YText();
-
-      fileMap.set('name', name);
-      fileMap.set('content', yText);
-
-      if (content) {
-        yText.insert(0, content);
-      }
-
-      filesMap.set(fileId, fileMap);
-      fileIdMap.set(name, fileId);
-    });
-
-    return fileId;
+    return fileManager.createFile(name, content, type);
   },
 
   // CRUD: 파일 삭제
   deleteFile: (fileId: string) => {
-    const { yDoc } = get();
-    if (!yDoc) return;
+    const { fileManager } = get();
+    if (!fileManager) return;
 
-    const filesMap = yDoc.getMap('files');
-    filesMap.delete(fileId);
+    fileManager.deleteFile(fileId);
   },
 
   // CRUD: 파일 이름 변경
   renameFile: (fileId: string, newName: string) => {
-    const { yDoc } = get();
-    if (!yDoc) return;
+    const { fileManager } = get();
+    if (!fileManager) return;
 
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
-    const fileMap = filesMap.get(fileId);
-
-    if (fileMap) {
-      fileMap.set('name', newName);
-    }
+    fileManager.renameFile(fileId, newName);
   },
 
   // CRUD: fileId 얻어오기
-  getFileId: (name: string): string | undefined => {
-    const { yDoc } = get();
-    if (!yDoc) return;
+  getFileId: (name: string): string | null => {
+    const { fileManager } = get();
+    if (!fileManager) return null;
 
-    const fileIdMap = yDoc.getMap('map') as YMap<string>;
-    if (!fileIdMap) {
-      return undefined;
-    }
-
-    return fileIdMap.get(name);
+    return fileManager.getFileId(name);
   },
 
   getTempFiles: () => {
@@ -301,62 +277,38 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   // CRUD: 파일 덮어쓰기
-  overwriteFile(fileId: string, content?: string) {
-    const { yDoc } = get();
-    if (!yDoc) return;
+  overwriteFile(fileId: string, content: string, type?: FileType) {
+    const { fileManager } = get();
+    if (!fileManager) return;
 
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
-    const fileMap = filesMap.get(fileId);
-
-    if (fileMap) {
-      yDoc.transact(() => {
-        const yText = new YText();
-        fileMap.set('content', yText);
-
-        if (content) {
-          yText.insert(0, content);
-        }
-      });
-    }
+    fileManager.overwriteFile(fileId, content, type);
   },
 
   // CRUD: filesMap 반환 (Observer 등록용)
   getFilesMap: () => {
-    const { yDoc } = get();
-    if (!yDoc) return null;
+    const { fileManager } = get();
+    if (!fileManager) return null;
 
-    return yDoc.getMap('files') as YMap<YMap<unknown>>;
+    return fileManager.getFilesMap();
   },
 
   // CRUD: 파일 목록
-  getFileIdMap: (): YMap<string> | null => {
-    const { yDoc } = get();
-    if (!yDoc) {
-      return null;
-    }
+  getFileNamesMap: (): YMap<string> | null => {
+    const { fileManager } = get();
+    if (!fileManager) return null;
 
-    return yDoc.getMap('map') as YMap<string>;
+    return fileManager.getFileNamesMap();
   },
 
   // 용량 측정: 전체 파일의 텍스트 길이 합산
   measureCapacity: () => {
-    const { yDoc } = get();
-    if (!yDoc) return 0;
+    const { fileManager } = get();
+    if (!fileManager) return 0;
 
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
-    let total = 0;
+    const total = fileManager.getTotalCapacity();
 
-    filesMap.forEach((fileMap) => {
-      const content = fileMap.get('content') as YText;
-      if (content) {
-        total += content.toString().length;
-      }
-    });
-
-    const percentage = Math.min(
-      (total / LIMITS.MAX_DOC_SIZE_CLIENT) * 100,
-      100,
-    );
+    const ratio = total / LIMITS.MAX_DOC_SIZE_CLIENT;
+    const percentage = Math.min(ratio * 100, 100);
 
     set({
       capacityBytes: total,
@@ -387,33 +339,26 @@ export const useFileStore = create<FileState>((set, get) => ({
 
   // 파일 이름 가져오기
   getFileName: (fileId: string | null) => {
-    if (!fileId) {
-      return null;
-    }
-    const { yDoc } = get();
-    if (!yDoc) return null;
+    if (!fileId) return null;
 
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
-    const fileMap = filesMap.get(fileId);
-    if (!fileMap) return null;
+    const { fileManager } = get();
+    if (!fileManager) return null;
 
-    const name = fileMap.get('name') as string;
-    return name || null;
+    return fileManager.getFileName(fileId);
   },
 
   // 파일 내용 가져오기
   getFileContent: (fileId: string) => {
-    const { yDoc } = get();
-    if (!yDoc) return null;
+    const { fileManager } = get();
+    if (!fileManager) return null;
+    return fileManager.getFileContent(fileId);
+  },
 
-    const filesMap = yDoc.getMap('files') as YMap<YMap<unknown>>;
-    const fileMap = filesMap.get(fileId);
-    if (!fileMap) return null;
-
-    const content = fileMap.get('content') as YText;
-    if (!content) return '';
-
-    return content.toString();
+  // 파일 타입 가져오기
+  getFileType: (fileId: string) => {
+    const { fileManager } = get();
+    if (!fileManager) return null;
+    return fileManager.getFileType(fileId);
   },
 
   // 현재 활성 파일 내용 가져오기

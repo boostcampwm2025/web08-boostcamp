@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-  LANGUAGES,
-  EXT_TYPES,
-  FILENAME_CHECK_RESULT_TYPES,
-} from '../../constants/file.js';
+import { LANGUAGES, FILE_TYPES, EXT_TYPES } from '../../constants/file.js';
 import { LIMITS } from '../../constants/limits.js';
 import { MESSAGE } from '../../constants/messages.js';
 
@@ -26,10 +22,8 @@ export const filenameSchema = z
     message: MESSAGE.VALIDATION.FILENAME_INVALID_ENDING,
   });
 
-// 파일 이름 확인 결과 타입 스키마
-export const filenameCheckResultTypeSchema = z.enum(
-  FILENAME_CHECK_RESULT_TYPES,
-);
+// 파일 타입 스키마
+export const fileTypeSchema = z.enum(FILE_TYPES);
 
 // 프로그래밍 언어 스키마
 export const languageSchema = z.enum(LANGUAGES);

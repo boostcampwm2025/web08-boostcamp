@@ -15,6 +15,7 @@ import {
   cn,
 } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
+import { copyFile, downloadFile } from '@/shared/lib/file';
 
 interface FileMoreMenuProps {
   fileId: string;
@@ -32,22 +33,25 @@ export function FileMoreMenu({
   onActionClick,
 }: FileMoreMenuProps) {
   const [isCopied, setIsCopied] = useState(false);
-  // 특정 파일의 컨텐츠를 가져오는 로직
   const getFileContent = useFileStore((state) => state.getFileContent);
+  const getFileType = useFileStore((state) => state.getFileType);
 
   // 복사 로직
   const handleCopy = async () => {
     if (isCopied) return;
     const content = getFileContent(fileId);
+    const type = getFileType(fileId);
 
-    if (content === null) {
+    if (content === null || type === null) {
       toast.error('파일 내용을 읽을 수 없습니다.');
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(content);
-      toast.success(`${fileName} 복사 완료`);
+      await copyFile(content, type);
+      const message = `${fileName} 복사 완료`;
+
+      toast.success(message);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), COPY_FEEDBACK_DURATION);
     } catch {
@@ -56,18 +60,22 @@ export function FileMoreMenu({
   };
 
   // 다운로드 로직
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const content = getFileContent(fileId);
-    if (content === null) return;
+    const type = getFileType(fileId);
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success(`${fileName} 다운로드 시작`);
+    if (content === null || type === null) {
+      toast.error('파일을 다운로드할 수 없습니다.');
+      return;
+    }
+
+    try {
+      await downloadFile(fileName, content, type);
+      toast.success(`${fileName} 다운로드 시작`);
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('다운로드에 실패했습니다.');
+    }
   };
 
   return (

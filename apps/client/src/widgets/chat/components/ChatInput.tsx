@@ -9,7 +9,7 @@ import { RadixButton as Button, Textarea } from '@codejam/ui';
 import { Send, FileText } from 'lucide-react';
 import { LIMITS } from '@codejam/common';
 import { emitChatMessage } from '@/stores/socket-events/chat';
-import { useFileNames } from '../hooks/useFileNames';
+import { useFileStore } from '@/stores/file';
 
 /**
  * 채팅 입력창 컴포넌트
@@ -29,7 +29,7 @@ export function ChatInput() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileNames = useFileNames();
+  const files = useFileStore((state) => state.files);
 
   // 채팅창 열릴 때 자동 포커스
   useEffect(() => {
@@ -37,7 +37,7 @@ export function ChatInput() {
   }, []);
 
   // 필터링된 파일 목록
-  const filteredFiles = fileNames.filter((name) =>
+  const filteredFiles = files.filter(({ name }) =>
     name.toLowerCase().includes(mentionState.query.toLowerCase()),
   );
 
@@ -116,7 +116,7 @@ export function ChatInput() {
           return;
         case 'Enter':
           e.preventDefault();
-          handleSelectFile(filteredFiles[selectedIndex]);
+          handleSelectFile(filteredFiles[selectedIndex].name);
           return;
         case 'Escape':
           e.preventDefault();
@@ -144,7 +144,7 @@ export function ChatInput() {
 
           {/* 파일 목록 */}
           <div className="max-h-48 overflow-y-auto">
-            {filteredFiles.slice(0, 8).map((fileName, index) => (
+            {filteredFiles.slice(0, 8).map(({ name: fileName }, index) => (
               <button
                 key={fileName}
                 onClick={() => handleSelectFile(fileName)}
