@@ -107,13 +107,15 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
       {myTabs.length > 0 ? (
         myTabs.map((fileId) => (
           <TabsContent key={fileId} value={fileId}>
-            {getFileName(fileId) ? (
-              <Suspense fallback={<></>}>
-                <CodeEditor fileId={fileId} readOnly={readOnly} />
-              </Suspense>
-            ) : (
-              <EmptyView />
-            )}
+            {activeTab[tabKey] == fileId ? (
+              getFileName(fileId) ? (
+                <Suspense fallback={null}>
+                  <CodeEditor fileId={fileId} readOnly={readOnly} />
+                </Suspense>
+              ) : (
+                <EmptyView />
+              )
+            ) : null}
           </TabsContent>
         ))
       ) : (
