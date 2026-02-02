@@ -59,14 +59,16 @@ export class CollaborationGateway
     });
 
     // 메트릭 HTTP 서버 (9091 포트)
-    const metricsServer = http.createServer(async (req, res) => {
-      if (req.url === '/metrics') {
-        res.setHeader('Content-Type', 'text/plain');
-        res.end(await this.prometheus.getMetrics());
-      } else {
-        res.statusCode = 404;
-        res.end('Not Found');
-      }
+    const metricsServer = http.createServer((req, res) => {
+      void (async () => {
+        if (req.url === '/metrics') {
+          res.setHeader('Content-Type', 'text/plain');
+          res.end(await this.prometheus.getMetrics());
+        } else {
+          res.statusCode = 404;
+          res.end('Not Found');
+        }
+      })();
     });
     metricsServer.listen(9091);
   }
