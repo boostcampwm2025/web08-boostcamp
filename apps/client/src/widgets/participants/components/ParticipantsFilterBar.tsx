@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   cn,
   RadixButton as Button,
@@ -86,6 +86,8 @@ function SearchFilterCombobox({
   selectedFilters: FilterOption[];
   onFiltersChange: (filters: FilterOption[]) => void;
 }) {
+  const [open, setOpen] = useState(false);
+
   // Filter options based on search query
   const matchedOptions = useMemo(() => {
     if (!searchQuery) return FILTER_OPTIONS;
@@ -123,6 +125,7 @@ function SearchFilterCombobox({
         );
         onFiltersChange([...otherFilters, newFilter]);
         onSearchChange(''); // Clear search input after selection
+        setOpen(false); // Close dropdown after selection
       }
       return;
     }
@@ -144,12 +147,14 @@ function SearchFilterCombobox({
       <Combobox
         value={selectedValues}
         onValueChange={handleValueChange}
+        open={open}
+        onOpenChange={setOpen}
         multiple
       >
         <ComboboxInput
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="참가자 검색 또는 필터 추가..."
+          placeholder="참가자 검색 ..."
           className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent py-1 text-sm shadow-none transition-colors outline-none focus-visible:ring-1"
         />
 
