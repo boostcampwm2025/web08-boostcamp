@@ -18,6 +18,8 @@ import type { SortKey } from '../lib/types';
 import { FILTER_OPTIONS } from '../types';
 
 interface ParticipantsFilterBarProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
   selectedFilters: FilterOption[];
   onFiltersChange: (filters: FilterOption[]) => void;
   sortKey: SortKey;
@@ -29,6 +31,8 @@ interface ParticipantsFilterBarProps {
 }
 
 export function ParticipantsFilterBar({
+  searchQuery,
+  onSearchChange,
   selectedFilters,
   onFiltersChange,
   sortKey,
@@ -40,6 +44,23 @@ export function ParticipantsFilterBar({
 }: ParticipantsFilterBarProps) {
   return (
     <div className="space-y-2">
+      <div className="relative">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="참가자 검색..."
+          className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors outline-none focus-visible:ring-1"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => onSearchChange('')}
+            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
       <FilterCombobox
         selectedFilters={selectedFilters}
         onFiltersChange={onFiltersChange}

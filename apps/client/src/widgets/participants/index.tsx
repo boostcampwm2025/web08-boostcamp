@@ -29,13 +29,22 @@ export function Participants() {
   // 상태 관리
   const [selectedFilters, setSelectedFilters] = useState<FilterOption[]>([]);
   const [sortKey, setSortKey] = useState<SortKey>('time');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // 필터링 및 정렬된 참가자 목록
   const { me, others, totalCount } = useMemo(() => {
     // 1. 필터 적용
-    const filtered = filterParticipants(pts, selectedFilters);
+    let filtered = filterParticipants(pts, selectedFilters);
 
-    // 2. 정렬 적용
+    // 2. 검색 적용
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((pt) =>
+        pt.nickname.toLowerCase().includes(query),
+      );
+    }
+
+    // 3. 정렬 적용
     const sorted = sortParticipants(filtered, sortKey);
 
     // 3. me와 others 분리
@@ -43,7 +52,7 @@ export function Participants() {
     const others = sorted.filter((pt) => pt.ptId !== myPtId);
 
     return { me, others, totalCount: sorted.length };
-  }, [pts, selectedFilters, sortKey, myPtId]);
+  }, [pts, searchQuery, selectedFilters, sortKey, myPtId]);
 
   // 정렬 핸들러
   const handleSortChange = (key: SortKey) => {
@@ -100,6 +109,8 @@ export function Participants() {
       </div>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <FilterSection
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           selectedFilters={selectedFilters}
           onFiltersChange={setSelectedFilters}
           sortKey={sortKey}
