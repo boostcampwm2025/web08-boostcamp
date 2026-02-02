@@ -120,11 +120,12 @@ export function Participants() {
           onBulkView={handleBulkView}
           isHost={iAmHost}
         />
-
-        <Divider />
-        <Me me={me} />
-        <Divider />
-        <ParticipantList others={others} iAmHost={iAmHost} />
+        <ParticipantsSection
+          count={totalCount}
+          me={me}
+          others={others}
+          iAmHost={iAmHost}
+        />
       </div>
     </div>
   );
@@ -136,8 +137,41 @@ function Divider() {
 
 function FilterSection(props: ComponentProps<typeof ParticipantsFilterBar>) {
   return (
-    <div className="px-4 pt-0.5 pb-3 dark:border-gray-700">
+    <div className="px-4 pt-0.5 pb-3">
       <ParticipantsFilterBar {...props} />
+    </div>
+  );
+}
+
+function ParticipantsSection({
+  count,
+  me,
+  others,
+  iAmHost,
+}: {
+  count: number;
+  me?: Pt;
+  others: Pt[];
+  iAmHost: boolean;
+}) {
+  if (count === 0) {
+    return <NoSearchResult />;
+  }
+
+  return (
+    <>
+      {me && <Divider />}
+      <Me me={me} />
+      {others.length > 0 && <Divider />}
+      <ParticipantList others={others} iAmHost={iAmHost} />
+    </>
+  );
+}
+
+function NoSearchResult() {
+  return (
+    <div className="flex flex-1 items-center justify-center text-center">
+      <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
     </div>
   );
 }
