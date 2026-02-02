@@ -147,7 +147,7 @@ function RoomPage() {
           handlePasswordConfirm={handlePasswordConfirm}
         />
       )}
-      <Toaster />
+      <Toaster richColors position="top-center" />
       <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
       <HostClaimRequestDialog />
     </div>
