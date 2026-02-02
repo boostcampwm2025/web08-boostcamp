@@ -10,6 +10,7 @@ import {
 import { RadixButton as Button } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { extname, purename } from '@/shared/lib/file';
+import { uploadFile } from '@/shared/lib/file';
 
 interface DuplicateDialogProps {
   open: boolean;
@@ -33,21 +34,21 @@ export function DuplicateDialog({
 
   const handleOverwrite = async () => {
     const fileId = getFileId(filename);
-    if (!fileId) {
-      return;
-    }
+    if (!fileId || !file) return;
 
-    const content = await file?.text();
-    overwriteFile(fileId, content);
-    onOpenChange(false);
-    onClick();
+    try {
+      const { content, type } = await uploadFile(file);
+      overwriteFile(fileId, content, type);
+      onOpenChange(false);
+      onClick();
+    } catch (error) {
+      console.error('Failed to overwrite file:', error);
+    }
   };
 
   const handleRename = async () => {
     const fileId = getFileId(filename);
-    if (!fileId) {
-      return;
-    }
+    if (!fileId) return;
 
     const newName = (): string => {
       const fileNamesMap = getFileNamesMap();
@@ -77,10 +78,18 @@ export function DuplicateDialog({
 
       return `${pure.replace(/\((\d+)\)$/i, `(${(parseInt(fileMatch[1]) + 1).toString()})`)}.${ext}`;
     };
-    const content = (await file?.text()) ?? '';
-    createFile(newName(), content);
-    onOpenChange(false);
-    onClick();
+
+    if (!file) return;
+
+    try {
+      const { content, type } = await uploadFile(file);
+      const name = newName();
+      createFile(name, content, type);
+      onOpenChange(false);
+      onClick();
+    } catch (error) {
+      console.error('Failed to create file with new name:', error);
+    }
   };
 
   return (

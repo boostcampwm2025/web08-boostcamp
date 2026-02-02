@@ -1,4 +1,3 @@
-import { extname, purename } from '@/shared/lib/file';
 import { RadixDialog as Dialog, cn } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import {
@@ -39,8 +38,6 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const [dialogType, setDialogType] = useState<DialogType>(undefined);
 
   const isActive = activeFileId === fileId;
-  const filePureName = purename(fileName);
-  const fileExt = extname(fileName);
 
   const handleClick = () => {
     setActiveFile(fileId);
@@ -106,12 +103,7 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
 
       <Dialog open={open} onOpenChange={setOpen}>
         {dialogType === 'RENAME' ? (
-          <RenameDialog
-            fileExt={fileExt}
-            fileId={fileId}
-            filePurename={filePureName}
-            onOpen={setOpen}
-          />
+          <RenameDialog fileId={fileId} fileName={fileName} onOpen={setOpen} />
         ) : (
           <DeleteDialog fileId={fileId} fileName={fileName} onOpen={setOpen} />
         )}
@@ -119,5 +111,4 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
     </>
   );
 });
-
 File.displayName = 'FileList';

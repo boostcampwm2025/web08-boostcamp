@@ -28,9 +28,7 @@ type FileViewerTab = {
   };
 };
 
-const CodeEditor = lazy(
-  () => import('../../widgets/code-editor/ui/CodeEditor'),
-);
+const FileContentViewer = lazy(() => import('./FileContentViewer'));
 
 export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
   const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
@@ -110,7 +108,7 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
             {activeTab[tabKey] == fileId ? (
               getFileName(fileId) ? (
                 <Suspense fallback={null}>
-                  <CodeEditor fileId={fileId} readOnly={readOnly} />
+                  <FileContentViewer fileId={fileId} readOnly={readOnly} />
                 </Suspense>
               ) : (
                 <EmptyView />

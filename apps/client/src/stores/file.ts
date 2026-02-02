@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Doc, Map as YMap } from 'yjs';
 import { Awareness } from 'y-protocols/awareness';
-import { SOCKET_EVENTS, LIMITS } from '@codejam/common';
+import { SOCKET_EVENTS, LIMITS, type FileType } from '@codejam/common';
 import { useSocketStore } from './socket';
 import { emitAwarenessUpdate, emitFileUpdate } from './socket-events';
 import {
@@ -51,10 +51,10 @@ interface FileState {
   addTempFile: (file: File) => void;
   shiftTempFile: () => void;
   clearTempFile: () => void;
-  createFile: (name: string, content?: string) => string;
+  createFile: (name: string, content?: string, type?: FileType) => string;
   deleteFile: (fileId: string) => void;
   renameFile: (fileId: string, newName: string) => void;
-  overwriteFile: (fileId: string, content?: string) => void;
+  overwriteFile: (fileId: string, content: string, type?: FileType) => void;
   getFileId: (name: string) => string | null;
   getTempFiles: () => File[];
   getFilesMap: () => YMap<YMap<unknown>> | null;
@@ -62,6 +62,7 @@ interface FileState {
 
   getFileName: (fileId: string | null) => string | null;
   getFileContent: (fileId: string) => string | null;
+  getFileType: (fileId: string) => FileType | null;
   getActiveFileContent: () => string | null;
 }
 
@@ -240,11 +241,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   // CRUD: 파일 생성
-  createFile: (name: string, content?: string) => {
+  createFile: (name: string, content?: string, type: FileType = 'text') => {
     const { fileManager } = get();
     if (!fileManager) return '';
 
-    return fileManager.createFile(name, content);
+    return fileManager.createFile(name, content, type);
   },
 
   // CRUD: 파일 삭제
@@ -276,11 +277,11 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   // CRUD: 파일 덮어쓰기
-  overwriteFile(fileId: string, content?: string) {
+  overwriteFile(fileId: string, content: string, type?: FileType) {
     const { fileManager } = get();
     if (!fileManager) return;
 
-    fileManager.overwriteFile(fileId, content || '');
+    fileManager.overwriteFile(fileId, content, type);
   },
 
   // CRUD: filesMap 반환 (Observer 등록용)
@@ -351,6 +352,13 @@ export const useFileStore = create<FileState>((set, get) => ({
     const { fileManager } = get();
     if (!fileManager) return null;
     return fileManager.getFileContent(fileId);
+  },
+
+  // 파일 타입 가져오기
+  getFileType: (fileId: string) => {
+    const { fileManager } = get();
+    if (!fileManager) return null;
+    return fileManager.getFileType(fileId);
   },
 
   // 현재 활성 파일 내용 가져오기

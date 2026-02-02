@@ -23,8 +23,8 @@ export function NewFileButton({ roomCode }: NewFileButtonProps) {
     useFileRename(roomCode);
   const { appendLinear } = useContext(LinearTabApiContext);
   const { activeTab } = useContext(ActiveTabContext);
-  const handleNewFile = async (name: string, ext: string) => {
-    const newFilename = `${name}.${ext}`;
+  const handleNewFile = async (name: string) => {
+    const newFilename = name;
     if (getFileId(newFilename)) {
       setIsDuplicated(true);
     } else {
