@@ -17,14 +17,10 @@ import {
   SOCKET_EVENTS,
   type AwarenessUpdate,
   LIMITS,
-  type Language,
-  getDefaultFileName,
-  getDefaultFileTemplate,
   type FileId,
 } from '@codejam/common';
 import { Server, Socket } from 'socket.io';
 import type { CollabSocket } from '../collaboration/collaboration.types';
-import { v7 as uuidv7 } from 'uuid';
 import type { FileInfo } from './file.types';
 
 export type RoomDoc = {
@@ -78,9 +74,6 @@ export class FileService {
     // Create Y.Doc
     const doc = new Doc();
     const awareness = new Awareness(doc);
-
-    // Initialize Y.Doc structure
-    this.initializeDoc(doc);
 
     // Hydrate Y.Doc (Redis + DB fallback)
     // Bind to Redis for persistence
@@ -204,150 +197,8 @@ export class FileService {
   // ==================================================================
 
   /**
-   * Create a file within a document's Y.Doc
-   * The Y.Doc must already exist
-   */
-  createFile(
-    docId: string,
-    fileId: string,
-    fileName: string,
-    language?: Language,
-  ) {
-    const roomDoc = this.getDoc(docId);
-    const { doc, files } = roomDoc;
-
-    // files Y.Map 가져오기
-    const filesMap = doc.getMap('files');
-    const fileIdMap = doc.getMap('map');
-
-    // 계층형 구조 생성: fileId -> { name, content }
-    doc.transact(() => {
-      const fileMap = new YMap<unknown>();
-      const yText = new YText(); // Y.Map 안에 넣을 독립 인스턴스 생성
-
-      // 기본 코드로 초기화
-      yText.insert(0, this.initialCode(language));
-
-      fileMap.set('name', fileName);
-      fileMap.set('content', yText);
-      filesMap.set(fileId, fileMap);
-      fileIdMap.set(fileName, fileId);
-    });
-
-    // 파일 추적
-    files.add(fileId);
-    this.logger.log(
-      `📝 Created file ${fileName} (${fileId}) in document ${docId}`,
-    );
-
-    // [DEBUG] Y.Map 구조 검증 로그
-    const createdFileMap = filesMap.get(fileId) as YMap<unknown> | undefined;
-    this.logger.debug(
-      `🗂️ [Y.Map 구조] docId=${docId}, fileId=${fileId}, ` +
-        `filesMap.size=${filesMap.size}, ` +
-        `fileMap.has('name')=${createdFileMap?.has('name')}, ` +
-        `fileMap.has('content')=${createdFileMap?.has('content')}`,
-    );
-  }
-
-  /**
-   * 파일 이름 변경
-   */
-  renameFile(
-    docId: string,
-    fileId: string,
-    newName: string,
-    client: CollabSocket,
-    server: Server,
-  ) {
-    const roomDoc = this.getDoc(docId);
-    const { doc } = roomDoc;
-
-    const filesMap = doc.getMap('files');
-    const fileIdMap = doc.getMap('map');
-
-    if (!filesMap.has(fileId)) {
-      return;
-    }
-
-    const fileMap = filesMap.get(fileId) as YMap<unknown>;
-    const before = fileMap.get('name') as string | undefined;
-
-    if (!before || fileIdMap.has(newName)) {
-      return;
-    }
-
-    doc.transact(
-      () => {
-        fileMap.set('name', newName);
-        fileIdMap.delete(before);
-        fileIdMap.set(newName, fileId);
-      },
-      {
-        type: 'server',
-        client,
-        server,
-      },
-    );
-  }
-
-  /**
-   * 파일 삭제
-   */
-  deleteFile(
-    docId: string,
-    fileId: string,
-    client: CollabSocket,
-    server: Server,
-  ) {
-    const roomDoc = this.getDoc(docId);
-    const { doc } = roomDoc;
-
-    const filesMap = doc.getMap('files');
-    const fileIdMap = doc.getMap('map');
-
-    if (!filesMap.has(fileId)) {
-      return;
-    }
-
-    const fileMap = filesMap.get(fileId) as YMap<unknown>;
-    const fileName = fileMap.get('name') as string | undefined;
-
-    if (!fileName) {
-      return;
-    }
-
-    doc.transact(
-      () => {
-        filesMap.delete(fileId);
-        fileIdMap.delete(fileName);
-      },
-      {
-        type: 'server',
-        client,
-        server,
-      },
-    );
-  }
-
-  /**
-   * 파일 중복 확인
-   */
-  checkDuplicate(docId: string, fileName: string): boolean {
-    const roomDoc = this.getDoc(docId);
-    const { doc } = roomDoc;
-
-    const fileIdMap = doc.getMap('map');
-
-    if (!fileIdMap) {
-      return false;
-    }
-
-    return fileIdMap.has(fileName);
-  }
-
-  /**
    * 파일 정보 가져오기
+   * Used for code execution - retrieves file name and content from Y.Doc
    */
   getFileInfo(docId: string, fileId: string): FileInfo | null {
     const roomDoc = this.getDoc(docId);
@@ -439,8 +290,6 @@ export class FileService {
       throw new Error(logMessage);
     }
 
-    this.logger.debug(`📝 [UPDATE] Doc: ${docId}, Length: ${message.length}`);
-
     // Process Y.js sync message
     const decoder = createDecoder(message);
     const encoder = createEncoder();
@@ -505,16 +354,6 @@ export class FileService {
   }
 
   /**
-   * 멀티파일 구조를 위한 Y.Map 초기화
-   */
-
-  private initializeDoc(doc: Doc) {
-    doc.getMap('files'); // Y.Map<fileId, Y.Map<name, content>>
-    doc.getMap('map'); // 파일 이름 -> 파일 ID 추적용
-    doc.getMap('meta'); // 추후 스냅샷 버전 관리용
-  }
-
-  /**
    * Hydrate Y.Doc
    *
    * Load snapshot and clock from DB
@@ -564,46 +403,14 @@ export class FileService {
     await pdoc.synced; // Wait for hydration from DB + Redis
   }
 
-  /** Generate File ID - UUID v7 */
-
-  private generateFileId() {
-    const id = uuidv7();
-    return id;
-  }
-
   /**
-   * Generate initial Y.Doc snapshot with template code
+   * Generate initial Y.Doc snapshot
+   * Creates empty Y.Doc structure - client will create initial files
    */
-  generateInitialSnapshot(language?: Language): Buffer {
+  generateInitialSnapshot(): Buffer {
     const doc = new Doc();
-    this.initializeDoc(doc);
-
-    // Create initial file with template code
-    const fileId = this.generateFileId();
-    const name = getDefaultFileName(language);
-    const template = getDefaultFileTemplate(language);
-
-    const filesMap = doc.getMap('files');
-    const fileIdMap = doc.getMap('map');
-
-    doc.transact(() => {
-      const fileMap = new YMap<unknown>();
-      const yText = new YText();
-
-      yText.insert(0, template);
-
-      fileMap.set('name', name);
-      fileMap.set('content', yText);
-      filesMap.set(fileId, fileMap);
-      fileIdMap.set(name, fileId);
-    });
-
     const snapshot = encodeStateAsUpdate(doc);
     return Buffer.from(snapshot);
-  }
-
-  private initialCode(language?: Language): string {
-    return getDefaultFileTemplate(language);
   }
 
   private docListener() {

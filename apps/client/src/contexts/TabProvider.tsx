@@ -1,3 +1,15 @@
+import type {
+  ActiveTab,
+  ActiveTabInterface,
+  DraggingTabInterface,
+  DropSignal,
+  DropSignalInterface,
+  LinearTab,
+  LinearTabInterface,
+  LinearTabWidth,
+  LinearTabWidthInterface,
+  Position,
+} from '@/types/tab-provider';
 import {
   createContext,
   useEffect,
@@ -5,62 +17,6 @@ import {
   useState,
   type RefObject,
 } from 'react';
-
-export type LinearValue =
-  | string
-  | number
-  | null
-  | boolean
-  | undefined
-  | {
-      [x: string]: LinearValue;
-    };
-
-export type Position = {
-  x: number;
-  y: number;
-};
-
-export type LinearTab = {
-  [tabKey: number]: {
-    [linearKey: string]: LinearValue;
-  };
-};
-
-export type LinearTabWidth = {
-  [tabKey: number]: number;
-};
-
-export type DropSignal =
-  | {
-      signal: true;
-      dataTransfer: DataTransfer | null;
-      clientX: number;
-      clientY: number;
-    }
-  | {
-      signal: false;
-    };
-
-export interface LinearTabWidthInterface {
-  linearTabWidth: LinearTabWidth | undefined;
-  setLinearTabWidth: (value: LinearTabWidth | undefined) => void;
-}
-
-export interface LinearTabInterface {
-  linearTab: LinearTab | undefined;
-  setLinearTab: (value: LinearTab | undefined) => void;
-}
-
-export interface DraggingTabInterface {
-  draggingTab: number | undefined;
-  setDraggingTab: (value: number | undefined) => void;
-}
-
-export interface DropSignalInterface {
-  dropSignal: DropSignal;
-  setDropSignal: (dropSignal: DropSignal) => void;
-}
 
 export const DropSignalContext = createContext<DropSignalInterface>({
   dropSignal: { signal: false },
@@ -86,6 +42,13 @@ export const FullWidthContext = createContext<RefObject<number> | undefined>(
   undefined,
 );
 
+export const ActiveTabContext = createContext<ActiveTabInterface>({
+  activeTab: {
+    active: 0,
+  },
+  setActiveTab: () => {},
+});
+
 export const LinearRefContext =
   createContext<RefObject<HTMLDivElement | null> | null>(null);
 
@@ -100,11 +63,12 @@ export function TabProvider({ children }: ProviderProps) {
   const [draggingTab, setDraggingTab] = useState<number>();
   const [linearTab, setLinearTab] = useState<LinearTab>();
   const [eachWidth, setEachWidth] = useState<LinearTabWidth>();
-  const eachWidthRef = useRef<LinearTabWidth | undefined>(undefined);
   const [dropSignal, setDropSignal] = useState<DropSignal>({ signal: false });
+  const [activeTab, setActiveTab] = useState<ActiveTab>({ active: 0 });
 
   const throttleRef = useRef<number>(null);
   const fullWidth = useRef(0);
+  const eachWidthRef = useRef<LinearTabWidth | undefined>(undefined);
 
   useEffect(() => {
     eachWidthRef.current = eachWidth;
@@ -233,11 +197,32 @@ export function TabProvider({ children }: ProviderProps) {
                   setLinearTab,
                 }}
               >
-                <DraggingTabContext.Provider
-                  value={{ draggingTab, setDraggingTab }}
+                <ActiveTabContext.Provider
+                  value={{
+                    activeTab,
+                    setActiveTab: (tabKey: number, activeTabKey?: string) => {
+                      // console.trace(tabKey, '가 넘어옴');
+                      setActiveTab((prev) => {
+                        return activeTabKey
+                          ? {
+                              ...prev,
+                              [tabKey]: activeTabKey,
+                              active: tabKey,
+                            }
+                          : {
+                              ...prev,
+                              active: tabKey,
+                            };
+                      });
+                    },
+                  }}
                 >
-                  {children}
-                </DraggingTabContext.Provider>
+                  <DraggingTabContext.Provider
+                    value={{ draggingTab, setDraggingTab }}
+                  >
+                    {children}
+                  </DraggingTabContext.Provider>
+                </ActiveTabContext.Provider>
               </LinearTabContext.Provider>
             </LinearTabWidthContext.Provider>
           </PositionContext.Provider>

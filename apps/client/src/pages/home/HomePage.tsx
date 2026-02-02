@@ -32,6 +32,11 @@ export default function HomePage() {
         </section>
       </article>
 
+      <div className="mt-20 flex justify-center">
+        <div data-boostad-zone className="h-40 w-200"></div>
+      </div>
+
+      {/* Footer */}
       <footer className="mt-24 border-t border-gray-100 py-8 text-center font-mono text-xs text-gray-400">
         <p>
           © 2025-{new Date().getFullYear()} {PROJECT_NAME}. All rights reserved.

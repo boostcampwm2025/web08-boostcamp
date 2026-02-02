@@ -4,10 +4,6 @@ import {
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
   type PtUpdateRolePayload,
-  type FilenameCheckPayload,
-  type FilenameCheckResultPayload,
-  type FileRenamePayload,
-  type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
   type ExecuteCodePayload,
@@ -153,36 +149,6 @@ export class CollaborationGateway
     );
   }
 
-  /** C -> S 파일 이름 유효성 확인 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHECK_FILENAME)
-  async handleCheckFileName(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FilenameCheckPayload,
-  ): Promise<FilenameCheckResultPayload> {
-    return await this.collaborationService.handleCheckFileName(client, payload);
-  }
-
-  /** C -> S 파일 이름 변경 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.RENAME_FILE)
-  handleRenameFile(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FileRenamePayload,
-  ) {
-    this.collaborationService.handleFileRename(this.server, client, payload);
-  }
-
-  /** C- > S 파일 삭제 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.DELETE_FILE)
-  handleDeleteFile(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FileDeletePayload,
-  ) {
-    this.collaborationService.handleFileDelete(this.server, client, payload);
-  }
-
   /** C -> S 방 폭파 요청 */
   @UseGuards(DestroyRoomGuard)
   @SubscribeMessage(SOCKET_EVENTS.DESTROY_ROOM)
@@ -220,7 +186,7 @@ export class CollaborationGateway
 
   /** C -> S 채팅 메시지 전송 */
   @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
-  @UseGuards(PermissionGuard, WsThrottlerGuard)
+  @UseGuards(WsThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 1000 } })
   async handleChatMessage(
     @ConnectedSocket() client: CollabSocket,

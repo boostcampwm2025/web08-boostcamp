@@ -3,7 +3,7 @@ import { useFileStore } from '@/stores/file';
 import { File } from './components/File';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { SidebarHeader } from '@codejam/ui';
 import { CapacityGauge } from '../capacity-gauge';
 import { FileHeaderActions } from './components/FileHeaderActions';
@@ -11,14 +11,9 @@ import type { FileSortKey } from './lib/types';
 import { filterFiles, sortFiles } from './lib/file-logic';
 import { FileFilterBar } from './components/FileFilterBar';
 
-type FileListProps = {
-  readOnly: boolean;
-};
-
-export function FileList({ readOnly }: FileListProps) {
-  const getFileIdMap = useFileStore((state) => state.getFileIdMap);
+export function FileList() {
+  const files = useFileStore((state) => state.files);
   const roomCode = useRoomStore((state) => state.roomCode);
-  const [entries, setEntries] = useState<[string, string][]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<FileSortKey>('name-asc');
 
@@ -26,19 +21,10 @@ export function FileList({ readOnly }: FileListProps) {
   const me = usePt(myPtId);
   const hasPermission = me?.role === ROLE.HOST || me?.role === ROLE.EDITOR;
 
-  useEffect(() => {
-    const fileMap = getFileIdMap();
-    if (!fileMap) return;
-    const update = () => setEntries(Object.entries(fileMap.toJSON()));
-    update();
-    fileMap.observe(update);
-    return () => fileMap.unobserve(update);
-  }, [getFileIdMap]);
-
   const processedFiles = useMemo(() => {
-    const filtered = filterFiles(entries, searchQuery);
+    const filtered = filterFiles(files, searchQuery);
     return sortFiles(filtered, sortKey);
-  }, [entries, searchQuery, sortKey]);
+  }, [files, searchQuery, sortKey]);
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -68,13 +54,12 @@ export function FileList({ readOnly }: FileListProps) {
       <div className="scrollbar-hide flex-1 overflow-y-auto px-4 py-2">
         {processedFiles.length > 0 ? (
           <div className="flex flex-col gap-0.5">
-            {processedFiles.map(([fileName, fileId]) => (
+            {processedFiles.map((file) => (
               <File
-                key={fileId}
-                fileId={fileId}
-                fileName={fileName}
+                key={file.id}
+                fileId={file.id}
+                fileName={file.name}
                 hasPermission={hasPermission}
-                readOnly={readOnly}
               />
             ))}
           </div>

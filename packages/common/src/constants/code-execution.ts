@@ -22,10 +22,10 @@ export const EXECUTION_STATUS = {
 
 // Code execution limits
 export const CODE_EXECUTION_LIMITS = {
-  COMPILE_TIMEOUT: 15000, // 15 seconds
-  RUN_TIMEOUT: 8000, // 8 seconds
-  COMPILE_CPU_TIME: 15000, // 15 seconds
-  RUN_CPU_TIME: 8000, // 8 seconds
+  COMPILE_TIMEOUT: 10000, // 10 seconds
+  RUN_TIMEOUT: 3000, // 3 seconds
+  COMPILE_CPU_TIME: 10000, // 10 seconds
+  RUN_CPU_TIME: 3000, // 3 seconds
   COMPILE_MEMORY_LIMIT: 256 * 1024 * 1024, // 256 MB
   RUN_MEMORY_LIMIT: 128 * 1024 * 1024, // 128 MB
   FILES: 5,

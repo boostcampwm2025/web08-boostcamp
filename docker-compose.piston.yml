@@ -16,8 +16,7 @@ services:
   # Polls until Piston API is ready, then installs language runtimes
   # Skip installation if the runtime is already installed
   piston-setup:
-    build:
-      context: ./apps/piston
+    image: piston-setup:latest
     container_name: piston-setup
     depends_on:
       - piston
