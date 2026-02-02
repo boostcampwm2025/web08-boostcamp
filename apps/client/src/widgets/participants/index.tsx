@@ -109,37 +109,47 @@ export function Participants() {
           onBulkView={handleBulkView}
           isHost={iAmHost}
         />
-        <ParticipantList me={me} others={others} iAmHost={iAmHost} />
+
+        <Divider />
+        <Me me={me} />
+        <Divider />
+        <ParticipantList others={others} iAmHost={iAmHost} />
       </div>
     </div>
   );
 }
 
+function Divider() {
+  return <div className="mx-4 border-b border-gray-100 dark:border-gray-700" />;
+}
+
 function FilterSection(props: ComponentProps<typeof ParticipantsFilterBar>) {
   return (
-    <div className="border-b border-gray-200 px-4 pb-3 dark:border-gray-700">
+    <div className="px-4 pb-3 dark:border-gray-700">
       <ParticipantsFilterBar {...props} />
     </div>
   );
 }
 
+function Me({ me }: { me?: Pt }) {
+  if (!me) return null;
+
+  return (
+    <div className="flex-none px-4 py-2">
+      <Participant ptId={me.ptId} hasPermission={false} />
+    </div>
+  );
+}
+
 function ParticipantList({
-  me,
   others,
   iAmHost,
 }: {
-  me?: Pt;
   others: Pt[];
   iAmHost: boolean;
 }) {
   return (
     <div className="flex-1 overflow-y-auto px-4 py-2">
-      {me && <Participant ptId={me.ptId} hasPermission={false} />}
-
-      {me && others.length > 0 && (
-        <div className="mx-3 my-1 border-t border-gray-300 opacity-50 dark:border-gray-600" />
-      )}
-
       {others.map((p) => (
         <Participant key={p.ptId} ptId={p.ptId} hasPermission={iAmHost} />
       ))}
