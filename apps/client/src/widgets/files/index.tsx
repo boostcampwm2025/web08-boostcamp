@@ -46,6 +46,7 @@ export function FileList() {
         hasPermission={hasPermission}
         searchQuery={searchQuery}
       />
+      <Divider />
       <GaugeSection />
     </div>
   );
@@ -135,7 +136,7 @@ function FileItems({
 
 function GaugeSection() {
   return (
-    <div className="border-border/40 bg-muted/5 mt-auto border-t px-4 py-3">
+    <div className="px-4 py-3">
       <CapacityGauge />
     </div>
   );
