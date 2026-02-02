@@ -65,22 +65,20 @@ export function ParticipantsFilterBar({
         )}
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <SortButton
-            active={sortKey === 'name'}
-            onClick={() => onSortChange('name')}
-            icon={<User size={14} />}
-            label="이름순"
-          />
+      <div className="flex items-center gap-1">
+        <SortButton
+          active={sortKey === 'time'}
+          onClick={() => onSortChange('time')}
+          icon={<Clock size={14} />}
+          label="입장순"
+        />
 
-          <SortButton
-            active={sortKey === 'time'}
-            onClick={() => onSortChange('time')}
-            icon={<Clock size={14} />}
-            label="입장순"
-          />
-        </div>
+        <SortButton
+          active={sortKey === 'name'}
+          onClick={() => onSortChange('name')}
+          icon={<User size={14} />}
+          label="이름순"
+        />
 
         <div className="flex items-center gap-2">
           <FilterButton
