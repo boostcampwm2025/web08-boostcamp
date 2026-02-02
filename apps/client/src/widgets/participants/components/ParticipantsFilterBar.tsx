@@ -1,21 +1,14 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import {
-  RadixPopover as Popover,
-  RadixPopoverContent as PopoverContent,
-  RadixPopoverTrigger as PopoverTrigger,
-  RadixButton as Button,
   cn,
+  RadixButton as Button,
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
 } from '@codejam/ui';
-import {
-  X,
-  Pencil,
-  Eye,
-  User,
-  Clock,
-  ListFilter,
-  ChevronDown,
-  Check,
-} from 'lucide-react';
+import { Pencil, Eye, User, Clock, X, RotateCcw } from 'lucide-react';
 import type { FilterOption } from '../types';
 import type { SortKey } from '../lib/types';
 import { FILTER_OPTIONS } from '../types';
@@ -47,23 +40,12 @@ export function ParticipantsFilterBar({
 }: ParticipantsFilterBarProps) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="relative">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="참가자 검색..."
-          className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-none transition-colors outline-none focus-visible:ring-1"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => onSearchChange('')}
-            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
-          >
-            <X size={14} />
-          </button>
-        )}
-      </div>
+      <SearchFilterCombobox
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        selectedFilters={selectedFilters}
+        onFiltersChange={onFiltersChange}
+      />
 
       <div className="flex items-center gap-1">
         <SortButton
@@ -79,19 +61,7 @@ export function ParticipantsFilterBar({
           icon={<User size={14} />}
           label="이름순"
         />
-
-        <div className="flex items-center gap-2">
-          <FilterButton
-            selectedFilters={selectedFilters}
-            onFiltersChange={onFiltersChange}
-          />
-        </div>
       </div>
-
-      <FilterChips
-        selectedFilters={selectedFilters}
-        onFiltersChange={onFiltersChange}
-      />
 
       <BulkActions
         isHost={isHost}
@@ -99,6 +69,150 @@ export function ParticipantsFilterBar({
         onBulkEdit={onBulkEdit}
         onBulkView={onBulkView}
       />
+    </div>
+  );
+}
+
+function SearchFilterCombobox({
+  searchQuery,
+  onSearchChange,
+  selectedFilters,
+  onFiltersChange,
+}: {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  selectedFilters: FilterOption[];
+  onFiltersChange: (filters: FilterOption[]) => void;
+}) {
+  // Filter options based on search query
+  const matchedOptions = useMemo(() => {
+    if (!searchQuery) return FILTER_OPTIONS;
+    const query = searchQuery.toLowerCase();
+    return FILTER_OPTIONS.filter((option) =>
+      option.label.toLowerCase().includes(query),
+    );
+  }, [searchQuery]);
+
+  // Get selected filter values for Combobox
+  const selectedValues = selectedFilters.map((f) => f.value);
+
+  const handleValueChange = (newValues: string[]) => {
+    // Find newly added value
+    const addedValue = newValues.find((v) => !selectedValues.includes(v));
+    if (addedValue) {
+      const newFilter = FILTER_OPTIONS.find((opt) => opt.value === addedValue);
+      if (newFilter) {
+        onFiltersChange([...selectedFilters, newFilter]);
+        onSearchChange(''); // Clear search input after selection
+      }
+      return;
+    }
+
+    // Find removed value (toggle off)
+    const removedValue = selectedValues.find((v) => !newValues.includes(v));
+    if (removedValue) {
+      onFiltersChange(selectedFilters.filter((f) => f.value !== removedValue));
+    }
+  };
+
+  const handleRemoveFilter = (filterValue: string) => {
+    onFiltersChange(selectedFilters.filter((f) => f.value !== filterValue));
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Input with dropdown */}
+      <Combobox
+        value={selectedValues}
+        onValueChange={handleValueChange}
+        multiple
+      >
+        <ComboboxInput
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="참가자 검색 또는 필터 추가..."
+          className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent py-1 text-sm shadow-none transition-colors outline-none focus-visible:ring-1"
+        />
+
+        <ComboboxContent>
+          <ComboboxList>
+            {matchedOptions.map((option) => {
+              const isSelected = selectedValues.includes(option.value);
+              return (
+                <ComboboxItem
+                  key={option.value}
+                  value={option.value}
+                  className={cn(
+                    'data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors outline-none select-none',
+                    isSelected && 'bg-accent/50',
+                  )}
+                >
+                  {option.label}
+                </ComboboxItem>
+              );
+            })}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+
+      <CustomChips
+        filters={selectedFilters}
+        onRemove={handleRemoveFilter}
+        onClearAll={() => onFiltersChange([])}
+      />
+    </div>
+  );
+}
+
+function CustomChips({
+  filters,
+  onRemove,
+  onClearAll,
+}: {
+  filters: FilterOption[];
+  onRemove: (value: string) => void;
+  onClearAll: () => void;
+}) {
+  if (filters.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {filters.map((filter) => (
+        <CustomChip
+          key={filter.value}
+          label={filter.label}
+          onRemove={() => onRemove(filter.value)}
+        />
+      ))}
+      <button
+        onClick={onClearAll}
+        className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1 transition-colors"
+        type="button"
+        title="Clear all filters"
+      >
+        <RotateCcw size={14} />
+      </button>
+    </div>
+  );
+}
+
+function CustomChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="bg-muted text-foreground flex h-[21px] w-fit items-center justify-center gap-1 rounded-sm px-1.5 text-xs font-medium whitespace-nowrap">
+      <span>{label}</span>
+      <button
+        onClick={onRemove}
+        className="hover:bg-background hover:text-foreground -mr-1 ml-0.5 rounded-full p-0.5 opacity-50 transition-opacity hover:opacity-100"
+        type="button"
+      >
+        <X size={10} />
+      </button>
     </div>
   );
 }
@@ -129,129 +243,6 @@ function SortButton({
       {icon}
       <span>{label}</span>
     </Button>
-  );
-}
-
-function FilterButton({
-  selectedFilters,
-  onFiltersChange,
-}: {
-  selectedFilters: FilterOption[];
-  onFiltersChange: (filters: FilterOption[]) => void;
-}) {
-  const [open, setOpen] = useState(false);
-
-  const handleToggle = (option: FilterOption) => {
-    const isSelected = selectedFilters.some((f) => f.value === option.value);
-    if (isSelected) {
-      onFiltersChange(selectedFilters.filter((f) => f.value !== option.value));
-    } else {
-      onFiltersChange([...selectedFilters, option]);
-    }
-  };
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            'h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200',
-            open || selectedFilters.length > 0
-              ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
-              : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
-          )}
-        >
-          <ListFilter size={14} />
-          <span>필터</span>
-          <ChevronDown size={12} className="opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-40 p-1">
-        <div className="space-y-0.5">
-          {FILTER_OPTIONS.map((option) => (
-            <FilterOptionItem
-              key={option.value}
-              option={option}
-              isSelected={selectedFilters.some((f) => f.value === option.value)}
-              onToggle={() => handleToggle(option)}
-            />
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function FilterOptionItem({
-  option,
-  isSelected,
-  onToggle,
-}: {
-  option: FilterOption;
-  isSelected: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div
-      onClick={onToggle}
-      className={cn(
-        'hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors outline-none select-none',
-        isSelected && 'bg-accent/50',
-      )}
-    >
-      <div
-        className={cn(
-          'border-primary/30 flex size-3.5 items-center justify-center rounded-sm border',
-          isSelected
-            ? 'bg-primary text-primary-foreground border-primary'
-            : 'opacity-50',
-        )}
-      >
-        {isSelected && <Check size={10} />}
-      </div>
-      <span>{option.label}</span>
-    </div>
-  );
-}
-
-function FilterChips({
-  selectedFilters,
-  onFiltersChange,
-}: {
-  selectedFilters: FilterOption[];
-  onFiltersChange: (filters: FilterOption[]) => void;
-}) {
-  if (selectedFilters.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5 pt-1">
-      {selectedFilters.map((filter) => (
-        <div
-          key={filter.value}
-          className="bg-muted text-muted-foreground flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-        >
-          <span>{filter.label}</span>
-          <button
-            onClick={() =>
-              onFiltersChange(
-                selectedFilters.filter((f) => f.value !== filter.value),
-              )
-            }
-            className="hover:bg-background hover:text-foreground rounded-full"
-          >
-            <X size={10} />
-          </button>
-        </div>
-      ))}
-      <button
-        onClick={() => onFiltersChange([])}
-        className="text-muted-foreground hover:text-foreground px-1 text-[10px] hover:underline"
-      >
-        초기화
-      </button>
-    </div>
   );
 }
 
