@@ -11,7 +11,7 @@ const MIN_HEIGHT = 200;
 const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 380;
 const MARGIN_RIGHT = 0;
-const MARGIN_BOTTOM = 130;
+const MARGIN_BOTTOM = 72;
 const VIEWPORT_PADDING = 20;
 
 const DRAG_HANDLE_CLASSNAME = 'chat-drag-handle';
