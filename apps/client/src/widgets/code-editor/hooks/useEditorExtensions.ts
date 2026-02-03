@@ -14,9 +14,12 @@ import {
   type AvatarUser,
   type RemoteUser,
 } from '../plugin/LineAvatars';
-import { localTheme } from '../plugin/LocalTheme';
+import { localTheme, type LocalUser } from '../plugin/LocalTheme';
 import { getLanguageExtension } from '../lib/constants';
 import { type Language } from '@codejam/common';
+
+import { useRoomStore } from '@/stores/room';
+import { usePt } from '@/stores/pts';
 
 const cursorTheme = EditorView.theme({
   // 원격 라인 선택으로 인한 텍스트 밀림 방지
@@ -81,6 +84,11 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
     alwaysShowCursorLabels,
   } = props;
 
+  // Get user info
+  const myPtId = useRoomStore((state) => state.myPtId);
+  const myPt = usePt(myPtId);
+  const me: LocalUser = { color: myPt?.color, name: myPt?.nickname };
+
   // Compartments
   const compartments = useMemo(
     () => ({
@@ -89,6 +97,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       avatar: new Compartment(),
       readOnly: new Compartment(),
       cursorStyle: new Compartment(),
+      localTheme: new Compartment(),
     }),
     [],
   );
@@ -104,10 +113,10 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       // safeInput({ allowAscii: true }),
       capacityLimitInputBlocker(),
 
-      localTheme,
       cursorTheme,
 
       // Dynamic Compartments Initial Config
+      compartments.localTheme.of(localTheme(me)),
       compartments.theme.of(isDark ? oneDark : []),
       compartments.fontSize.of(
         EditorView.theme({ '&': { fontSize: `${fontSize}px` } }),
