@@ -248,6 +248,47 @@ export class RoomService {
 
   // --- Join & Auth Methods ---
 
+  async checkAuthStatus(
+    roomCode: string,
+    token?: string,
+  ): Promise<{ authenticated: boolean; token?: string }> {
+    const room = await this.findRoomByCode(roomCode);
+    if (!room) {
+      throw new ApiException(
+        ERROR_CODE.ROOM_NOT_FOUND,
+        ERROR_MESSAGES.ROOM_NOT_FOUND,
+        404,
+      );
+    }
+
+    if (token) {
+      try {
+        const decoded = this.roomTokenService.verify(token);
+        if (
+          decoded &&
+          decoded.roomCode.toUpperCase() === room.roomCode.toUpperCase()
+        ) {
+          return { authenticated: true, token };
+        }
+      } catch (e) {
+        this.logger.warn(`Auth status check - Token invalid: ${e.message}`);
+      }
+    }
+
+    if (room.roomPassword) {
+      throw new ApiException(
+        ERROR_CODE.PASSWORD_REQUIRED,
+        ERROR_MESSAGES.PASSWORD_REQUIRED,
+        401,
+      );
+    }
+    throw new ApiException(
+      ERROR_CODE.NICKNAME_REQUIRED,
+      ERROR_MESSAGES.NICKNAME_REQUIRED,
+      401,
+    );
+  }
+
   /**
    * [HTTP 전용] 방 입장 처리 (Pt 생성 & Token 발행)
    * 1. 방 비밀번호 검증
