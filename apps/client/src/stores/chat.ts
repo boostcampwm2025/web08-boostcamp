@@ -45,6 +45,9 @@ interface ChatState {
   isChatOpen: boolean;
   unreadCount: number;
 
+  panelPosition: { x: number; y: number } | null;
+  panelSize: { width: number; height: number } | null;
+
   // Actions
   addSystemMessage: (payload: ChatSystemPayload) => void;
   addUserMessage: (payload: ChatMessagePayload, status?: MessageStatus) => void;
@@ -53,6 +56,8 @@ interface ChatState {
   setChatOpen: (isOpen: boolean) => void;
   incrementUnreadCount: () => void;
   resetUnreadCount: () => void;
+  setPanelPosition: (position: { x: number; y: number }) => void;
+  setPanelSize: (size: { width: number; height: number }) => void;
 }
 
 /**
@@ -75,6 +80,8 @@ export const useChatStore = create<ChatState>((set) => ({
   messages: [],
   isChatOpen: false,
   unreadCount: 0,
+  panelPosition: null,
+  panelSize: null,
 
   addSystemMessage: (payload: ChatSystemPayload) => {
     set((state) => {
@@ -162,5 +169,13 @@ export const useChatStore = create<ChatState>((set) => ({
 
   resetUnreadCount: () => {
     set({ unreadCount: 0 });
+  },
+
+  setPanelPosition: (position: { x: number; y: number }) => {
+    set({ panelPosition: position });
+  },
+
+  setPanelSize: (size: { width: number; height: number }) => {
+    set({ panelSize: size });
   },
 }));

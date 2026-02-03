@@ -26,12 +26,6 @@ const ENABLE_RESIZING: ResizeEnable = {
   topLeft: true,
 };
 
-function getViewportMaxSize() {
-  const width = Math.max(MIN_WIDTH, window.innerWidth - MARGIN_RIGHT);
-  const height = Math.max(MIN_HEIGHT, window.innerHeight - MARGIN_BOTTOM);
-  return { width, height };
-}
-
 /**
  * 채팅 패널의 드래그/리사이즈 경계를 정의하는 컴포넌트
  * 레이아웃 시프트 방지를 위해 윈도우 뷰포트보다 작은 영역 제공
@@ -71,8 +65,25 @@ function DragOverlay({ isActive }: { isActive: boolean }) {
  * - 헤더 + 메시지 목록 + 입력창
  */
 export function ChatPanel() {
-  const { width: maxW, height: maxH } = getViewportMaxSize();
   const [isDragging, setIsDragging] = useState(false);
+
+  const position = useChatStore((state) => state.panelPosition);
+  const setPosition = useChatStore((state) => state.setPanelPosition);
+
+  const size = useChatStore((state) => state.panelSize);
+  const setSize = useChatStore((state) => state.setPanelSize);
+
+  // 초기 위치 및 크기 계산
+
+  const defaultPosition = position || {
+    x: window.innerWidth - DEFAULT_WIDTH - MARGIN_RIGHT,
+    y: window.innerHeight - DEFAULT_HEIGHT - MARGIN_BOTTOM,
+  };
+
+  const defaultSize = size || {
+    width: Math.min(DEFAULT_WIDTH, window.innerWidth - MARGIN_RIGHT),
+    height: Math.min(DEFAULT_HEIGHT, window.innerHeight - MARGIN_BOTTOM),
+  };
 
   return (
     <>
@@ -80,12 +91,7 @@ export function ChatPanel() {
       <DragOverlay isActive={isDragging} />
 
       <Rnd
-        default={{
-          x: window.innerWidth - DEFAULT_WIDTH - MARGIN_RIGHT,
-          y: window.innerHeight - DEFAULT_HEIGHT - MARGIN_BOTTOM,
-          width: Math.min(DEFAULT_WIDTH, maxW),
-          height: Math.min(DEFAULT_HEIGHT, maxH),
-        }}
+        default={{ ...defaultPosition, ...defaultSize }}
         minWidth={MIN_WIDTH}
         minHeight={MIN_HEIGHT}
         bounds=".chat-boundary"
@@ -93,15 +99,20 @@ export function ChatPanel() {
         cancel=".no-drag"
         enableResizing={ENABLE_RESIZING}
         onDragStart={() => setIsDragging(true)}
-        onDragStop={() => setIsDragging(false)}
+        onDragStop={(_e, data) => {
+          setIsDragging(false);
+          setPosition({ x: data.x, y: data.y });
+        }}
+        onResizeStop={(_e, _direction, ref, _delta, position) => {
+          setPosition({ x: position.x, y: position.y });
+          setSize({ width: ref.offsetWidth, height: ref.offsetHeight });
+        }}
         className="z-50"
       >
         <div className="border-border bg-background ring-foreground/10 flex h-full w-full flex-col overflow-hidden rounded-lg shadow-lg ring-1">
           <ChatHeader />
           <ChatMessages />
-          <div className="no-drag">
-            <ChatInput />
-          </div>
+          <ChatInput />
         </div>
       </Rnd>
     </>

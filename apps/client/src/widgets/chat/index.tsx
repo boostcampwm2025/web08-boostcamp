@@ -13,6 +13,7 @@ export function Chat() {
         unreadCount={unreadCount}
         onClick={() => setChatOpen(!isChatOpen)}
       />
+
       {isChatOpen && <ChatPanel />}
     </>
   );
