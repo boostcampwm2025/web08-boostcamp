@@ -9,5 +9,5 @@ export const API_ENDPOINTS = {
     JOIN: (roomCode: string) => `${API_PREFIX}/rooms/${roomCode}/join`,
     VERIFY: (roomCode: string) => `${API_PREFIX}/rooms/${roomCode}/verify`,
   },
-  HEALTH: `${API_PREFIX}/health`,
+  HEALTH: `health`,
 } as const;
