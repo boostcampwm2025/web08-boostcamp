@@ -64,7 +64,11 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     set({ roomCode, cleanup: cleanupListeners });
 
     // Connect socket if not connected
-    if (!socket.connected) {
+    if (socket.connected) {
+      console.log('🟡 [Debug] 소켓이 이미 연결되어 있어 즉시 onConnect 호출');
+      onConnect();
+    } else {
+      console.log('🔵 [Debug] 소켓 연결 시도 중...');
       socket.connect();
     }
   },
