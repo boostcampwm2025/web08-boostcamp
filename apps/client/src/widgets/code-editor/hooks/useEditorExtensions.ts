@@ -19,6 +19,11 @@ import { getLanguageExtension } from '../lib/constants';
 import { type Language } from '@codejam/common';
 
 const cursorTheme = EditorView.theme({
+  // 원격 라인 선택으로 인한 텍스트 밀림 방지
+  '.cm-yLineSelection': {
+    margin: '0px 0px 0px 6px', // cm-line padding = 6px
+  },
+
   // 커서 이름표 스타일
   '.cm-ySelectionInfo': {
     padding: '2px 6px',
