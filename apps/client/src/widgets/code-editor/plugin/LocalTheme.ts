@@ -16,6 +16,11 @@ export const localTheme = (user?: LocalUser) => {
   const color = user?.color || '#30bced';
 
   return EditorView.theme({
+    // Cursor
+    '&.cm-focused .cm-cursor': {
+      borderLeftWidth: '2px',
+    },
+
     // Local active line color
     '&.cm-focused .cm-activeLine, .cm-activeLine': {
       backgroundColor: `${color + '15'}`,
