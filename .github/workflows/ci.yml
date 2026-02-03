@@ -168,12 +168,12 @@ jobs:
           {
             "rewrites": [
               { 
-                "source": "/api/:path*",
-                "destination": "https://staging.codejam.kro.kr/api/:path*" 
+                "source": "/api/(.*)", 
+                "destination": "https://staging.codejam.kro.kr/api/$1" 
               },
               { 
-                "source": "/socket.io/:path*", 
-                "destination": "https://staging.codejam.kro.kr/socket.io/:path*" 
+                "source": "/socket.io/(.*)", 
+                "destination": "https://staging.codejam.kro.kr/socket.io/$1" 
               },
               { "source": "/(.*)", "destination": "/index.html" }
             ]
