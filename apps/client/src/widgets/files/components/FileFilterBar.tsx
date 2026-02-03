@@ -1,5 +1,5 @@
 import { SortAsc, SortDesc, FileType, X } from 'lucide-react';
-import { RadixButton as Button, cn } from '@codejam/ui';
+import { Button, cn } from '@codejam/ui';
 import type { FileSortKey } from '../lib/types';
 
 interface FileFilterBarProps {

@@ -5,7 +5,7 @@ import {
   type KeyboardEvent,
   type ChangeEvent,
 } from 'react';
-import { RadixButton as Button, Textarea } from '@codejam/ui';
+import { Button, Textarea } from '@codejam/ui';
 import { Send, FileText } from 'lucide-react';
 import { LIMITS } from '@codejam/common';
 import { emitChatMessage } from '@/stores/socket-events/chat';

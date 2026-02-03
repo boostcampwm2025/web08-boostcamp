@@ -4,7 +4,7 @@ import {
   RadixInput as Input,
   RadixSlider as Slider,
   RadixSwitch as Switch,
-  RadixButton as Button,
+  Button,
   SidebarHeader,
   toast,
 } from '@codejam/ui';

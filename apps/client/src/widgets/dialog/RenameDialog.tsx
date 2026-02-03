@@ -1,5 +1,5 @@
 import {
-  RadixButton as Button,
+  Button,
   RadixInput as Input,
   RadixLabel as Label,
   RadixDialogClose as DialogClose,

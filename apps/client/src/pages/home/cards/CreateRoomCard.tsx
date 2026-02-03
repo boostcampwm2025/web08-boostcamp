@@ -2,7 +2,7 @@ import { Users, Settings2 } from 'lucide-react';
 import {
   Card,
   CardContent,
-  RadixButton as Button,
+  Button,
   Tooltip,
   TooltipTrigger,
   TooltipContent,

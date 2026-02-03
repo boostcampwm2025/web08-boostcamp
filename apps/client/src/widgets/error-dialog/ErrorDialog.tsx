@@ -6,7 +6,7 @@ import {
   RadixDialogHeader as DialogHeader,
   RadixDialogTitle as DialogTitle,
 } from '@codejam/ui';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import type { FormEvent } from 'react';
 
 interface ErrorDialogProps {

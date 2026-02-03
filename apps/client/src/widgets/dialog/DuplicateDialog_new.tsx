@@ -7,7 +7,7 @@ import {
   RadixDialogHeader as DialogHeader,
   RadixDialogTitle as DialogTitle,
 } from '@codejam/ui';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { extname, purename } from '@/shared/lib/file';
 import { uploadFile } from '@/shared/lib/file';

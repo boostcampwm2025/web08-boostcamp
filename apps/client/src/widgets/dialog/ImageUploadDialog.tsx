@@ -5,7 +5,7 @@ import {
   RadixDialogHeader as DialogHeader,
   RadixDialogTitle as DialogTitle,
   RadixDialogDescription as DialogDescription,
-  RadixButton as Button,
+  Button,
   RadixDialogClose as DialogClose,
 } from '@codejam/ui';
 import { useState } from 'react';

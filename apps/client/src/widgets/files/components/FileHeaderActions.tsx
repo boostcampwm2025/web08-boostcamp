@@ -1,6 +1,6 @@
 import { useCallback, useContext, useRef, useState } from 'react';
 import { Plus, Upload, Image } from 'lucide-react';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
 import { ImageUploadDialog } from '@/widgets/dialog/ImageUploadDialog';
