@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Rnd, type ResizeEnable } from 'react-rnd';
 import { useChatStore } from '@/stores/chat';
 import { Button } from '@codejam/ui';
@@ -12,6 +12,7 @@ const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 380;
 const MARGIN_RIGHT = 16;
 const MARGIN_BOTTOM = 80;
+const VIEWPORT_PADDING = 12;
 
 const DRAG_HANDLE_CLASSNAME = 'chat-drag-handle';
 const ENABLE_RESIZING: ResizeEnable = {
@@ -29,6 +30,19 @@ function getViewportMaxSize() {
   const width = Math.max(MIN_WIDTH, window.innerWidth - MARGIN_RIGHT);
   const height = Math.max(MIN_HEIGHT, window.innerHeight - MARGIN_BOTTOM);
   return { width, height };
+}
+
+/**
+ * 채팅 패널의 드래그/리사이즈 경계를 정의하는 컴포넌트
+ * 레이아웃 시프트 방지를 위해 윈도우 뷰포트보다 작은 영역 제공
+ */
+function ChatBoundary() {
+  return (
+    <div
+      className="chat-boundary pointer-events-none fixed z-40"
+      style={{ inset: VIEWPORT_PADDING }}
+    />
+  );
 }
 
 /**
@@ -62,6 +76,7 @@ export function ChatPanel() {
 
   return (
     <>
+      <ChatBoundary />
       <DragOverlay isActive={isDragging} />
 
       <Rnd
@@ -73,7 +88,7 @@ export function ChatPanel() {
         }}
         minWidth={MIN_WIDTH}
         minHeight={MIN_HEIGHT}
-        bounds="window"
+        bounds=".chat-boundary"
         dragHandleClassName={DRAG_HANDLE_CLASSNAME}
         cancel=".no-drag"
         enableResizing={ENABLE_RESIZING}
