@@ -1,8 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Rnd, ResizeEnable } from 'react-rnd';
+import { Rnd, type ResizeEnable } from 'react-rnd';
 import { useChatStore } from '@/stores/chat';
 import { Button } from '@codejam/ui';
-import { X, GripHorizontal } from 'lucide-react';
+import { X } from 'lucide-react';
 import { ChatWindow } from './ChatWindow';
 import { ChatInput } from './ChatInput';
 
@@ -27,96 +26,41 @@ const ENABLE_RESIZING: ResizeEnable = {
 
 /** right-4(16px), bottom-20(80px) 기준. 가로·세로 모두 뷰포트 넘지 않는 한 원하는 만큼 확대 */
 function getViewportMaxSize() {
-  return {
-    width: Math.max(MIN_WIDTH, window.innerWidth - 16),
-    height: Math.max(MIN_HEIGHT, window.innerHeight - 80),
-  };
+  const width = Math.max(MIN_WIDTH, window.innerWidth - MARGIN_RIGHT);
+  const height = Math.max(MIN_HEIGHT, window.innerHeight - MARGIN_BOTTOM);
+  return { width, height };
 }
 
 /**
  * 채팅 패널 컴포넌트
- * - 리사이즈 가능 (좌측 상단 핸들)
+ * - 드래그 및 리사이즈 가능
  * - 헤더 + 메시지 목록 + 입력창
  */
 export function ChatPanel() {
-  const messages = useChatStore((state) => state.messages);
-  const setChatOpen = useChatStore((state) => state.setChatOpen);
-
-  const [size, setSize] = useState(() => {
-    const { width: maxW, height: maxH } = getViewportMaxSize();
-    return {
-      width: Math.min(DEFAULT_WIDTH, maxW),
-      height: Math.min(DEFAULT_HEIGHT, maxH),
-    };
-  });
-  const [isResizing, setIsResizing] = useState(false);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isResizing) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const { width: maxW, height: maxH } = getViewportMaxSize();
-      const newWidth = Math.min(
-        maxW,
-        Math.max(MIN_WIDTH, window.innerWidth - e.clientX - 16),
-      );
-      const newHeight = Math.min(
-        maxH,
-        Math.max(MIN_HEIGHT, window.innerHeight - e.clientY - 80),
-      );
-      setSize({ width: newWidth, height: newHeight });
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing]);
-
-  // 뷰포트 리사이즈 시 채팅 크기를 뷰포트 안으로 클램프
-  useEffect(() => {
-    const handleResize = () => {
-      const { width: maxW, height: maxH } = getViewportMaxSize();
-      setSize((prev) => ({
-        width: Math.min(prev.width, maxW),
-        height: Math.min(prev.height, maxH),
-      }));
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { width: maxW, height: maxH } = getViewportMaxSize();
 
   return (
-    <div
-      className="border-border bg-background ring-foreground/10 fixed right-4 bottom-20 z-50 flex flex-col rounded-lg shadow-lg ring-1"
-      style={{ width: size.width, height: size.height }}
+    <Rnd
+      default={{
+        x: window.innerWidth - DEFAULT_WIDTH - MARGIN_RIGHT,
+        y: window.innerHeight - DEFAULT_HEIGHT - MARGIN_BOTTOM,
+        width: Math.min(DEFAULT_WIDTH, maxW),
+        height: Math.min(DEFAULT_HEIGHT, maxH),
+      }}
+      minWidth={MIN_WIDTH}
+      minHeight={MIN_HEIGHT}
+      bounds="window"
+      dragHandleClassName={DRAG_HANDLE_CLASSNAME}
+      cancel=".no-drag"
+      enableResizing={ENABLE_RESIZING}
+      className="z-50"
     >
-      {/* 리사이즈 핸들 (좌측 상단) */}
-      <div
-        onMouseDown={handleMouseDown}
-        className="bg-muted/50 hover:bg-muted absolute top-0 left-0 flex h-6 w-6 cursor-nw-resize items-center justify-center rounded-tl-lg rounded-br-lg opacity-0 transition-opacity hover:opacity-100"
-        style={{ opacity: isResizing ? 1 : undefined }}
-        title="드래그하여 크기 조절"
-      >
-        <GripHorizontal className="text-muted-foreground h-3 w-3 rotate-45" />
+      <div className="border-border bg-background ring-foreground/10 flex h-full w-full flex-col overflow-hidden rounded-lg shadow-lg ring-1">
+        <ChatHeader />
+        <ChatMessages />
+        <ChatInput />
       </div>
-
-      <ChatHeader />
-      <ChatMessages />
-      <ChatInput />
-    </div>
+    </Rnd>
   );
 }
 
