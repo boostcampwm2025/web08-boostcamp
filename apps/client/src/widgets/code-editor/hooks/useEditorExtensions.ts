@@ -4,7 +4,6 @@ import { EditorView, basicSetup } from 'codemirror';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { yCollab } from 'y-codemirror.next';
 import { Awareness } from 'y-protocols/awareness';
-import { yRemoteSelectionsTheme } from 'y-codemirror.next';
 import * as Y from 'yjs';
 
 // Plugins
