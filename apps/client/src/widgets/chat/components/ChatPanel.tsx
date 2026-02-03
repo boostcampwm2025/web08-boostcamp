@@ -51,27 +51,28 @@ function useChatPanelState() {
 
   // 윈도우 리사이즈 시 패널을 경계 안으로 클램프
 
-  const clamp = (value: number, min: number, max: number): number => {
-    return Math.max(min, Math.min(value, max));
-  };
-
   useEffect(() => {
     const handleResize = () => {
       if (!panelPosition || !panelSize) return;
 
-      const maxX = window.innerWidth - VIEWPORT_PADDING - panelSize.width;
-      const maxY = window.innerHeight - VIEWPORT_PADDING - panelSize.height;
+      const clampedSize = clampSize(panelSize);
+      const clampedPosition = clampPosition(panelPosition, clampedSize);
 
-      const clampedX = clamp(panelPosition.x, VIEWPORT_PADDING, maxX);
-      const clampedY = clamp(panelPosition.y, VIEWPORT_PADDING, maxY);
+      const sizeChanged =
+        clampedSize.width !== panelSize.width ||
+        clampedSize.height !== panelSize.height;
 
-      if (clampedX === panelPosition.x && clampedY === panelPosition.y) return;
-      setPanelPosition({ x: clampedX, y: clampedY });
+      const posChanged =
+        clampedPosition.x !== panelPosition.x ||
+        clampedPosition.y !== panelPosition.y;
+
+      if (sizeChanged) setPanelSize(clampedSize);
+      if (posChanged) setPanelPosition(clampedPosition);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [panelPosition, panelSize, setPanelPosition]);
+  }, [panelPosition, panelSize, setPanelPosition, setPanelSize]);
 
   return {
     position,
@@ -80,6 +81,33 @@ function useChatPanelState() {
     setSize: setPanelSize,
   };
 }
+
+const clamp = (value: number, min: number, max: number): number => {
+  return Math.max(min, Math.min(value, max));
+};
+
+const clampPosition = (
+  position: { x: number; y: number },
+  size: { width: number; height: number },
+) => {
+  const maxX = window.innerWidth - VIEWPORT_PADDING - size.width;
+  const maxY = window.innerHeight - VIEWPORT_PADDING - size.height;
+
+  const clampedX = clamp(position.x, VIEWPORT_PADDING, maxX);
+  const clampedY = clamp(position.y, VIEWPORT_PADDING, maxY);
+
+  return { x: clampedX, y: clampedY };
+};
+
+const clampSize = (size: { width: number; height: number }) => {
+  const maxWidth = window.innerWidth - 2 * VIEWPORT_PADDING;
+  const maxHeight = window.innerHeight - 2 * VIEWPORT_PADDING;
+
+  const clampedWidth = clamp(size.width, MIN_WIDTH, maxWidth);
+  const clampedHeight = clamp(size.height, MIN_HEIGHT, maxHeight);
+
+  return { width: clampedWidth, height: clampedHeight };
+};
 
 /**
  * 채팅 패널의 드래그/리사이즈 경계를 정의하는 컴포넌트
