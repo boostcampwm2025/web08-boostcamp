@@ -14,13 +14,20 @@ export interface LocalUser {
 export const localTheme = (user?: LocalUser) => {
   // Match y-codemirror's color logic
   const color = user?.color || '#30bced';
-  const alpha = `66`;
+  const alpha = `33`;
   const colorLight = color + alpha;
 
   return EditorView.theme({
     // Local selection background
-    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground': {
+    '&.cm-focused .cm-selectionBackground': {
       backgroundColor: `${colorLight} !important`,
+      color: 'inherit',
+    },
+
+    // Browser's native selection
+    '& .cm-content ::selection': {
+      backgroundColor: `transparent`,
+      color: 'inherit',
     },
   });
 };
