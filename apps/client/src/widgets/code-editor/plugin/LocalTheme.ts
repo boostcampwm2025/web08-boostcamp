@@ -14,13 +14,26 @@ export interface LocalUser {
 export const localTheme = (user?: LocalUser) => {
   // Match y-codemirror's color logic
   const color = user?.color || '#30bced';
-  const alpha = `33`;
-  const colorLight = color + alpha;
 
   return EditorView.theme({
+    // Local active line color
+    '&.cm-focused .cm-activeLine, .cm-activeLine': {
+      backgroundColor: `${color + '15'}`,
+    },
+
+    // Active line gutter
+    '&.cm-focused .cm-activeLineGutter, .cm-activeLineGutter': {
+      backgroundColor: `${color + '15'}`,
+    },
+
+    // Gutter
+    '.cm-gutters': {
+      borderRight: 'none',
+    },
+
     // Local selection background
     '&.cm-focused .cm-selectionBackground': {
-      backgroundColor: `${colorLight} !important`,
+      backgroundColor: `${color + '33'} !important`,
       color: 'inherit',
     },
 
