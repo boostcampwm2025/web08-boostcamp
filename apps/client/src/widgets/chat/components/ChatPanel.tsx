@@ -10,9 +10,9 @@ const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
 const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 380;
-const MARGIN_RIGHT = 16;
-const MARGIN_BOTTOM = 80;
-const VIEWPORT_PADDING = 12;
+const MARGIN_RIGHT = 20;
+const MARGIN_BOTTOM = 144;
+const VIEWPORT_PADDING = 20;
 
 const DRAG_HANDLE_CLASSNAME = 'chat-drag-handle';
 const ENABLE_RESIZING: ResizeEnable = {
