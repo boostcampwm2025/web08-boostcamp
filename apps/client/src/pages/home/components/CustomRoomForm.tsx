@@ -178,8 +178,8 @@ export function CustomRoomForm({
       maxPts: LIMITS.MAX_CAN_EDIT,
     });
 
-  const [showRoomPassword, setShowRoomPassword] = useState(true);
-  const [showHostPassword, setShowHostPassword] = useState(true);
+  const [showRoomPassword, setShowRoomPassword] = useState(false);
+  const [showHostPassword, setShowHostPassword] = useState(false);
 
   const validatePassword = (
     value: string | undefined,
