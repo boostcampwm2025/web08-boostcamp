@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@codejam/ui';
 import { LIMITS } from '@codejam/common';
 
@@ -19,6 +19,14 @@ export function RoomCodeOtpInput({
   invalid,
   errorKey,
 }: RoomCodeOtpInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (errorKey !== undefined && errorKey > 0) {
+      inputRef.current?.focus();
+    }
+  }, [errorKey]);
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (
       e.key === 'Enter' &&
@@ -31,6 +39,7 @@ export function RoomCodeOtpInput({
 
   return (
     <InputOTP
+      ref={inputRef}
       maxLength={LIMITS.ROOM_CODE_LENGTH}
       value={value}
       onChange={onChange}
@@ -40,32 +49,32 @@ export function RoomCodeOtpInput({
       <InputOTPGroup key={errorKey} className={invalid ? 'animate-shake' : ''}>
         <InputOTPSlot
           index={0}
-          className="size-14 text-3xl font-bold"
+          className="size-14 font-mono text-2xl font-bold"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={1}
-          className="size-14 text-3xl font-bold"
+          className="size-14 font-mono text-2xl font-bold"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={2}
-          className="size-14 text-3xl font-bold"
+          className="size-14 font-mono text-2xl font-bold"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={3}
-          className="size-14 text-3xl font-bold"
+          className="size-14 font-mono text-2xl font-bold"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={4}
-          className="size-14 text-3xl font-bold"
+          className="size-14 font-mono text-2xl font-bold"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={5}
-          className="size-14 text-3xl font-bold"
+          className="size-14 font-mono text-2xl font-bold"
           aria-invalid={invalid}
         />
       </InputOTPGroup>

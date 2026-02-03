@@ -1,5 +1,5 @@
 {
-  "name": "@codejam/cli",
+  "name": "codejam-cli",
   "version": "1.0.0",
   "description": "CodeJam CLI for creating and managing collaborative coding rooms",
   "type": "module",
