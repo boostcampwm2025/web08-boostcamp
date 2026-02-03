@@ -104,10 +104,15 @@ export const joinRoom = async (
     },
   );
 
+  const data = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || 'Failed to join room');
+    const message =
+      data.error?.message || data.message || 'Failed to join room';
+    throw new Error(message);
   }
+
+  return data;
 };
 
 export async function verifyPassword(roomCode: string, password: string) {
@@ -139,4 +144,27 @@ export async function verifyPassword(roomCode: string, password: string) {
     const error = e as Error;
     throw error;
   }
+}
+
+export async function getAuthStatus(
+  roomCode: string,
+): Promise<{ authenticated: boolean; token: string }> {
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.ROOM.AUTH_STATUS(roomCode)}`,
+    {
+      method: 'GET',
+      credentials: 'include',
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const serverError = data.error;
+    const error = new Error(serverError?.message || '인증 확인 실패');
+    (error as any).code = serverError?.code;
+    throw error;
+  }
+
+  return data;
 }
