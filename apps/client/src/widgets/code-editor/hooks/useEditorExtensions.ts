@@ -14,6 +14,7 @@ import {
   type AvatarUser,
   type RemoteUser,
 } from '../plugin/LineAvatars';
+import { localTheme } from '../plugin/LocalTheme';
 import { getLanguageExtension } from '../lib/constants';
 import { type Language } from '@codejam/common';
 
@@ -98,6 +99,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       // safeInput({ allowAscii: true }),
       capacityLimitInputBlocker(),
 
+      localTheme,
       cursorTheme,
 
       // Dynamic Compartments Initial Config
