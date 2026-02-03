@@ -8,13 +8,15 @@ export function Chat() {
   const setChatOpen = useChatStore((state) => state.setChatOpen);
 
   return (
-    <>
-      <ChatIcon
-        unreadCount={unreadCount}
-        onClick={() => setChatOpen(!isChatOpen)}
-      />
+    <div className="pointer-events-none fixed inset-0 z-50">
+      <div className="pointer-events-auto">
+        <ChatIcon
+          unreadCount={unreadCount}
+          onClick={() => setChatOpen(!isChatOpen)}
+        />
+      </div>
 
-      {isChatOpen && <ChatPanel />}
-    </>
+      <div className="pointer-events-auto">{isChatOpen && <ChatPanel />}</div>
+    </div>
   );
 }
