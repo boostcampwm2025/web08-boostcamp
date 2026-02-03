@@ -27,6 +27,61 @@ const ENABLE_RESIZING: ResizeEnable = {
 };
 
 /**
+ * 채팅 패널의 위치와 크기 상태 관리 훅
+ * - 초기 위치/크기 계산
+ * - 윈도우 리사이즈 시 경계 안으로 클램프
+ */
+function useChatPanelState() {
+  const panelPosition = useChatStore((state) => state.panelPosition);
+  const setPanelPosition = useChatStore((state) => state.setPanelPosition);
+  const panelSize = useChatStore((state) => state.panelSize);
+  const setPanelSize = useChatStore((state) => state.setPanelSize);
+
+  // 초기 위치 계산
+  const position = panelPosition || {
+    x: window.innerWidth - DEFAULT_WIDTH - MARGIN_RIGHT,
+    y: window.innerHeight - DEFAULT_HEIGHT - MARGIN_BOTTOM,
+  };
+
+  // 초기 크기 계산
+  const size = panelSize || {
+    width: Math.min(DEFAULT_WIDTH, window.innerWidth - MARGIN_RIGHT),
+    height: Math.min(DEFAULT_HEIGHT, window.innerHeight - MARGIN_BOTTOM),
+  };
+
+  // 윈도우 리사이즈 시 패널을 경계 안으로 클램프
+
+  const clamp = (value: number, min: number, max: number): number => {
+    return Math.max(min, Math.min(value, max));
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (!panelPosition || !panelSize) return;
+
+      const maxX = window.innerWidth - VIEWPORT_PADDING - panelSize.width;
+      const maxY = window.innerHeight - VIEWPORT_PADDING - panelSize.height;
+
+      const clampedX = clamp(panelPosition.x, VIEWPORT_PADDING, maxX);
+      const clampedY = clamp(panelPosition.y, VIEWPORT_PADDING, maxY);
+
+      if (clampedX === panelPosition.x && clampedY === panelPosition.y) return;
+      setPanelPosition({ x: clampedX, y: clampedY });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [panelPosition, panelSize, setPanelPosition]);
+
+  return {
+    position,
+    size,
+    setPosition: setPanelPosition,
+    setSize: setPanelSize,
+  };
+}
+
+/**
  * 채팅 패널의 드래그/리사이즈 경계를 정의하는 컴포넌트
  * 레이아웃 시프트 방지를 위해 윈도우 뷰포트보다 작은 영역 제공
  */
@@ -94,25 +149,8 @@ function DragOverlay({ isActive }: { isActive: boolean }) {
  * - 헤더 + 메시지 목록 + 입력창
  */
 export function ChatPanel() {
+  const { position, size, setPosition, setSize } = useChatPanelState();
   const [isDragging, setIsDragging] = useState(false);
-
-  const position = useChatStore((state) => state.panelPosition);
-  const setPosition = useChatStore((state) => state.setPanelPosition);
-
-  const size = useChatStore((state) => state.panelSize);
-  const setSize = useChatStore((state) => state.setPanelSize);
-
-  // 초기 위치 및 크기 계산
-
-  const defaultPosition = position || {
-    x: window.innerWidth - DEFAULT_WIDTH - MARGIN_RIGHT,
-    y: window.innerHeight - DEFAULT_HEIGHT - MARGIN_BOTTOM,
-  };
-
-  const defaultSize = size || {
-    width: Math.min(DEFAULT_WIDTH, window.innerWidth - MARGIN_RIGHT),
-    height: Math.min(DEFAULT_HEIGHT, window.innerHeight - MARGIN_BOTTOM),
-  };
 
   return (
     <>
@@ -120,23 +158,26 @@ export function ChatPanel() {
       <DragOverlay isActive={isDragging} />
 
       <Rnd
-        default={{ ...defaultPosition, ...defaultSize }}
+        size={size}
+        position={position}
+        className="z-50"
         minWidth={MIN_WIDTH}
         minHeight={MIN_HEIGHT}
         bounds=".chat-boundary"
         dragHandleClassName={DRAG_HANDLE_CLASSNAME}
         cancel=".no-drag"
         enableResizing={ENABLE_RESIZING}
-        onDragStart={() => setIsDragging(true)}
-        onDragStop={(_e, data) => {
-          setIsDragging(false);
-          setPosition({ x: data.x, y: data.y });
+        onDragStart={() => {
+          setIsDragging(true);
         }}
-        onResizeStop={(_e, _direction, ref, _delta, position) => {
-          setPosition({ x: position.x, y: position.y });
+        onDragStop={(_e, d) => {
+          setPosition({ x: d.x, y: d.y });
+          setIsDragging(false);
+        }}
+        onResizeStop={(_e, _dir, ref, _delta, pos) => {
+          setPosition(pos);
           setSize({ width: ref.offsetWidth, height: ref.offsetHeight });
         }}
-        className="z-50"
       >
         <div className="border-border bg-background ring-foreground/10 flex h-full w-full flex-col overflow-hidden rounded-lg shadow-lg ring-1">
           <ChatHeader />
