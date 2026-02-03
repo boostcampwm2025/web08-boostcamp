@@ -63,7 +63,7 @@ export class RoomController {
     return { roomCode };
   }
 
-  @Post('/rooms/:roomCode/join')
+  @Post(API_ENDPOINTS.ROOM.JOIN(':roomCode'))
   async joinRoom(
     @Param('roomCode') roomCode: string,
     @Body() body: { nickname: string; password?: string },
@@ -82,7 +82,7 @@ export class RoomController {
     return { success: true };
   }
 
-  @Post('/rooms/:roomCode/verify')
+  @Post(API_ENDPOINTS.ROOM.VERIFY(':roomCode'))
   async verifyPassword(
     @Param('roomCode') roomCode: string,
     @Body() body: { password?: string },

@@ -94,12 +94,15 @@ export const joinRoom = async (
   nickname: string,
   password: string | null,
 ) => {
-  const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/join`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nickname, password }),
-    credentials: 'include',
-  });
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOIN(roomCode)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname, password }),
+      credentials: 'include',
+    },
+  );
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
@@ -109,13 +112,16 @@ export const joinRoom = async (
 
 export async function verifyPassword(roomCode: string, password: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${API_BASE_URL}${API_ENDPOINTS.ROOM.VERIFY(roomCode)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: password }),
       },
-      body: JSON.stringify({ password: password }),
-    });
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
