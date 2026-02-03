@@ -1,5 +1,4 @@
 export * from './card';
-export * from './label';
 export * from './textarea';
 export * from './menu-button';
 

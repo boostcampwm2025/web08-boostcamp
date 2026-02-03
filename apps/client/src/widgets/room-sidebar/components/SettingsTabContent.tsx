@@ -93,7 +93,8 @@ export function SettingsTabContent() {
           <div className="grid gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm">
-                <MousePointer2 size={16} /> 원격 커서
+                <MousePointer2 size={16} />
+                다른 사용자의 커서 보기
               </div>
               <Switch
                 checked={showRemoteCursor}
@@ -102,7 +103,7 @@ export function SettingsTabContent() {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm">
-                <UserCircle size={16} /> 프로필 표시
+                <UserCircle size={16} />줄 번호 옆 프로필 표시
               </div>
               <Switch
                 checked={showGutterAvatars}
@@ -111,7 +112,8 @@ export function SettingsTabContent() {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm">
-                <Type size={16} /> 이름표 항상 보기
+                <Type size={16} />
+                커서 이름표 항상 보기
               </div>
               <Switch
                 checked={alwaysShowCursorLabels}

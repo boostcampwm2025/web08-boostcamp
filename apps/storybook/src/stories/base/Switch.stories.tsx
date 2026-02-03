@@ -45,3 +45,57 @@ export const Disabled: Story = {
     </div>
   ),
 };
+
+export const WithDescription: Story = {
+  render: (args) => (
+    <div className="flex items-center gap-4">
+      <Switch id="switch-description" {...args} />
+      <div className="grid gap-1.5 leading-none">
+        <Label htmlFor="switch-description">비행 모드</Label>
+        <p className="text-muted-foreground text-sm">
+          비행 모드를 켜면 모든 무선 통신이 차단됩니다.
+        </p>
+      </div>
+    </div>
+  ),
+};
+
+export const Sizes: Story = {
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <Switch id="switch-sm" size="sm" {...args} />
+        <Label htmlFor="switch-sm">Small Size</Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <Switch id="switch-default" size="default" {...args} />
+        <Label htmlFor="switch-default">Default Size</Label>
+      </div>
+    </div>
+  ),
+};
+
+export const Invalid: Story = {
+  render: (args) => (
+    <div className="flex items-center gap-2">
+      <Switch id="switch-invalid" aria-invalid {...args} />
+      <Label htmlFor="switch-invalid" className="text-destructive">
+        동의 필요
+      </Label>
+    </div>
+  ),
+};
+
+export const ChoiceCard: Story = {
+  render: (args) => (
+    <div className="border-input flex w-[300px] items-center justify-between rounded-lg border p-4 shadow-sm">
+      <div className="space-y-0.5">
+        <Label htmlFor="switch-card">마케팅 수신 동의</Label>
+        <p className="text-muted-foreground text-sm">
+          이메일로 마케팅 정보를 받습니다.
+        </p>
+      </div>
+      <Switch id="switch-card" {...args} />
+    </div>
+  ),
+};

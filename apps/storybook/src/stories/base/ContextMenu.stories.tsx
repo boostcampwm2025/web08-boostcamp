@@ -1,10 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   ContextMenu,
-  ContextMenuTrigger,
+  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
 } from '@codejam/ui';
 
 const meta = {
@@ -19,18 +24,69 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const Simple: Story = {
   render: () => (
     <ContextMenu>
       <ContextMenuTrigger className="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
-        우클릭하세요
+        Right click here
       </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem>뒤로 가기</ContextMenuItem>
-        <ContextMenuItem>앞으로 가기</ContextMenuItem>
-        <ContextMenuItem>새로고침</ContextMenuItem>
+      <ContextMenuContent className="w-64">
+        <ContextMenuItem inset>
+          Back
+          <ContextMenuShortcut>⌘[</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem inset disabled>
+          Forward
+          <ContextMenuShortcut>⌘]</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem inset>
+          Reload
+          <ContextMenuShortcut>⌘R</ContextMenuShortcut>
+        </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem>다른 이름으로 저장...</ContextMenuItem>
+        <ContextMenuItem inset>
+          Save As...
+          <ContextMenuShortcut>⌘S</ContextMenuShortcut>
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  ),
+};
+
+export const WithSubmenu: Story = {
+  render: () => (
+    <ContextMenu>
+      <ContextMenuTrigger className="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+        Right click here
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-64">
+        <ContextMenuItem inset>Back</ContextMenuItem>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger inset>More Tools</ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-48">
+            <ContextMenuItem>Save Page As...</ContextMenuItem>
+            <ContextMenuItem>Create Shortcut...</ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem>Developer Tools</ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+      </ContextMenuContent>
+    </ContextMenu>
+  ),
+};
+
+export const WithCheckboxes: Story = {
+  render: () => (
+    <ContextMenu>
+      <ContextMenuTrigger className="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+        Right click here
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-64">
+        <ContextMenuCheckboxItem checked>
+          Show Bookmarks Bar
+          <ContextMenuShortcut>⌘⇧B</ContextMenuShortcut>
+        </ContextMenuCheckboxItem>
+        <ContextMenuCheckboxItem>Show Full URLs</ContextMenuCheckboxItem>
       </ContextMenuContent>
     </ContextMenu>
   ),
