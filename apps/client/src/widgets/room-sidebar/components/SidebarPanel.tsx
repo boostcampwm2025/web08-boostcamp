@@ -21,7 +21,7 @@ export function SidebarPanel({
         className,
       )}
     >
-      <div className="h-screen w-72 min-w-[18rem]">{children}</div>
+      <div className="flex h-full w-72 min-w-[18rem] flex-col overflow-hidden">{children}</div>
     </aside>
   );
 }
