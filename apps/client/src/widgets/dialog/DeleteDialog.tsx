@@ -38,20 +38,20 @@ export function DeleteDialog({ fileId, fileName, onOpen }: DeleteDialogProps) {
             삭제하시겠습니까?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-4 sm:justify-start">
+        <DialogFooter className="mt-4 flex-row justify-end gap-2 border-t pt-4">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary" size="sm">
+              취소
+            </Button>
+          </DialogClose>
           <Button
             type="submit"
-            variant="default"
+            variant="ghost"
             size="sm"
-            className="border border-red-400 text-red-400"
+            className="text-destructive hover:bg-destructive/10 hover:text-red-500"
           >
             삭제
           </Button>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary" size="sm">
-              닫기
-            </Button>
-          </DialogClose>
         </DialogFooter>
       </form>
     </DialogContent>
