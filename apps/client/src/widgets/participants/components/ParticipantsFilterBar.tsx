@@ -1,30 +1,23 @@
 import { useMemo, useState } from 'react';
 import {
+  cn,
+  RadixButton as Button,
   Combobox,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxChip,
+  ComboboxInput,
   ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
   ComboboxList,
-  ComboboxValue,
-  useComboboxAnchor,
+  ComboboxItem,
+  ComboboxGroup,
+  ComboboxLabel,
 } from '@codejam/ui';
-import {
-  RadixSelect as Select,
-  RadixSelectContent as SelectContent,
-  RadixSelectItem as SelectItem,
-  RadixSelectTrigger as SelectTrigger,
-  RadixSelectValue as SelectValue,
-} from '@codejam/ui';
-import { RadixButton as Button } from '@codejam/ui';
-import { X, Pencil, Eye } from 'lucide-react';
+import { Pencil, Eye, User, Clock, X, RotateCcw } from 'lucide-react';
 import type { FilterOption } from '../types';
 import type { SortKey } from '../lib/types';
-import { FILTER_OPTIONS, SORT_OPTIONS } from '../types';
+import { FILTER_OPTIONS } from '../types';
 
 interface ParticipantsFilterBarProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
   selectedFilters: FilterOption[];
   onFiltersChange: (filters: FilterOption[]) => void;
   sortKey: SortKey;
@@ -36,6 +29,8 @@ interface ParticipantsFilterBarProps {
 }
 
 export function ParticipantsFilterBar({
+  searchQuery,
+  onSearchChange,
   selectedFilters,
   onFiltersChange,
   sortKey,
@@ -45,113 +40,309 @@ export function ParticipantsFilterBar({
   onBulkView,
   isHost,
 }: ParticipantsFilterBarProps) {
-  const [inputValue, setInputValue] = useState('');
-  const anchor = useComboboxAnchor();
+  return (
+    <div className="flex flex-col gap-2">
+      <SearchFilterCombobox
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        selectedFilters={selectedFilters}
+        onFiltersChange={onFiltersChange}
+      />
 
-  // 필터 옵션을 검색어로 필터링
-  const filteredOptions = useMemo(() => {
-    if (!inputValue) return FILTER_OPTIONS;
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <SortButton
+            active={sortKey === 'time'}
+            onClick={() => onSortChange('time')}
+            icon={<Clock size={14} />}
+            label="입장순"
+          />
+
+          <SortButton
+            active={sortKey === 'name'}
+            onClick={() => onSortChange('name')}
+            icon={<User size={14} />}
+            label="이름순"
+          />
+        </div>
+
+        <BulkActions
+          isHost={isHost}
+          filteredCount={filteredCount}
+          onBulkEdit={onBulkEdit}
+          onBulkView={onBulkView}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SearchFilterCombobox({
+  searchQuery,
+  onSearchChange,
+  selectedFilters,
+  onFiltersChange,
+}: {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  selectedFilters: FilterOption[];
+  onFiltersChange: (filters: FilterOption[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  // Filter options based on search query
+  const matchedOptions = useMemo(() => {
+    if (!searchQuery) return FILTER_OPTIONS;
+    const query = searchQuery.toLowerCase();
     return FILTER_OPTIONS.filter((option) =>
-      option.label.toLowerCase().includes(inputValue.toLowerCase()),
+      option.label.toLowerCase().includes(query),
     );
-  }, [inputValue]);
+  }, [searchQuery]);
 
-  // 필터 추가/제거 처리
-  const handleValueChange = (values: FilterOption[]) => {
-    onFiltersChange(values);
+  // Group options by type dynamically
+  const groupedOptions = useMemo(() => {
+    return matchedOptions.reduce(
+      (groups, option) => {
+        const type = option.type;
+        if (!groups[type]) groups[type] = [];
+        groups[type].push(option);
+        return groups;
+      },
+      {} as Record<string, FilterOption[]>,
+    );
+  }, [matchedOptions]);
+
+  // Get selected filter values for Combobox
+  const selectedValues = selectedFilters.map((f) => f.value);
+
+  const handleValueAdded = (value: string) => {
+    const newFilter = FILTER_OPTIONS.find((opt) => opt.value === value);
+    if (!newFilter) return;
+
+    // Remove any existing filter of the same type
+    // Mutually exclusive within group
+    const otherFilters = selectedFilters.filter(
+      (f) => f.type !== newFilter.type,
+    );
+    onFiltersChange([...otherFilters, newFilter]);
+
+    // Close dropdown after selection
+    setOpen(false);
+
+    // Clear search after closing dropdown to prevent flash
+    setTimeout(() => onSearchChange(''), 0);
+  };
+
+  const handleValueRemoved = (value: string) => {
+    onFiltersChange(selectedFilters.filter((f) => f.value !== value));
+
+    // Close dropdown after removal
+    setOpen(false);
+  };
+
+  const handleValueChange = (newValues: string[]) => {
+    // Check if a value was added
+    const added = newValues.find((v) => !selectedValues.includes(v));
+    if (added) handleValueAdded(added);
+
+    // Check if a value was removed
+    const removed = selectedValues.find((v) => !newValues.includes(v));
+    if (removed) handleValueRemoved(removed);
+  };
+
+  const handleRemoveFilter = (filterValue: string) => {
+    handleValueRemoved(filterValue);
   };
 
   return (
-    <div className="space-y-2">
-      {/* 필터 Combobox */}
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
-          <Combobox
-            items={filteredOptions}
-            multiple
-            value={selectedFilters}
-            onValueChange={handleValueChange}
-            itemToStringValue={(item) => item.value}
-          >
-            <div className="relative" ref={anchor}>
-              <ComboboxChips>
-                <ComboboxValue>
-                  {selectedFilters.map((filter) => (
-                    <ComboboxChip key={filter.value}>
-                      {filter.label}
-                    </ComboboxChip>
-                  ))}
-                </ComboboxValue>
-                <ComboboxChipsInput
-                  placeholder="필터 검색..."
-                  onChange={(e) => setInputValue(e.target.value)}
-                />
-              </ComboboxChips>
-              {selectedFilters.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => onFiltersChange([])}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
-                  aria-label="Clear all filters"
+    <div className="flex flex-col gap-2">
+      <Combobox
+        value={selectedValues}
+        onValueChange={handleValueChange}
+        open={open}
+        onOpenChange={setOpen}
+        autoHighlight
+        multiple
+      >
+        <ComboboxInput
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="참가자 검색 ..."
+          className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent py-1 text-sm shadow-none transition-colors outline-none focus-visible:ring-1"
+        />
+
+        <FilterOptions
+          groupedOptions={groupedOptions}
+          matchedOptions={matchedOptions}
+          selectedValues={selectedValues}
+        />
+      </Combobox>
+
+      <CustomChips
+        filters={selectedFilters}
+        onRemove={handleRemoveFilter}
+        onClearAll={() => onFiltersChange([])}
+      />
+    </div>
+  );
+}
+
+function FilterOptions({
+  groupedOptions,
+  matchedOptions,
+  selectedValues,
+}: {
+  groupedOptions: Record<string, FilterOption[]>;
+  matchedOptions: FilterOption[];
+  selectedValues: string[];
+}) {
+  if (matchedOptions.length === 0) return null;
+
+  return (
+    <ComboboxContent>
+      <ComboboxList>
+        {Object.entries(groupedOptions).map(([type, options]) => (
+          <ComboboxGroup key={type}>
+            <ComboboxLabel>
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </ComboboxLabel>
+            {options.map((option) => {
+              const isSelected = selectedValues.includes(option.value);
+              return (
+                <ComboboxItem
+                  key={option.value}
+                  value={option.value}
+                  className={cn(
+                    'data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors outline-none select-none',
+                    isSelected && 'bg-accent/50',
+                  )}
                 >
-                  <X className="size-4" />
-                </button>
-              )}
-            </div>
-            <ComboboxContent anchor={anchor} className="min-w-(--anchor-width)">
-              <ComboboxEmpty>필터를 찾을 수 없습니다.</ComboboxEmpty>
-              <ComboboxList>
-                {filteredOptions.map((item) => (
-                  <ComboboxItem key={item.value} value={item}>
-                    {item.label}
-                  </ComboboxItem>
-                ))}
-              </ComboboxList>
-            </ComboboxContent>
-          </Combobox>
-        </div>
-      </div>
+                  {option.label}
+                </ComboboxItem>
+              );
+            })}
+          </ComboboxGroup>
+        ))}
+      </ComboboxList>
+    </ComboboxContent>
+  );
+}
 
-      {/* 정렬 & 일괄 권한 변경 */}
-      <div className="flex items-center gap-2">
-        {/* 정렬 Select */}
-        <Select value={sortKey} onValueChange={onSortChange}>
-          <SelectTrigger className="w-30">
-            <SelectValue placeholder="정렬" />
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+function CustomChips({
+  filters,
+  onRemove,
+  onClearAll,
+}: {
+  filters: FilterOption[];
+  onRemove: (value: string) => void;
+  onClearAll: () => void;
+}) {
+  if (filters.length === 0) return null;
 
-        {/* 일괄 권한 변경 버튼 */}
-        {isHost && filteredCount > 0 && (
-          <>
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={onBulkEdit}
-              className="ml-auto h-8 w-8"
-              title="전체 편집 허용"
-            >
-              <Pencil className="size-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={onBulkView}
-              className="h-8 w-8"
-              title="전체 읽기 허용"
-            >
-              <Eye className="size-4" />
-            </Button>
-          </>
-        )}
-      </div>
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {filters.map((filter) => (
+        <CustomChip
+          key={filter.value}
+          label={filter.label}
+          onRemove={() => onRemove(filter.value)}
+        />
+      ))}
+      <button
+        onClick={onClearAll}
+        className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1 transition-colors"
+        type="button"
+        title="Clear all filters"
+      >
+        <RotateCcw size={14} />
+      </button>
+    </div>
+  );
+}
+
+function CustomChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="bg-muted text-foreground flex h-[21px] w-fit items-center justify-center gap-1 rounded-sm px-1.5 text-xs font-medium whitespace-nowrap">
+      <span>{label}</span>
+      <button
+        onClick={onRemove}
+        className="hover:bg-background hover:text-foreground -mr-1 ml-0.5 rounded-full p-0.5 opacity-50 transition-opacity hover:opacity-100"
+        type="button"
+      >
+        <X size={10} />
+      </button>
+    </div>
+  );
+}
+
+function SortButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className={cn(
+        'h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200',
+        active
+          ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
+          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </Button>
+  );
+}
+
+function BulkActions({
+  isHost,
+  filteredCount,
+  onBulkEdit,
+  onBulkView,
+}: {
+  isHost: boolean;
+  filteredCount: number;
+  onBulkEdit: () => void;
+  onBulkView: () => void;
+}) {
+  if (!isHost || filteredCount === 0) return null;
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="outline"
+        size="icon-sm"
+        onClick={onBulkEdit}
+        className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 text-sm font-medium transition-colors duration-200"
+        title="전체 편집 허용"
+      >
+        <Pencil size={14} />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon-sm"
+        onClick={onBulkView}
+        className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 text-sm font-medium transition-colors duration-200"
+        title="전체 읽기 허용"
+      >
+        <Eye size={14} />
+      </Button>
     </div>
   );
 }

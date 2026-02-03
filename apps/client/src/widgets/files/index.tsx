@@ -10,6 +10,7 @@ import { FileHeaderActions } from './components/FileHeaderActions';
 import type { FileSortKey } from './lib/types';
 import { filterFiles, sortFiles } from './lib/file-logic';
 import { FileFilterBar } from './components/FileFilterBar';
+import type { FileMetadata } from '@/shared/lib/collaboration';
 
 export function FileList() {
   const files = useFileStore((state) => state.files);
@@ -28,54 +29,115 @@ export function FileList() {
 
   return (
     <div className="flex h-full w-full flex-col">
-      {/* 헤더 */}
-      <div className="px-4">
-        <SidebarHeader
-          title="파일"
-          count={processedFiles.length}
-          action={
-            roomCode &&
-            hasPermission && <FileHeaderActions roomCode={roomCode} />
-          }
-        />
-      </div>
+      <HeaderSection
+        count={processedFiles.length}
+        roomCode={roomCode}
+        hasPermission={hasPermission}
+      />
+      <FilterSection
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortKey={sortKey}
+        onSortChange={setSortKey}
+      />
+      <Divider />
+      <FileItems
+        files={processedFiles}
+        hasPermission={hasPermission}
+        searchQuery={searchQuery}
+      />
+      <Divider />
+      <GaugeSection />
+    </div>
+  );
+}
 
-      {/* 필터 & 검색 */}
-      <div className="border-border/40 border-b px-4 pb-3">
-        <FileFilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sortKey={sortKey}
-          onSortChange={setSortKey}
-        />
-      </div>
+function Divider() {
+  return <div className="mx-4 border-b border-gray-200 dark:border-gray-700" />;
+}
 
-      {/* 파일 리스트 */}
-      <div className="scrollbar-hide flex-1 overflow-y-auto px-4 py-2">
-        {processedFiles.length > 0 ? (
-          <div className="flex flex-col gap-0.5">
-            {processedFiles.map((file) => (
-              <File
-                key={file.id}
-                fileId={file.id}
-                fileName={file.name}
-                hasPermission={hasPermission}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex h-40 flex-col items-center justify-center text-center">
-            <p className="text-muted-foreground text-sm">
-              {searchQuery ? '검색 결과가 없습니다.' : '파일이 없습니다.'}
-            </p>
-          </div>
-        )}
-      </div>
+function HeaderSection({
+  count,
+  roomCode,
+  hasPermission,
+}: {
+  count: number;
+  roomCode: string | null;
+  hasPermission: boolean;
+}) {
+  return (
+    <div className="px-4">
+      <SidebarHeader
+        title="파일"
+        count={count}
+        action={
+          roomCode && hasPermission && <FileHeaderActions roomCode={roomCode} />
+        }
+      />
+    </div>
+  );
+}
 
-      {/* 용량 게이지 */}
-      <div className="border-border/40 bg-muted/5 mt-auto border-t px-4 py-3">
-        <CapacityGauge />
-      </div>
+function FilterSection({
+  searchQuery,
+  onSearchChange,
+  sortKey,
+  onSortChange,
+}: {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  sortKey: FileSortKey;
+  onSortChange: (key: FileSortKey) => void;
+}) {
+  return (
+    <div className="px-4 pt-0.5 pb-3">
+      <FileFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        sortKey={sortKey}
+        onSortChange={onSortChange}
+      />
+    </div>
+  );
+}
+
+function FileItems({
+  files,
+  hasPermission,
+  searchQuery,
+}: {
+  files: FileMetadata[];
+  hasPermission: boolean;
+  searchQuery: string;
+}) {
+  return (
+    <div className="scrollbar-hide flex-1 overflow-y-auto px-4 py-2">
+      {files.length > 0 ? (
+        <div className="flex flex-col gap-0.5">
+          {files.map((file) => (
+            <File
+              key={file.id}
+              fileId={file.id}
+              fileName={file.name}
+              hasPermission={hasPermission}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex h-40 flex-col items-center justify-center text-center">
+          <p className="text-muted-foreground text-sm">
+            {searchQuery ? '검색 결과가 없습니다.' : '파일이 없습니다.'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GaugeSection() {
+  return (
+    <div className="px-4 py-3">
+      <CapacityGauge />
     </div>
   );
 }

@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ComponentProps } from 'react';
 import { Participant } from './components';
 import { ParticipantsFilterBar } from './components/ParticipantsFilterBar';
 import { usePt, usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
-import { SOCKET_EVENTS, ROLE } from '@codejam/common';
+import { SOCKET_EVENTS, ROLE, type Pt } from '@codejam/common';
 import { SidebarHeader, toast } from '@codejam/ui';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
@@ -29,13 +29,22 @@ export function Participants() {
   // 상태 관리
   const [selectedFilters, setSelectedFilters] = useState<FilterOption[]>([]);
   const [sortKey, setSortKey] = useState<SortKey>('time');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // 필터링 및 정렬된 참가자 목록
   const { me, others, totalCount } = useMemo(() => {
     // 1. 필터 적용
-    const filtered = filterParticipants(pts, selectedFilters);
+    let filtered = filterParticipants(pts, selectedFilters);
 
-    // 2. 정렬 적용
+    // 2. 검색 적용
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((pt) =>
+        pt.nickname.toLowerCase().includes(query),
+      );
+    }
+
+    // 3. 정렬 적용
     const sorted = sortParticipants(filtered, sortKey);
 
     // 3. me와 others 분리
@@ -43,7 +52,7 @@ export function Participants() {
     const others = sorted.filter((pt) => pt.ptId !== myPtId);
 
     return { me, others, totalCount: sorted.length };
-  }, [pts, selectedFilters, sortKey, myPtId]);
+  }, [pts, searchQuery, selectedFilters, sortKey, myPtId]);
 
   // 정렬 핸들러
   const handleSortChange = (key: SortKey) => {
@@ -94,36 +103,101 @@ export function Participants() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col px-4">
-      <SidebarHeader title="참가자" count={totalCount} />
-
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {/* 필터 바 */}
-        <div className="p-1">
-          <ParticipantsFilterBar
-            selectedFilters={selectedFilters}
-            onFiltersChange={setSelectedFilters}
-            sortKey={sortKey}
-            onSortChange={handleSortChange}
-            filteredCount={others.length}
-            onBulkEdit={handleBulkEdit}
-            onBulkView={handleBulkView}
-            isHost={iAmHost}
-          />
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          {me && <Participant ptId={me.ptId} hasPermission={false} />}
-
-          {me && others.length > 0 && (
-            <div className="mx-3 my-1 border-t border-gray-300 opacity-50 dark:border-gray-600" />
-          )}
-
-          {others.map((p) => (
-            <Participant key={p.ptId} ptId={p.ptId} hasPermission={iAmHost} />
-          ))}
-        </div>
+    <div className="flex h-full w-full flex-col">
+      <div className="px-4">
+        <SidebarHeader title="참가자" count={totalCount} />
       </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <FilterSection
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedFilters={selectedFilters}
+          onFiltersChange={setSelectedFilters}
+          sortKey={sortKey}
+          onSortChange={handleSortChange}
+          filteredCount={others.length}
+          onBulkEdit={handleBulkEdit}
+          onBulkView={handleBulkView}
+          isHost={iAmHost}
+        />
+        <ParticipantsSection
+          count={totalCount}
+          me={me}
+          others={others}
+          iAmHost={iAmHost}
+        />
+      </div>
+    </div>
+  );
+}
+
+function Divider() {
+  return <div className="mx-4 border-b border-gray-200 dark:border-gray-700" />;
+}
+
+function FilterSection(props: ComponentProps<typeof ParticipantsFilterBar>) {
+  return (
+    <div className="px-4 pt-0.5 pb-3">
+      <ParticipantsFilterBar {...props} />
+    </div>
+  );
+}
+
+function ParticipantsSection({
+  count,
+  me,
+  others,
+  iAmHost,
+}: {
+  count: number;
+  me?: Pt;
+  others: Pt[];
+  iAmHost: boolean;
+}) {
+  if (count === 0) {
+    return <NoSearchResult />;
+  }
+
+  return (
+    <>
+      {me && <Divider />}
+      <Me me={me} />
+      {others.length > 0 && <Divider />}
+      <ParticipantList others={others} iAmHost={iAmHost} />
+    </>
+  );
+}
+
+function NoSearchResult() {
+  return (
+    <div className="flex flex-1 items-center justify-center text-center">
+      <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
+    </div>
+  );
+}
+
+function Me({ me }: { me?: Pt }) {
+  if (!me) return null;
+
+  return (
+    <div className="flex-none px-4 py-2">
+      <Participant ptId={me.ptId} hasPermission={false} />
+    </div>
+  );
+}
+
+function ParticipantList({
+  others,
+  iAmHost,
+}: {
+  others: Pt[];
+  iAmHost: boolean;
+}) {
+  return (
+    <div className="flex-1 overflow-y-auto px-4 py-2">
+      {others.map((p) => (
+        <Participant key={p.ptId} ptId={p.ptId} hasPermission={iAmHost} />
+      ))}
     </div>
   );
 }
