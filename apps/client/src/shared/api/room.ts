@@ -161,8 +161,10 @@ export async function getAuthStatus(
 
   if (!response.ok) {
     const serverError = data.error;
-    const error = new Error(serverError?.message || '인증 확인 실패');
-    (error as any).code = serverError?.code;
+    const error = new Error(
+      serverError?.message || '인증 확인 실패',
+    ) as Error & { code?: string };
+    error.code = serverError?.code;
     throw error;
   }
 

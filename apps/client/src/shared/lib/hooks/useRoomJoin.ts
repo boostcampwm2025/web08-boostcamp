@@ -44,20 +44,21 @@ export function useRoomJoin() {
       try {
         const { token } = await getAuthStatus(paramCode);
         handleJoinWithToken(paramCode, token);
-      } catch (e: any) {
+      } catch (e: unknown) {
         // 인증 실패: 에러 코드에 따라 모달 오픈
-        const code = e.code;
+        const code = (e as { code?: string }).code;
+        const message = (e as { message?: string }).message;
         if (code === ERROR_CODE.PASSWORD_REQUIRED) {
           setIsPasswordDialogOpen(true);
         } else if (code === ERROR_CODE.NICKNAME_REQUIRED) {
           setIsNicknameDialogOpen(true);
         } else {
-          setRoomError(e.message || '방을 찾을 수 없습니다.');
+          setRoomError(message || '방을 찾을 수 없습니다.');
         }
       }
     };
     initAuth();
-  }, [paramCode]);
+  }, [paramCode, handleJoinWithToken]);
 
   /**
    * [Step 2] 비밀번호 확인 후 닉네임 모달로 전환
@@ -70,8 +71,9 @@ export function useRoomJoin() {
         passwordRef.current = password;
         setIsPasswordDialogOpen(false);
         setIsNicknameDialogOpen(true);
-      } catch (e: any) {
-        setPasswordError(e.message || '비밀번호가 틀렸습니다.');
+      } catch (e: unknown) {
+        const message = (e as { message?: string }).message;
+        setPasswordError(message || '비밀번호가 틀렸습니다.');
       }
     },
     [paramCode],
@@ -94,11 +96,12 @@ export function useRoomJoin() {
 
         setIsNicknameDialogOpen(false);
         passwordRef.current = '';
-      } catch (e: any) {
-        setRoomError(e.message || '입장 중 오류가 발생했습니다.');
+      } catch (e: unknown) {
+        const message = (e as { message?: string }).message;
+        setRoomError(message || '입장 중 오류가 발생했습니다.');
       }
     },
-    [paramCode],
+    [paramCode, handleJoinWithToken],
   );
 
   return {
