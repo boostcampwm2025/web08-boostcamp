@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Rnd, type ResizeEnable } from 'react-rnd';
 import { useChatStore } from '@/stores/chat';
 import { Button } from '@codejam/ui';
@@ -119,7 +119,7 @@ export function ChatPanel() {
   );
 }
 
-function ChatHeader() {
+const ChatHeader = memo(function ChatHeader() {
   const setChatOpen = useChatStore((state) => state.setChatOpen);
 
   return (
@@ -141,9 +141,9 @@ function ChatHeader() {
       </Button>
     </div>
   );
-}
+});
 
-function ChatMessages() {
+const ChatMessages = memo(function ChatMessages() {
   const messages = useChatStore((state) => state.messages);
 
   return (
@@ -151,4 +151,4 @@ function ChatMessages() {
       <ChatWindow messages={messages} />
     </div>
   );
-}
+});
