@@ -8,5 +8,5 @@ export const socket = io(SOCKET_URL, {
   path: import.meta.env.PROD ? '/socket.io/' : undefined,
   autoConnect: false,
   withCredentials: true,
-  transports: ['websocket', 'polling'],
+  transports: ['polling', 'websocket'],
 });
