@@ -97,6 +97,13 @@ export function TabProvider({ children }: ProviderProps) {
 
       const entries = Object.entries(eachWidthRef.current!);
       const { x } = positionRef.current;
+
+      if (x < 0) {
+        setDraggingTab(undefined);
+        setDraggingSignal({ signal: false });
+        return;
+      }
+
       const find = entries.find(([, value], idx) => {
         if (idx === entries.length - 1) {
           return true;
@@ -132,14 +139,16 @@ export function TabProvider({ children }: ProviderProps) {
           return;
         }
 
-        const diff = prevWidth - current.offsetWidth;
         setEachWidth((prev) => {
           if (!prev) {
             return prev;
           }
-
+          const length = Object.keys(prev).length;
           return Object.fromEntries(
-            Object.entries(prev).map(([key, width]) => [key, width + diff]),
+            Object.entries(prev).map(([key]) => [
+              key,
+              current.offsetWidth / length,
+            ]),
           );
         });
       }
@@ -156,11 +165,9 @@ export function TabProvider({ children }: ProviderProps) {
       const x = ev.clientX - rect.left;
       const y = ev.clientY - rect.top;
 
-      if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
-        ev.preventDefault();
-        positionRef.current = { x, y };
-        throttle();
-      }
+      ev.preventDefault();
+      positionRef.current = { x, y };
+      throttle();
     };
 
     const handleDrop = (ev: DragEvent) => {
