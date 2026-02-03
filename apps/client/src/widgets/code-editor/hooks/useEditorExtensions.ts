@@ -4,6 +4,7 @@ import { EditorView, basicSetup } from 'codemirror';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { yCollab } from 'y-codemirror.next';
 import { Awareness } from 'y-protocols/awareness';
+import { yRemoteSelectionsTheme } from 'y-codemirror.next';
 import * as Y from 'yjs';
 
 // Plugins
@@ -25,6 +26,11 @@ const cursorTheme = EditorView.theme({
   // 원격 라인 선택으로 인한 텍스트 밀림 방지
   '.cm-yLineSelection': {
     margin: '0px 0px 0px 6px', // cm-line padding = 6px
+  },
+
+  // 원격으로 선택된 부분의 상하 패딩 조정
+  '.cm-ySelection': {
+    padding: '2px 0px 2px 0px',
   },
 
   // 커서 이름표 스타일
