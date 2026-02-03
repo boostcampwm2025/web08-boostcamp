@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Rnd, ResizeEnable } from 'react-rnd';
 import { useChatStore } from '@/stores/chat';
 import { Button } from '@codejam/ui';
 import { X, GripHorizontal } from 'lucide-react';
@@ -9,6 +10,20 @@ const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
 const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 380;
+const MARGIN_RIGHT = 16;
+const MARGIN_BOTTOM = 80;
+
+const DRAG_HANDLE_CLASSNAME = 'chat-drag-handle';
+const ENABLE_RESIZING: ResizeEnable = {
+  top: true,
+  right: true,
+  bottom: true,
+  left: true,
+  topRight: true,
+  bottomRight: true,
+  bottomLeft: true,
+  topLeft: true,
+};
 
 /** right-4(16px), bottom-20(80px) 기준. 가로·세로 모두 뷰포트 넘지 않는 한 원하는 만큼 확대 */
 function getViewportMaxSize() {
@@ -98,26 +113,41 @@ export function ChatPanel() {
         <GripHorizontal className="text-muted-foreground h-3 w-3 rotate-45" />
       </div>
 
-      {/* 헤더 */}
-      <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
-        <span className="text-foreground text-sm font-medium">채팅</span>
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          onClick={() => setChatOpen(false)}
-          aria-label="채팅 닫기"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* 메시지 영역 */}
-      <div className="min-h-0 flex-1">
-        <ChatWindow messages={messages} />
-      </div>
-
-      {/* 입력 영역 */}
+      <ChatHeader />
+      <ChatMessages />
       <ChatInput />
+    </div>
+  );
+}
+
+function ChatHeader() {
+  const setChatOpen = useChatStore((state) => state.setChatOpen);
+
+  return (
+    <div
+      className={`${DRAG_HANDLE_CLASSNAME} border-border flex shrink-0 cursor-move items-center justify-between border-b px-3 py-2`}
+    >
+      <span className="text-foreground text-sm font-medium">채팅</span>
+
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        className="no-drag"
+        onClick={() => setChatOpen(false)}
+        aria-label="채팅 닫기"
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function ChatMessages() {
+  const messages = useChatStore((state) => state.messages);
+
+  return (
+    <div className="min-h-0 flex-1">
+      <ChatWindow messages={messages} />
     </div>
   );
 }
