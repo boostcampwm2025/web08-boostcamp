@@ -1,4 +1,4 @@
-import { useState, memo, useEffect } from 'react';
+import { useState, memo, useEffect, useMemo } from 'react';
 import { Rnd, type ResizeEnable } from 'react-rnd';
 import { useChatStore } from '@/stores/chat';
 import { Button } from '@codejam/ui';
@@ -10,8 +10,8 @@ const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
 const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 380;
-const MARGIN_RIGHT = 20;
-const MARGIN_BOTTOM = 144;
+const MARGIN_RIGHT = 0;
+const MARGIN_BOTTOM = 130;
 const VIEWPORT_PADDING = 20;
 
 const DRAG_HANDLE_CLASSNAME = 'chat-drag-handle';
@@ -179,34 +179,21 @@ function useChatPanelState() {
   const panelSize = useChatStore((state) => state.panelSize);
   const setPanelSize = useChatStore((state) => state.setPanelSize);
 
-  // 초기 위치 계산
-  const position = panelPosition || {
-    x: window.innerWidth - DEFAULT_WIDTH - MARGIN_RIGHT,
-    y: window.innerHeight - DEFAULT_HEIGHT - MARGIN_BOTTOM,
-  };
-
-  // 초기 크기 계산
-  const size = panelSize || {
-    width: Math.min(DEFAULT_WIDTH, window.innerWidth - MARGIN_RIGHT),
-    height: Math.min(DEFAULT_HEIGHT, window.innerHeight - MARGIN_BOTTOM),
-  };
+  // 초기 위치 및 크기 계산
+  const position = panelPosition ?? getDefaultPosition();
+  const size = panelSize ?? getDefaultSize();
 
   // 윈도우 리사이즈 시 패널을 경계 안으로 클램프
-
   useEffect(() => {
     const handleResize = () => {
-      if (!panelPosition || !panelSize) return;
-
-      const clampedSize = clampSize(panelSize);
-      const clampedPosition = clampPosition(panelPosition, clampedSize);
+      const clampedSize = clampSize(size);
+      const clampedPosition = clampPosition(position, clampedSize);
 
       const sizeChanged =
-        clampedSize.width !== panelSize.width ||
-        clampedSize.height !== panelSize.height;
+        clampedSize.width !== size.width || clampedSize.height !== size.height;
 
       const posChanged =
-        clampedPosition.x !== panelPosition.x ||
-        clampedPosition.y !== panelPosition.y;
+        clampedPosition.x !== position.x || clampedPosition.y !== position.y;
 
       if (sizeChanged) setPanelSize(clampedSize);
       if (posChanged) setPanelPosition(clampedPosition);
@@ -214,7 +201,7 @@ function useChatPanelState() {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [panelPosition, panelSize, setPanelPosition, setPanelSize]);
+  }, [position, size, setPanelPosition, setPanelSize]);
 
   return {
     position,
@@ -223,6 +210,10 @@ function useChatPanelState() {
     setSize: setPanelSize,
   };
 }
+
+/**
+ * 경계값 처리 로직
+ */
 
 const clamp = (value: number, min: number, max: number): number => {
   return Math.max(min, Math.min(value, max));
@@ -250,3 +241,24 @@ const clampSize = (size: { width: number; height: number }) => {
 
   return { width: clampedWidth, height: clampedHeight };
 };
+
+/**
+ * 채팅 패널의 기본 위치 계산
+ */
+function getDefaultPosition() {
+  const size = getDefaultSize();
+  const { innerWidth, innerHeight } = window;
+
+  const x = innerWidth - size.width - VIEWPORT_PADDING - MARGIN_RIGHT;
+  const y = innerHeight - size.height - VIEWPORT_PADDING - MARGIN_BOTTOM;
+  const position = { x, y };
+
+  return clampPosition(position, size);
+}
+
+/**
+ * 채팅 패널의 기본 크기 계산
+ */
+function getDefaultSize() {
+  return clampSize({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+}
