@@ -38,7 +38,8 @@ import { WsExceptionFilter } from '../../common/filters/ws-exception.filter';
 @UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   cors: {
-    origin: '*', // 개발용: 모든 출처 허용 (배포 시 프론트 주소로 변경)
+    origin: true,
+    credentials: true,
   },
 })
 export class CollaborationGateway
