@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { Rnd, type ResizeEnable } from 'react-rnd';
 import { useChatStore } from '@/stores/chat';
 import { Button } from '@codejam/ui';
@@ -45,16 +45,45 @@ function ChatBoundary() {
  * 채팅 패널은 보이지만 하위 요소와의 상호작용을 차단
  */
 function DragOverlay({ isActive }: { isActive: boolean }) {
+  // Disable window drag while dragging
+  useEffect(() => {
+    if (!isActive) return;
+
+    const originalUserSelect = document.body.style.userSelect;
+    const originalPointerEvents = document.body.style.pointerEvents;
+
+    const disableWindowDrag = () => {
+      document.body.style.userSelect = 'none';
+      document.body.style.pointerEvents = 'none';
+    };
+
+    const enableWindowDrag = () => {
+      document.body.style.userSelect = originalUserSelect;
+      document.body.style.pointerEvents = originalPointerEvents;
+    };
+
+    disableWindowDrag();
+    return () => enableWindowDrag();
+  }, [isActive]);
+
   if (!isActive) return null;
+
+  // Block event propagation
+
+  const handleEvent = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
     <div
       className="fixed inset-0 z-40"
-      onPointerDown={(e) => e.stopPropagation()}
-      onPointerMove={(e) => e.stopPropagation()}
-      onPointerUp={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
-      style={{ cursor: 'move' }}
+      onPointerDown={handleEvent}
+      onPointerMove={handleEvent}
+      onPointerUp={handleEvent}
+      onClick={handleEvent}
+      onDragStart={handleEvent}
+      onDrag={handleEvent}
     />
   );
 }
