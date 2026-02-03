@@ -1,6 +1,6 @@
-import { useState, memo, useEffect, useMemo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { Rnd, type ResizeEnable } from 'react-rnd';
-import { useChatStore } from '@/stores/chat';
+import { useChatStore, type Position, type Size } from '@/stores/chat';
 import { Button } from '@codejam/ui';
 import { X } from 'lucide-react';
 import { ChatWindow } from './ChatWindow';
@@ -219,10 +219,7 @@ const clamp = (value: number, min: number, max: number): number => {
   return Math.max(min, Math.min(value, max));
 };
 
-const clampPosition = (
-  position: { x: number; y: number },
-  size: { width: number; height: number },
-) => {
+const clampPosition = (position: Position, size: Size) => {
   const maxX = window.innerWidth - VIEWPORT_PADDING - size.width;
   const maxY = window.innerHeight - VIEWPORT_PADDING - size.height;
 
@@ -232,7 +229,7 @@ const clampPosition = (
   return { x: clampedX, y: clampedY };
 };
 
-const clampSize = (size: { width: number; height: number }) => {
+const clampSize = (size: Size) => {
   const maxWidth = window.innerWidth - 2 * VIEWPORT_PADDING;
   const maxHeight = window.innerHeight - 2 * VIEWPORT_PADDING;
 

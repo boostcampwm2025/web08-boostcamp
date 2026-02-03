@@ -6,6 +6,18 @@ import {
   type Pt,
 } from '@codejam/common';
 
+// ==================== Chat Panel ====================
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
 // ==================== Message Types ====================
 
 /** 메시지 전송 상태 */
@@ -45,8 +57,8 @@ interface ChatState {
   isChatOpen: boolean;
   unreadCount: number;
 
-  panelPosition: { x: number; y: number } | null;
-  panelSize: { width: number; height: number } | null;
+  panelPosition: Position | null;
+  panelSize: Size | null;
 
   // Actions
   addSystemMessage: (payload: ChatSystemPayload) => void;
@@ -56,8 +68,8 @@ interface ChatState {
   setChatOpen: (isOpen: boolean) => void;
   incrementUnreadCount: () => void;
   resetUnreadCount: () => void;
-  setPanelPosition: (position: { x: number; y: number }) => void;
-  setPanelSize: (size: { width: number; height: number }) => void;
+  setPanelPosition: (position: Position) => void;
+  setPanelSize: (size: Size) => void;
 }
 
 /**
@@ -171,11 +183,11 @@ export const useChatStore = create<ChatState>((set) => ({
     set({ unreadCount: 0 });
   },
 
-  setPanelPosition: (position: { x: number; y: number }) => {
+  setPanelPosition: (position: Position) => {
     set({ panelPosition: position });
   },
 
-  setPanelSize: (size: { width: number; height: number }) => {
+  setPanelSize: (size: Size) => {
     set({ panelSize: size });
   },
 }));
