@@ -163,6 +163,23 @@ jobs:
       - name: Build client for Vercel
         run: |
           cd apps/client
+
+          cat > vercel.json <<'EOF'
+          {
+            "rewrites": [
+              { 
+                "source": "/api/:path*",
+                "destination": "https://staging.codejam.kro.kr/api/:path*" 
+              },
+              { 
+                "source": "/socket.io/:path*", 
+                "destination": "https://staging.codejam.kro.kr/socket.io/:path*" 
+              },
+              { "source": "/(.*)", "destination": "/index.html" }
+            ]
+          }
+          EOF
+
           mkdir -p .vercel
           cat > .vercel/project.json <<'EOF'
           {
