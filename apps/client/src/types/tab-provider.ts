@@ -34,6 +34,15 @@ export type DropSignal =
       signal: false;
     };
 
+export type DraggingSignal =
+  | {
+      signal: true;
+      position: Position;
+    }
+  | {
+      signal: false;
+    };
+
 export type ActiveTab = {
   [tabKey: number]: string;
   active: number;
@@ -57,6 +66,11 @@ export interface DraggingTabInterface {
 export interface DropSignalInterface {
   dropSignal: DropSignal;
   setDropSignal: (dropSignal: DropSignal) => void;
+}
+
+export interface DraggingSignalInterface {
+  draggingSignal: DraggingSignal;
+  setDraggingSignal: (draggingSignal: DraggingSignal) => void;
 }
 
 export interface ActiveTabInterface {
