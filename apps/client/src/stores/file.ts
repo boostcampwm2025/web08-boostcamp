@@ -253,18 +253,26 @@ export const useFileStore = create<FileState>((set, get) => ({
 
   // CRUD: 파일 생성
   createFile: (name: string, content?: string, type: FileType = 'text') => {
-    const { fileManager } = get();
+    const { fileManager, setActiveFile } = get();
     if (!fileManager) return '';
 
-    return fileManager.createFile(name, content, type);
+    const fileId = fileManager.createFile(name, content, type);
+
+    // Set as active file if created successfully
+    if (fileId) setActiveFile(fileId);
+
+    return fileId;
   },
 
   // CRUD: 파일 삭제
   deleteFile: (fileId: string) => {
-    const { fileManager } = get();
+    const { fileManager, activeFileId } = get();
     if (!fileManager) return;
 
     fileManager.deleteFile(fileId);
+
+    // Clear active file if the deleted file was active
+    if (activeFileId === fileId) set({ activeFileId: null });
   },
 
   // CRUD: 파일 이름 변경
