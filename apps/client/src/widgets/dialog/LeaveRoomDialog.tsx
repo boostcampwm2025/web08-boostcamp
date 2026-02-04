@@ -1,13 +1,16 @@
 import {
-  RadixDialog as Dialog,
-  RadixDialogClose as DialogClose,
-  RadixDialogContent as DialogContent,
-  RadixDialogDescription as DialogDescription,
-  RadixDialogFooter as DialogFooter,
-  RadixDialogHeader as DialogHeader,
-  RadixDialogTitle as DialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
 } from '@codejam/ui';
-import { Button } from '@codejam/ui';
+import { type FormEvent } from 'react';
+import { LogOut } from 'lucide-react';
 
 interface LeaveRoomDialogProps {
   open: boolean;
@@ -20,45 +23,34 @@ export function LeaveRoomDialog({
   onOpenChange,
   onConfirm,
 }: LeaveRoomDialogProps) {
-  const handleConfirm = () => {
+  const handleLeave = (ev: FormEvent) => {
+    ev.preventDefault();
     onConfirm();
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>방 나가기</DialogTitle>
-          <DialogDescription>
-            이 방을 나가시겠습니까?
-            <br />
-            <br />
-            <span className="text-destructive font-medium">
-              퇴장 시 참가자의 모든 활동 정보가 삭제됩니다.
-            </span>
-            <br />
-            모든 참가자가 퇴장하면 방이 자동으로 삭제됩니다.
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary" size="sm">
-              취소
-            </Button>
-          </DialogClose>
-          <Button
-            type="submit"
-            variant="ghost"
-            size="sm"
-            className="text-destructive hover:bg-destructive/10 hover:text-red-500"
-            onClick={handleConfirm}
-          >
-            나가기
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent size="sm">
+        <form onSubmit={handleLeave} className="contents">
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+              <LogOut />
+            </AlertDialogMedia>
+            <AlertDialogTitle>방을 나가시겠어요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              나가시면 작성 중인 코드와 채팅 기록을 <br />더 이상 확인할 수
+              없어요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="outline">취소</AlertDialogCancel>
+            <AlertDialogAction type="submit" variant="destructive">
+              나가기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </form>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
