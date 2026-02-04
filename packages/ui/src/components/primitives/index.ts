@@ -27,3 +27,5 @@ export {
 export { LucideAvatarProvider, getAvatarIcon } from './avatar/lucide-avatar.js';
 
 export { SidebarHeader } from './sidebar-header';
+
+export { Badge, badgeVariants } from './badge';
