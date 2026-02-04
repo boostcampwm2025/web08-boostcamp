@@ -82,7 +82,7 @@ function RoomPage() {
       className={`flex h-screen overflow-hidden transition-colors duration-500`}
     >
       <RoomSidebar />
-      <div className="flex w-full flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header roomCode={paramCode!} />
         <div className="flex min-h-0 flex-1">
           <main className="flex min-h-0 flex-1">

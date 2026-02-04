@@ -49,6 +49,7 @@ export function Title() {
       <input
         type="text"
         className="outline-input focus:outline-ring mx-1 field-sizing-content max-w-full min-w-0 bg-transparent px-1 text-xl font-bold outline"
+        maxLength={100}
         value={editTitle}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
