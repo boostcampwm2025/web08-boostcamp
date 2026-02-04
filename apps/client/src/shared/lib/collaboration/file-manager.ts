@@ -1,4 +1,4 @@
-import { Doc as YDoc, Map as YMap } from 'yjs';
+import { Doc as YDoc, Map as YMap, YMapEvent } from 'yjs';
 import { v7 as uuidv7 } from 'uuid';
 import {
   DEFAULT_DOC_TITLE,
@@ -97,7 +97,11 @@ export class FileManager {
    * Use this for UI file lists to avoid overhead from content edits
    */
   onFilesMetadataChange(callback: () => void): void {
-    this.names.observe(() => callback());
+    this.files.observeDeep((events) => {
+      const hasMetaChange = events.some((event) => event.path.length <= 1);
+      if (!hasMetaChange) return;
+      callback();
+    });
   }
 
   /**
