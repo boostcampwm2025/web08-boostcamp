@@ -5,10 +5,12 @@ import {
   useSidebarNavigation,
   useTabNavigation,
   useTabClose,
+  useFileOpen,
 } from './hooks';
 import { useSidebarStore } from '@/stores/sidebar';
 import { useConsoleStore } from '@/stores/console';
 import { useShortcutStore } from '@/stores/shortcut';
+import { FileSelectDialog } from '@/widgets/dialog/FileSelectDialog';
 
 export function GlobalShortcutHandler() {
   const { activeSidebarTab, toggleSidebarTab } = useSidebarStore();
@@ -19,6 +21,8 @@ export function GlobalShortcutHandler() {
   const { handleSidebarSwitch } = useSidebarNavigation();
   const { handleTabSwitch } = useTabNavigation();
   const { handleCloseActiveTab } = useTabClose();
+  const { isDialogOpen, setIsDialogOpen, handleOpenDialog, handleSelectFile } =
+    useFileOpen();
 
   const { setHUDOpen } = useShortcutStore();
 
@@ -35,7 +39,14 @@ export function GlobalShortcutHandler() {
     onToggleSplit: handleToggleSplit,
     onFocusSplit: handleFocusSplit,
     onShortcutHold: (holding) => setHUDOpen(holding),
+    onOpenFile: handleOpenDialog,
   });
 
-  return null; // UI는 렌더링하지 않음
+  return (
+    <FileSelectDialog
+      open={isDialogOpen}
+      onOpenChange={setIsDialogOpen}
+      onSelectFile={handleSelectFile}
+    />
+  );
 }

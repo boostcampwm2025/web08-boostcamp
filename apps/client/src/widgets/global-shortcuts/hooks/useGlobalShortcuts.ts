@@ -12,6 +12,7 @@ interface ShortcutHandlers {
   onToggleSplit?: () => void; // 화면 분할 토글
   onFocusSplit?: (index: number) => void; // 특정 스플릿 포커스
   onShortcutHold?: (holding: boolean) => void;
+  onOpenFile?: () => void; // 파일 열기
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -100,6 +101,13 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
       if (!isInput && (key === '/' || (isMod && key === '/'))) {
         e.preventDefault();
         setChatOpen(!isChatOpen);
+        return;
+      }
+
+      // Open File
+      if (isMod && key === 'o') {
+        e.preventDefault();
+        handlers?.onOpenFile?.();
         return;
       }
 
