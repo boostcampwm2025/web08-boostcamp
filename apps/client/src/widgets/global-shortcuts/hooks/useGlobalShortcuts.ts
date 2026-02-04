@@ -62,7 +62,7 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
       }
 
       // Output
-      if (isMod && key === 'j') {
+      if (isMod && (key === 'j' || key === '`')) {
         e.preventDefault();
         handlers?.onToggleOutput?.();
       }
