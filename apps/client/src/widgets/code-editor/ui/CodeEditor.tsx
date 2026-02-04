@@ -21,7 +21,7 @@ export default function CodeEditor({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { yText, awareness } = useYText(fileId);
-  const { isDark } = useDarkMode();
+  const { isDark, hiddenTheme } = useDarkMode();
   const {
     fontSize,
     showRemoteCursor,
@@ -39,6 +39,7 @@ export default function CodeEditor({
     language,
     readOnly,
     isDark,
+    hiddenTheme,
     fontSize,
     users,
     handleGutterClick,
@@ -54,6 +55,7 @@ export default function CodeEditor({
     autoFocus: false,
     compartments,
     isDark,
+    hiddenTheme,
     fontSize,
     yText: yText ?? null,
     users,
