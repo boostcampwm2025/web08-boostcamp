@@ -23,6 +23,16 @@ import { CommonThrottlerGuard } from '../../common/guards/common-throttler.guard
 import { Throttle } from '@nestjs/throttler';
 import { type Response } from 'express';
 
+/**
+ * 방 생성 Throttle Limit (환경변수로 조절 가능)
+ * - 운영 서버: 기본값 2 (1분당 2회)
+ * - 스테이징/테스트: .env에서 ROOM_CREATE_THROTTLE_LIMIT=1000 등으로 상향
+ */
+const ROOM_CREATE_LIMIT = parseInt(
+  process.env.ROOM_CREATE_THROTTLE_LIMIT || '2',
+  10,
+);
+
 @Controller()
 export class RoomController {
   constructor(
@@ -45,14 +55,14 @@ export class RoomController {
 
   @Post(API_ENDPOINTS.ROOM.CREATE_QUICK)
   @UseGuards(CommonThrottlerGuard)
-  @Throttle({ default: { limit: 2, ttl: 60000 } })
+  @Throttle({ default: { limit: ROOM_CREATE_LIMIT, ttl: 60000 } })
   async createQuickRoom(): Promise<CreateQuickRoomResponseDto> {
     return await this.roomService.createQuickRoom();
   }
 
   @Post(API_ENDPOINTS.ROOM.CREATE_CUSTOM)
   @UseGuards(CommonThrottlerGuard)
-  @Throttle({ default: { limit: 2, ttl: 60000 } })
+  @Throttle({ default: { limit: ROOM_CREATE_LIMIT, ttl: 60000 } })
   async createCustomRoom(
     @Body() dto: CreateCustomRoomRequestDto,
     @Res({ passthrough: true }) res: Response,
