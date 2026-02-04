@@ -15,8 +15,10 @@ export default function Header({ roomCode }: HeaderProps) {
 
   return (
     <header className="flex items-center justify-between gap-1 px-2 py-1">
-      <Title />
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <Title />
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
         <RoleBadge role={role} />
         <RoomCode roomCode={roomCode} />
         {/* <CodeExecutionButton /> */}

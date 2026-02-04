@@ -48,7 +48,7 @@ export function Title() {
     return (
       <Input
         type="text"
-        className="text-xl font-bold"
+        className="w-auto min-w-32 text-xl font-bold"
         value={editTitle}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -59,8 +59,8 @@ export function Title() {
   }
 
   return (
-    <div className="group flex items-center gap-2">
-      <h1 className="text-xl font-bold">{docMeta?.title || ''}</h1>
+    <div className="group flex min-w-0 items-center gap-2">
+      <h1 className="truncate text-xl font-bold">{docMeta?.title || ''}</h1>
       {canEdit && <EditButton onClick={handleEditClick} />}
     </div>
   );
