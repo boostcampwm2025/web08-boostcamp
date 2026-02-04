@@ -37,19 +37,6 @@ export function FileSelectDialog({
     );
   }, [files, searchQuery]);
 
-  // 검색어 변경 시 첫 번째 항목 선택
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [searchQuery, filteredFiles.length]);
-
-  // 다이얼로그 열릴 때 초기화
-  useEffect(() => {
-    if (open) {
-      setSearchQuery('');
-      setSelectedIndex(0);
-    }
-  }, [open]);
-
   // 선택된 항목이 보이도록 스크롤
   useEffect(() => {
     if (listRef.current && filteredFiles.length > 0) {
@@ -99,8 +86,17 @@ export function FileSelectDialog({
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setSelectedIndex(0);
+  };
+
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog
+      onOpenChange={onOpenChange}
+      open={open}
+      key={open ? 'open' : 'closed'}
+    >
       <DialogContent className="sm:max-w-lg" onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle>파일 열기</DialogTitle>
@@ -112,7 +108,7 @@ export function FileSelectDialog({
             <Search className="text-muted-foreground absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
             <Input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               placeholder="파일 검색..."
               className="h-9 pl-8"
               autoFocus
