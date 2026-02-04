@@ -23,7 +23,7 @@ export function ShortcutList({ onBack }: ShortcutListProps) {
         }
       />
 
-      <div className="mt-4">
+      <div className="mt-4 flex-1 overflow-y-auto">
         <ShortcutListContent />
       </div>
     </div>

@@ -4,6 +4,7 @@ import { type Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { lineAvatarExtension, type RemoteUser } from '../plugin/LineAvatars';
 import * as Y from 'yjs';
+import { useEditorStore } from '@/stores/editor';
 
 interface UseCodeMirrorProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -45,6 +46,7 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
 
   const viewRef = useRef<EditorView | null>(null);
   const [initialDoc] = useState(docString);
+  const setEditorView = useEditorStore((state) => state.setEditorView);
 
   // Mount Editor
   useEffect(() => {
@@ -57,12 +59,14 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
     });
 
     viewRef.current = view;
+    setEditorView(view);
 
     return () => {
       view.destroy();
       viewRef.current = null;
+      setEditorView(null);
     };
-  }, [extensions, containerRef, initialDoc]);
+  }, [extensions, containerRef, initialDoc, setEditorView]);
 
   // Update Theme
   useEffect(() => {

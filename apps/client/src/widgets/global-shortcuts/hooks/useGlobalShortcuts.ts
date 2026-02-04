@@ -12,6 +12,10 @@ interface ShortcutHandlers {
   onToggleSplit?: () => void; // 화면 분할 토글
   onFocusSplit?: (index: number) => void; // 특정 스플릿 포커스
   onShortcutHold?: (holding: boolean) => void;
+  onOpenFile?: () => void; // 파일 열기
+  onFocusEditor?: () => void; // 에디터 포커스
+  onToggleTheme?: () => void; // 다크모드 토글
+  onExecuteCode?: () => void; // 코드 실행
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -28,6 +32,13 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable;
+
+      // Execute Code (코드 타이핑하면서도 실행할 수 있게 허용)
+      if (isMod && e.shiftKey && key === 'r') {
+        e.preventDefault();
+        handlers?.onExecuteCode?.();
+        return;
+      }
 
       if (key === 'escape') {
         if (isInput) {
@@ -49,6 +60,12 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
       if (isMod && key === 'b') {
         e.preventDefault();
         handlers?.onToggleSidebar?.();
+      }
+
+      // Editor Focus
+      if (isMod && key === 'e') {
+        e.preventDefault();
+        handlers?.onFocusEditor?.();
       }
 
       if (isMod && (e.code === 'ArrowDown' || e.code === 'PageDown')) {
@@ -103,10 +120,24 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         return;
       }
 
+      // Open File
+      if (isMod && key === 'o') {
+        e.preventDefault();
+        handlers?.onOpenFile?.();
+        return;
+      }
+
       // Show Shortcuts
       if (isMod && e.shiftKey && key === 'p') {
         e.preventDefault();
         handlers?.onShortcutHold?.(true);
+        return;
+      }
+
+      // Toggle Theme
+      if (isMod && e.shiftKey && key === 'd') {
+        e.preventDefault();
+        handlers?.onToggleTheme?.();
         return;
       }
     };
