@@ -7,10 +7,10 @@ export function ShortcutGroup({
 }) {
   return (
     <div className="space-y-3">
-      <h4 className="text-muted-foreground px-1 text-[10px] font-bold tracking-wider uppercase">
+      <h4 className="text-muted-foreground mb-4 text-xs font-medium tracking-wider uppercase">
         {title}
       </h4>
-      <div className="space-y-2">{children}</div>
+      <div>{children}</div>
     </div>
   );
 }

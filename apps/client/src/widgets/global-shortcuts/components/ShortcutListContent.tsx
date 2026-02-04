@@ -20,7 +20,6 @@ export function ShortcutListContent({ className }: ShortcutListContentProps) {
         <ShortcutRow label="화면 분할 토글" keys={[modKey, '\\']} />
         <ShortcutRow label="스플릿 포커스" keys={[modKey, '1 / 2']} />
       </ShortcutGroup>
-
       <ShortcutGroup title="에디터 & 탭">
         <ShortcutRow label="탭 닫기" keys={['Alt', 'W']} />
         <ShortcutRow label="탭 탐색" keys={[modKey, '← / →']} />
@@ -28,13 +27,11 @@ export function ShortcutListContent({ className }: ShortcutListContentProps) {
         <ShortcutRow label="출력창 토글 (대체)" keys={[modKey, '`']} />
         <ShortcutRow label="필드 포커스 해제" keys={['Esc']} />
       </ShortcutGroup>
-
       <ShortcutGroup title="협업">
         <ShortcutRow label="채팅창 토글" keys={['/']} />
         <ShortcutRow label="채팅창 토글 (대체)" keys={[modKey, '/']} />
         <ShortcutRow label="채팅 닫기" keys={['Esc']} />
       </ShortcutGroup>
-
       <ShortcutGroup title="도움말">
         <ShortcutRow label="단축키 가이드" keys={[modKey, 'Shift', 'P']} />
       </ShortcutGroup>
