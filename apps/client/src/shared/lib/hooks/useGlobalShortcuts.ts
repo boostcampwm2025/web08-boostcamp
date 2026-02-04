@@ -9,6 +9,8 @@ interface ShortcutHandlers {
   onCloseTab?: () => void;
   onToggleSidebar?: () => void;
   onToggleOutput?: () => void;
+  onToggleSplit?: () => void; // 화면 분할 토글
+  onFocusSplit?: (index: number) => void; // 특정 스플릿 포커스
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -81,6 +83,16 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         e.preventDefault();
         handlers?.onPrevTab?.();
         return;
+      }
+
+      // Split View Control
+      if (isMod && key === '\\') {
+        e.preventDefault();
+        handlers?.onToggleSplit?.();
+      }
+      if (isMod && (key === '1' || key === '2')) {
+        e.preventDefault();
+        handlers?.onFocusSplit?.(parseInt(key) - 1);
       }
 
       // Chat

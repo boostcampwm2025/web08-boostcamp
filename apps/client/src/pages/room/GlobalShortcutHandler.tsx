@@ -16,12 +16,54 @@ const SIDEBAR_ORDER: SidebarTab[] = [
 
 export function GlobalShortcutHandler() {
   const { activeTab, setActiveTab } = useContext(ActiveTabContext);
-  const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
+  const { createLinearTab, removeLinear, deleteLinearTab, tabKeys, takeTab } =
     useContext(LinearTabApiContext);
   const setActiveFileId = useFileStore((state) => state.setActiveFile);
+  const getFileName = useFileStore((state) => state.getFileName);
   const { activeSidebarTab, toggleSidebarTab, setActiveSidebarTab } =
     useSidebarStore();
   const { toggleConsole } = useConsoleStore();
+
+  // 화면 분할 토글
+  const handleToggleSplit = useCallback(() => {
+    const keys = tabKeys();
+    const currentActiveSplit = activeTab.active;
+
+    if (keys.length < 2) {
+      const currentFilesMap = takeTab(currentActiveSplit);
+      const currentFileId = activeTab[currentActiveSplit];
+
+      if (
+        !currentFilesMap ||
+        !currentFileId ||
+        !currentFilesMap[currentFileId]
+      ) {
+        // 파일이 없거나(EmptyView), 잔상만 남은 경우 분할하지 않음
+        return;
+      }
+
+      const newSplitKey = Date.now();
+      // 현재 열린 파일을 새 스플릿에도 열어주기.
+      createLinearTab(newSplitKey, currentFileId, {
+        fileName: getFileName(currentFileId),
+      });
+    } else {
+      // 스플릿이 두 개면 현재 활성화된 스플릿을 제거
+      deleteLinearTab(currentActiveSplit);
+    }
+  }, [tabKeys, activeTab, createLinearTab, deleteLinearTab, getFileName]);
+
+  // 포커스 이동
+  const handleFocusSplit = useCallback(
+    (index: number) => {
+      const keys = tabKeys();
+      if (keys[index]) {
+        // 해당 인덱스의 스플릿으로 포커스 이동
+        setActiveTab(keys[index]);
+      }
+    },
+    [tabKeys, setActiveTab],
+  );
 
   // Sidebar 위아래로 탭 전환
   const handleSidebarSwitch = useCallback(
@@ -128,6 +170,8 @@ export function GlobalShortcutHandler() {
       toggleSidebarTab(activeSidebarTab || 'FILES');
     },
     onToggleOutput: toggleConsole,
+    onToggleSplit: handleToggleSplit,
+    onFocusSplit: handleFocusSplit,
   });
 
   return null; // UI는 렌더링하지 않음
