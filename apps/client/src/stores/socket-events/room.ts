@@ -73,9 +73,10 @@ export const setupRoomEventHandlers = () => {
   };
 };
 
-export const emitJoinRoom = (roomCode: string) => {
+export const emitJoinRoom = (roomCode: string, token: string | null) => {
   socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
     roomCode,
+    token,
   });
 };
 

@@ -92,9 +92,8 @@ export class CollaborationService {
     client: CollabSocket,
     server: Server,
     payload: JoinRoomPayload,
-    token: string | null,
   ): Promise<void> {
-    const { roomCode: rawRoomCode } = payload;
+    const { roomCode: rawRoomCode, token } = payload;
     const roomCode = rawRoomCode.toUpperCase();
 
     // 방 존재 확인

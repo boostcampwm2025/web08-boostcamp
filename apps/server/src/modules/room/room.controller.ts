@@ -6,6 +6,7 @@ import {
   Body,
   UseGuards,
   Res,
+  Req,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateCustomRoomRequestDto } from './dto/create-custom-room-request.dto';
@@ -79,7 +80,7 @@ export class RoomController {
     // 2. Set-Cookie
     this.setAuthCookie(res, roomCode, token);
 
-    return { success: true };
+    return { success: true, token };
   }
 
   @Post(API_ENDPOINTS.ROOM.VERIFY(':roomCode'))
@@ -92,6 +93,12 @@ export class RoomController {
       body?.password,
     );
     return { success: true };
+  }
+
+  @Get(API_ENDPOINTS.ROOM.AUTH_STATUS(':roomCode'))
+  async getAuthStatus(@Param('roomCode') roomCode: string, @Req() req: any) {
+    const token = req.cookies[`auth_${roomCode.toUpperCase()}`];
+    return await this.roomService.checkAuthStatus(roomCode, token);
   }
 
   /**

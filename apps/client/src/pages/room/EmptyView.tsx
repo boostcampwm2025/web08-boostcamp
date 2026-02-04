@@ -2,7 +2,11 @@ import { NewFileButton } from '@/widgets/header/ui/components/NewFileButton';
 import { FileUploadButton } from '@/widgets/header/ui/components/FileUploadButton';
 import { useRoomStore } from '@/stores/room';
 
-export function EmptyView() {
+type EmptyViewProps = {
+  deleted?: boolean;
+};
+
+export function EmptyView({ deleted = false }: EmptyViewProps) {
   const roomCode = useRoomStore((state) => state.roomCode);
 
   if (!roomCode) return null;
@@ -11,10 +15,12 @@ export function EmptyView() {
     <div className="flex h-screen items-center justify-center">
       <div className="text-center">
         <h2 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-gray-100">
-          No file open
+          {deleted ? '해당 파일은 삭제되었습니다' : '열린 파일이 없습니다.'}
         </h2>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
-          Create a new file or upload an existing one to get started
+          {deleted
+            ? '탭을 닫고 새로운 파일 탭을 열어주세요'
+            : '새 파일을 생성하거나 업로드를 해주세요'}
         </p>
         <div className="flex justify-center gap-3">
           <div className="scale-120">
