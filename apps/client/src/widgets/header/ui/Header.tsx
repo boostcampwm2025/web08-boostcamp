@@ -1,24 +1,25 @@
-import { Logo } from './Logo';
 import { RoomCode } from './RoomCode';
-import { CodeExecutionButton } from './buttons/CodeExecutionButton';
-import { ShareButton } from './buttons/ShareButton';
-import { DestroyRoomButton } from './buttons/DestroyRoomButton';
-import { ThemeToggleButton } from './buttons/ThemeToggleButton';
+import { ShareButton } from './components/ShareButton';
+import { DestroyRoomButton } from './components/DestroyRoomButton';
+import { ThemeToggleButton } from './components/ThemeToggleButton';
+import { RoleBadge } from './components/RoleBadge';
+import { usePermission } from '@/shared/lib/hooks/usePermission';
 
 type HeaderProps = {
   roomCode: string;
 };
 
 export default function Header({ roomCode }: HeaderProps) {
+  const { role } = usePermission();
+
   return (
-    <header className="bg-background border-border scrollbar-hide flex h-14 shrink-0 items-center gap-2 overflow-x-auto border-b px-4 sm:gap-4">
-      <Logo />
-
-      <RoomCode roomCode={roomCode} />
-
-      {/* 우측 액션 버튼들 */}
-      <div className="ml-auto flex shrink-0 items-center gap-1">
-        <CodeExecutionButton />
+    <header className="flex items-center justify-between gap-1 px-2 py-1">
+      {/* TODO: input으로 수정가능하게. ydoc 메타데이터에 저장. 문서편집권한과 동일 */}
+      <h1 className="text-xl font-bold">방제목 아무이야기 ~~~</h1>
+      <div className="flex items-center gap-1">
+        <RoleBadge role={role} />
+        <RoomCode roomCode={roomCode} />
+        {/* <CodeExecutionButton /> */}
         <ShareButton roomCode={roomCode} />
         <DestroyRoomButton />
         <ThemeToggleButton />

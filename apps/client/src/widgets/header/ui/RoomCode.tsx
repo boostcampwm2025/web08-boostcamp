@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
-import { Button } from '@codejam/ui';
-import { toast } from '@codejam/ui';
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+  InputGroupButton,
+  toast,
+} from '@codejam/ui';
 
 interface RoomCodeProps {
   roomCode: string;
@@ -23,27 +28,27 @@ export function RoomCode({ roomCode }: RoomCodeProps) {
   };
 
   return (
-    <div className="ml-2 flex shrink-0 items-center gap-2 sm:ml-6">
-      <span className="text-muted-foreground hidden text-xs font-semibold tracking-wider uppercase md:block">
-        ROOM CODE
-      </span>
-      <div className="border-border bg-secondary/50 flex items-center gap-1 rounded-md border px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5">
-        <span className="max-w-[80px] truncate font-mono text-xs font-semibold sm:max-w-none sm:text-sm">
-          {roomCode}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-4 w-4 p-0 hover:bg-transparent"
+    <InputGroup className="w-24">
+      <InputGroupInput
+        type="text"
+        value={roomCode}
+        readOnly
+        className="font-mono text-xs font-semibold"
+      />
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton
+          size="icon-xs"
           onClick={copyRoomCode}
+          type="button"
+          title="방 코드 복사"
         >
           {isCopied ? (
-            <Check className="h-3 w-3 text-green-500" />
+            <Check className="size-4 text-green-500" />
           ) : (
-            <Copy className="h-3 w-3" />
+            <Copy className="size-4" />
           )}
-        </Button>
-      </div>
-    </div>
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   );
 }
