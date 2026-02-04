@@ -71,10 +71,13 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
 
   const myTabs = Object.keys(fileTab);
 
+  const isSplitActive = activeTab.active === tabKey;
+
   return (
     <Tabs
       value={activeTab[tabKey]}
       onValueChange={handleValueChange}
+      data-active={isSplitActive}
       className="flex min-h-0 w-full flex-1 overflow-y-hidden"
     >
       <ScrollArea>
@@ -82,7 +85,7 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
           {myTabs.map((fileId) => (
             <ContextMenu key={fileId}>
               <ContextMenuTrigger>
-                <TabsTrigger value={fileId}>
+                <TabsTrigger key={fileId} value={fileId}>
                   {getFileName(fileId) ? (
                     getFileName(fileId)
                   ) : (

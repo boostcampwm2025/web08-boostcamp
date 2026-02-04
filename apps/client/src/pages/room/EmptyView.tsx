@@ -1,5 +1,5 @@
-import { NewFileButton } from '@/widgets/header/ui/buttons/NewFileButton';
-import { FileUploadButton } from '@/widgets/header/ui/buttons/FileUploadButton';
+import { NewFileButton } from '@/widgets/header/ui/components/NewFileButton';
+import { FileUploadButton } from '@/widgets/header/ui/components/FileUploadButton';
 import { useRoomStore } from '@/stores/room';
 
 type EmptyViewProps = {

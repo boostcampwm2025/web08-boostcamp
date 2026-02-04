@@ -10,22 +10,18 @@ import { useFileStore } from '../file';
 
 export const setupFileEventHandlers = () => {
   const onRoomDoc = (data: RoomDocPayload) => {
-    console.log(`📁 [ROOM_DOC]`);
     useFileStore.getState().applyRemoteDocUpdate(data.message);
   };
 
   const onRoomAwareness = (data: RoomAwarenessPayload) => {
-    console.log(`🧍 [ROOM_AWARENESS]`);
     useFileStore.getState().applyRemoteAwarenessUpdate(data.message);
   };
 
   const onUpdateFile = (data: FileUpdatePayload) => {
-    console.log(`📝 [UPDATE_FILE] From Server`);
     useFileStore.getState().applyRemoteDocUpdate(data.message);
   };
 
   const onUpdateAwareness = (data: AwarenessUpdatePayload) => {
-    console.log(`🧍 [UPDATE_AWARENESS] From Server`);
     useFileStore.getState().applyRemoteAwarenessUpdate(data.message);
   };
 

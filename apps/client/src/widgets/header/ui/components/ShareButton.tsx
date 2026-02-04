@@ -1,14 +1,13 @@
 import { Share2 } from 'lucide-react';
 import { ShareDialog } from '@/widgets/dialog/ShareDialog';
-import { HeaderActionButton } from './HeaderActionButton';
+import { Button } from '@codejam/ui';
 
 export function ShareButton({ roomCode }: { roomCode: string }) {
   return (
     <ShareDialog roomCode={roomCode}>
-      <HeaderActionButton>
-        <Share2 className="h-4 w-4" />
-        <span className="hidden lg:inline">Share</span>
-      </HeaderActionButton>
+      <Button size="icon-sm" variant="ghost" title={'방 공유하기'}>
+        <Share2 />
+      </Button>
     </ShareDialog>
   );
 }

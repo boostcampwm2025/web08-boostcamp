@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { EditorView, basicSetup } from 'codemirror';
+import { keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 import { yCollab } from 'y-codemirror.next';
 import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';
@@ -22,6 +24,11 @@ import { type Language } from '@codejam/common';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
 import { useFileStore } from '@/stores/file';
+import {
+  rainbowEditorTheme,
+  neonEditorTheme,
+  pastelEditorTheme,
+} from '../plugin/TrollEditorTheme';
 
 const cursorTheme = EditorView.theme({
   // 원격 라인 선택으로 인한 텍스트 밀림 방지
@@ -65,6 +72,7 @@ interface UseEditorExtensionsProps {
   language: Language;
   readOnly: boolean;
   isDark: boolean;
+  hiddenTheme: 'rainbow' | 'neon' | 'pastel' | null;
   fontSize: number;
   users: RemoteUser[];
   handleGutterClick: (params: {
@@ -100,6 +108,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
     language,
     readOnly,
     isDark,
+    hiddenTheme,
     fontSize,
     users,
     handleGutterClick,
@@ -131,6 +140,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
 
     return [
       basicSetup,
+      keymap.of(vscodeKeymap),
       EditorView.lineWrapping,
       yCollab(yText, awareness),
       getLanguageExtension(language),
@@ -142,7 +152,17 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
 
       // Dynamic Compartments Initial Config
       compartments.localTheme.of(localTheme(me)),
-      compartments.theme.of(isDark ? oneDark : []),
+      compartments.theme.of(
+        hiddenTheme === 'rainbow'
+          ? rainbowEditorTheme
+          : hiddenTheme === 'neon'
+            ? neonEditorTheme
+            : hiddenTheme === 'pastel'
+              ? pastelEditorTheme
+              : isDark
+                ? oneDark
+                : [],
+      ),
       compartments.fontSize.of(
         EditorView.theme({ '&': { fontSize: `${fontSize}px` } }),
       ),

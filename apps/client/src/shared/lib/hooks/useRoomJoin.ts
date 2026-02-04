@@ -4,6 +4,7 @@ import { ERROR_CODE } from '@codejam/common';
 import { getAuthStatus, joinRoom, verifyPassword } from '@/shared/api/room';
 import { emitJoinRoom } from '@/stores/socket-events';
 import { socket } from '@/shared/api/socket';
+import { useRoomStore } from '@/stores/room';
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
@@ -19,9 +20,14 @@ export function useRoomJoin() {
   // 컴포넌트가 마운트 되어 있는 동안(모달 전환 중) 값을 유지함
   const passwordRef = useRef('');
 
+  const setRoomCode = useRoomStore((state) => state.setRoomCode);
+
+  useEffect(() => {
+    if (paramCode) setRoomCode(paramCode);
+  }, [paramCode, setRoomCode]);
+
   const handleJoinWithToken = useCallback((roomCode: string, token: string) => {
     const sendJoinEvent = () => {
-      console.log('🚀 [Socket] Joining room with token...');
       emitJoinRoom(roomCode, token);
     };
 
@@ -30,7 +36,6 @@ export function useRoomJoin() {
       sendJoinEvent();
     } else {
       // 2. 아직 연결 중이라면 연결되는 순간 딱 한 번 실행되도록 예약
-      console.log('⏳ [Socket] Not connected yet. Waiting for connection...');
       socket.once('connect', sendJoinEvent);
     }
   }, []);

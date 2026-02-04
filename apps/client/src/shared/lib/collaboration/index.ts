@@ -44,5 +44,9 @@ export function createCollaborationContext(): CollaborationContext {
 // Re-export managers for direct imports if needed
 export { YDocManager } from './ydoc-manager';
 export { AwarenessManager } from './awareness-manager';
-export { FileManager, type FileMetadata } from './file-manager';
+export {
+  FileManager,
+  type DocMetadata,
+  type FileMetadata,
+} from './file-manager';
 export { FileNode } from './file-node';

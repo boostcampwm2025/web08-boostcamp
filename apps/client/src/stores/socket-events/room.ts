@@ -10,8 +10,6 @@ const redirectToHome = () => {
 
 export const setupRoomEventHandlers = () => {
   const onWelcome = (data: WelcomePayload) => {
-    console.log(`🎉 [WELCOME] My PtId: ${data.myPtId}`);
-
     const { myPtId, roomType, whoCanDestroyRoom, hasHostPassword } = data;
     const {
       roomCode,
@@ -33,13 +31,10 @@ export const setupRoomEventHandlers = () => {
   };
 
   const onGoodbye = () => {
-    console.log('👋 [GOODBYE] Left the room');
     redirectToHome();
   };
 
   const onRoomDestroyed = () => {
-    console.log(`💥 [ROOM_DESTROYED] Room has been destroyed`);
-
     let countdown = 3;
     const toastId = toast.error('방이 폭파되었습니다.', {
       description: `${countdown}초 후 홈으로 이동합니다.`,

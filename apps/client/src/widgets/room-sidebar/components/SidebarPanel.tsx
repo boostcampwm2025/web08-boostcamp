@@ -15,9 +15,9 @@ export function SidebarPanel({
   return (
     <aside
       className={cn(
-        'overflow-hidden transition-all duration-300 ease-in-out',
-        isOpen ? 'my-2 mr-2 ml-2 w-72 opacity-100' : 'm-0 w-0 opacity-0',
-        isOpen && 'border-border bg-card rounded-xl border shadow-sm',
+        'overflow-hidden transition-all duration-300',
+        isOpen ? 'm-2 w-72 opacity-100' : 'm-0 w-0 opacity-0',
+        isOpen && 'bg-card rounded-xl border shadow-sm',
         className,
       )}
     >
