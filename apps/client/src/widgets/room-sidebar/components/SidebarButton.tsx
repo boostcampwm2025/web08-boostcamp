@@ -19,6 +19,7 @@ export function SidebarButton({
       title={label}
       className={cn(
         'group flex w-full flex-col items-center justify-center gap-1 py-2.5 transition-colors duration-200',
+        'rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2',
         isActive
           ? 'text-primary'
           : 'text-muted-foreground hover:text-foreground',

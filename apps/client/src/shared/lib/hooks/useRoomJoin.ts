@@ -25,6 +25,12 @@ export function useRoomJoin() {
   // 컴포넌트가 마운트 되어 있는 동안(모달 전환 중) 값을 유지함
   const passwordRef = useRef('');
 
+  const setRoomCode = useRoomStore((state) => state.setRoomCode);
+
+  useEffect(() => {
+    if (paramCode) setRoomCode(paramCode);
+  }, [paramCode, setRoomCode]);
+
   const handleJoinWithToken = useCallback((roomCode: string, token: string) => {
     const sendJoinEvent = () => {
       console.log('🚀 [Socket] Joining room with token...');

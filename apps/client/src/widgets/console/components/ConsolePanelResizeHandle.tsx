@@ -1,26 +1,62 @@
-import { GripVertical } from 'lucide-react';
+// widgets/console/components/ConsolePanelResizeHandle.tsx
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@codejam/ui';
 
 interface ConsolePanelResizeHandleProps {
   isResizing: boolean;
+  isCollapsed: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
+  onToggle: () => void;
 }
 
 export function ConsolePanelResizeHandle({
   isResizing,
+  isCollapsed,
   onMouseDown,
+  onToggle,
 }: ConsolePanelResizeHandleProps) {
   return (
     <div
       onMouseDown={onMouseDown}
-      className="bg-muted/30 hover:bg-primary/20 absolute top-0 left-0 z-10 h-full w-1 cursor-ew-resize transition-all"
-      style={{
-        backgroundColor: isResizing ? 'rgba(59, 130, 246, 0.3)' : undefined,
-      }}
-      title="드래그하여 너비 조절"
+      className={cn(
+        'group absolute inset-y-0 -left-2 z-[100] flex w-4 cursor-ew-resize items-center justify-center',
+        isResizing && 'bg-transparent',
+      )}
     >
-      <div className="absolute top-1/2 left-0 flex h-16 w-4 -translate-x-1.5 -translate-y-1/2 items-center justify-center">
-        <GripVertical className="text-muted-foreground h-4 w-4 opacity-0 transition-opacity hover:opacity-100" />
-      </div>
+      <div
+        className={cn(
+          'absolute right-[7px] z-[101] h-full w-[1px] transition-colors',
+          isResizing ? 'bg-primary/30 w-[1.5px]' : 'bg-border/60',
+        )}
+      />
+
+      <button
+        type="button"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggle();
+        }}
+        className={cn(
+          'absolute z-[102] flex h-10 w-4 cursor-pointer items-center justify-center rounded-sm border border-white/20 shadow-sm backdrop-blur-md transition-all',
+          'text-muted-foreground hover:text-primary bg-white/20 hover:bg-white/40',
+          'dark:border-white/5 dark:bg-white/5 dark:hover:bg-white/10',
+          'opacity-100',
+          isCollapsed ? '-left-[8px] shadow-none' : '-left-[2px]',
+          isResizing ? 'pointer-events-none opacity-0' : 'opacity-100',
+        )}
+      >
+        {isCollapsed ? (
+          <ChevronLeft
+            size={13}
+            strokeWidth={2.5}
+            className="translate-x-[0.5px]"
+          />
+        ) : (
+          <ChevronRight size={13} strokeWidth={2} />
+        )}
+      </button>
     </div>
   );
 }

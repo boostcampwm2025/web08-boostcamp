@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { EditorView, basicSetup } from 'codemirror';
+import { keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 import { yCollab } from 'y-codemirror.next';
 import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';
@@ -112,6 +114,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
 
     return [
       basicSetup,
+      keymap.of(vscodeKeymap),
       EditorView.lineWrapping,
       yCollab(yText, awareness),
       getLanguageExtension(language),
