@@ -15,8 +15,8 @@ export default function Header({ roomCode }: HeaderProps) {
 
   return (
     <header className="border-b border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between gap-1 py-1">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex h-full min-w-0 flex-1 items-center">
           <Title />
         </div>
         <div className="flex shrink-0 items-center gap-1">

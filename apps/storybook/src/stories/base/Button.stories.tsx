@@ -38,89 +38,60 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {
-    children: 'Button',
-    variant: 'default',
-  },
+  render: () => <Button>Button</Button>,
 };
 
 export const Secondary: Story = {
-  args: {
-    children: 'Secondary',
-    variant: 'secondary',
-  },
+  render: () => <Button variant="secondary">Secondary</Button>,
 };
 
 export const Destructive: Story = {
-  args: {
-    children: 'Destructive',
-    variant: 'destructive',
-  },
+  render: () => <Button variant="destructive">Destructive</Button>,
 };
 
 export const Outline: Story = {
-  args: {
-    children: 'Outline',
-    variant: 'outline',
-  },
+  render: () => <Button variant="outline">Outline</Button>,
 };
 
 export const Ghost: Story = {
-  args: {
-    children: 'Ghost',
-    variant: 'ghost',
-  },
+  render: () => <Button variant="ghost">Ghost</Button>,
 };
 
 export const Link: Story = {
-  args: {
-    children: 'Link',
-    variant: 'link',
-  },
+  render: () => <Button variant="link">Link</Button>,
 };
 
 export const Icon: Story = {
-  args: {
-    size: 'icon',
-    variant: 'outline',
-    children: <ChevronRight />,
-  },
+  render: () => (
+    <Button size="icon" variant="outline">
+      <ChevronRight />
+    </Button>
+  ),
 };
 
 export const WithIcon: Story = {
-  args: {
-    children: (
-      <>
-        <Mail /> Login with Email
-      </>
-    ),
-  },
+  render: () => (
+    <Button>
+      <Mail /> Login with Email
+    </Button>
+  ),
 };
 
 export const Rounded: Story = {
-  args: {
-    className: 'rounded-full',
-    children: 'Rounded Button',
-  },
+  render: () => <Button className="rounded-full">Rounded Button</Button>,
 };
 
 export const Spinner: Story = {
-  args: {
-    disabled: true,
-    children: (
-      <>
-        <Loader2 className="animate-spin" />
-        Please wait
-      </>
-    ),
-  },
+  render: () => (
+    <Button disabled>
+      <Loader2 className="animate-spin" />
+      Please wait
+    </Button>
+  ),
 };
 
 export const AsLink: Story = {
-  args: {
-    render: <a href="#" />,
-    children: 'Login',
-  },
+  render: () => <Button render={<a href="#" />}>Login</Button>,
 };
 
 export const ButtonGroupUsage: Story = {

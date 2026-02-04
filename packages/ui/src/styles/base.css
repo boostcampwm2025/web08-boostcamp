@@ -63,3 +63,11 @@
     background: transparent;
   }
 }
+
+@layer base {
+  /* tailwind4에서 버튼의 기본 커서가 default로 변경됨. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}

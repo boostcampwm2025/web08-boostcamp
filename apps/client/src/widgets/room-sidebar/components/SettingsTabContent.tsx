@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
 import {
-  RadixLabel as Label,
-  RadixInput as Input,
-  RadixSlider as Slider,
-  RadixSwitch as Switch,
+  Label,
+  Input,
+  Slider,
+  Switch,
   Button,
   SidebarHeader,
-  toast,
 } from '@codejam/ui';
 import {
   RotateCcw,
@@ -32,121 +30,101 @@ export function SettingsTabContent() {
     toggleStreamCodeExecutionOutput,
   } = useSettings();
 
-  const [inputValue, setInputValue] = useState(fontSize.toString());
-
-  useEffect(() => {
-    setInputValue(fontSize.toString());
-  }, [fontSize]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    const numValue = parseInt(value);
-    if (!isNaN(numValue)) {
-      if (numValue > 30) toast.error('폰트 크기는 최대 30px입니다');
-      else if (numValue < 10) toast.error('폰트 크기는 최소 10px입니다');
-      else setFontSize(numValue);
-    }
+  const handleSliderChange = (value: number | readonly number[]) => {
+    const v = Array.isArray(value) ? value[0] : value;
+    setFontSize(v);
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto px-4 pb-4">
+    <div className="flex h-full flex-col gap-4 overflow-x-hidden overflow-y-hidden">
       <SidebarHeader title="에디터 설정" />
-
-      <div className="grid gap-6">
-        <section>
-          <h4 className="text-muted-foreground mb-3 text-xs font-medium tracking-wider uppercase">
-            폰트
-          </h4>
-          <div className="grid gap-4">
-            <div className="flex items-center justify-between">
+      <div className="flex h-full w-full flex-col justify-between">
+        <div className="grid gap-6">
+          <section>
+            <h4 className="text-muted-foreground mb-4 text-xs font-medium tracking-wider uppercase">
+              폰트
+            </h4>
+            <div className="grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-2">
               <Label htmlFor="fontSize">크기</Label>
               <span className="text-muted-foreground text-xs">10 - 30px</span>
-            </div>
-            <div className="flex items-center gap-4">
               <Slider
                 min={10}
                 max={30}
                 step={1}
                 value={[fontSize]}
-                onValueChange={(v) => {
-                  setFontSize(v[0]);
-                  setInputValue(v[0].toString());
-                }}
-                className="flex-1"
+                onValueChange={handleSliderChange}
               />
               <Input
-                value={inputValue}
-                onChange={handleInputChange}
-                className="h-8 w-12 px-1 text-center text-xs"
+                value={fontSize}
+                readOnly
+                className="h-6 w-10 justify-self-center text-center text-xs"
               />
             </div>
-          </div>
-        </section>
+          </section>
 
-        <div className="border-border/50 border-t" />
+          <div className="border-border/50 border-t" />
 
-        <section>
-          <h4 className="text-muted-foreground mb-3 text-xs font-medium tracking-wider uppercase">
-            커서 & 외관
-          </h4>
-          <div className="grid gap-4">
+          <section>
+            <h4 className="text-muted-foreground mb-4 text-xs font-medium tracking-wider uppercase">
+              커서 & 외관
+            </h4>
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <MousePointer2 size={16} />
+                  다른 사용자의 커서 보기
+                </div>
+                <Switch
+                  checked={showRemoteCursor}
+                  onCheckedChange={toggleRemoteCursor}
+                  className="data-checked:bg-brand-blue"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <UserCircle size={16} />줄 번호 옆 프로필 표시
+                </div>
+                <Switch
+                  checked={showGutterAvatars}
+                  onCheckedChange={toggleGutterAvatars}
+                  className="data-checked:bg-brand-blue"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <Type size={16} />
+                  커서 이름표 항상 보기
+                </div>
+                <Switch
+                  checked={alwaysShowCursorLabels}
+                  onCheckedChange={toggleCursorLabels}
+                  className="data-checked:bg-brand-blue"
+                />
+              </div>
+            </div>
+          </section>
+
+          <div className="border-border/50 border-t" />
+
+          <section>
+            <h4 className="text-muted-foreground mb-4 text-xs font-medium tracking-wider uppercase">
+              코드 실행
+            </h4>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm">
-                <MousePointer2 size={16} />
-                다른 사용자의 커서 보기
+                <Activity size={16} /> 실시간 출력
               </div>
               <Switch
-                checked={showRemoteCursor}
-                onCheckedChange={toggleRemoteCursor}
+                checked={streamCodeExecutionOutput}
+                onCheckedChange={toggleStreamCodeExecutionOutput}
+                className="data-checked:bg-brand-blue"
               />
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <UserCircle size={16} />줄 번호 옆 프로필 표시
-              </div>
-              <Switch
-                checked={showGutterAvatars}
-                onCheckedChange={toggleGutterAvatars}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <Type size={16} />
-                커서 이름표 항상 보기
-              </div>
-              <Switch
-                checked={alwaysShowCursorLabels}
-                onCheckedChange={toggleCursorLabels}
-              />
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
-        <div className="border-border/50 border-t" />
-
-        <section>
-          <h4 className="text-muted-foreground mb-3 text-xs font-medium tracking-wider uppercase">
-            코드 실행
-          </h4>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <Activity size={16} /> 실시간 출력
-            </div>
-            <Switch
-              checked={streamCodeExecutionOutput}
-              onCheckedChange={toggleStreamCodeExecutionOutput}
-            />
-          </div>
-        </section>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={resetSettings}
-          className="text-muted-foreground hover:text-destructive mt-4 ml-auto w-fit"
-        >
-          <RotateCcw className="mr-2 h-3 w-3" />
+        <Button variant="destructive" size="lg" onClick={resetSettings}>
+          <RotateCcw />
           설정 초기화
         </Button>
       </div>

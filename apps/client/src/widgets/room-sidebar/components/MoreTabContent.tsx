@@ -12,10 +12,10 @@ export function MoreTabContent() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto px-4 pb-4">
+    <div className="flex flex-col gap-4">
       <SidebarHeader title="더보기" />
 
-      <div className="mt-4 flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         {MORE_MENU_ITEMS.map((item) => {
           const isLink = item.type === 'link';
           const innerContent = (
@@ -34,9 +34,9 @@ export function MoreTabContent() {
           );
 
           const baseStyle = cn(
-            'group bg-muted/30 hover:border-border hover:bg-card',
-            'flex w-full items-center justify-between rounded-lg border border-transparent',
-            'p-3 text-sm font-medium transition-all hover:shadow-sm text-left',
+            'group bg-muted/30 hover:border-border hover:bg-card p-2',
+            'flex items-center justify-between rounded-lg border border-transparent',
+            'text-sm font-medium transition-all hover:shadow-sm',
           );
 
           return isLink ? (

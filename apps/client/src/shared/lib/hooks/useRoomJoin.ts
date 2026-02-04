@@ -9,6 +9,11 @@ import { useRoomStore } from '@/stores/room';
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
 
+  // roomCode를 store에 설정 (동기적으로 즉시 설정)
+  if (paramCode && useRoomStore.getState().roomCode !== paramCode) {
+    useRoomStore.getState().setRoomCode(paramCode);
+  }
+
   // 에러 상태
   const [roomError, setRoomError] = useState<string>('');
   const [passwordError, setPasswordError] = useState('');

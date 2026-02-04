@@ -8,12 +8,17 @@ interface ShortcutListProps {
 
 export function ShortcutList({ onBack }: ShortcutListProps) {
   return (
-    <div className="flex h-full flex-col px-4 pb-4">
+    <div className="flex h-full flex-col overflow-y-auto">
       <SidebarHeader
         title="단축키 안내"
         action={
-          <Button variant="ghost" size="icon-xs" onClick={onBack}>
-            <ArrowLeft className="size-4" />
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={onBack}
+            className="h-5 w-5"
+          >
+            <ArrowLeft />
           </Button>
         }
       />

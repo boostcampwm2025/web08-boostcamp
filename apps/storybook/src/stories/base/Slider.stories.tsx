@@ -15,99 +15,105 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {
-    defaultValue: [50],
-    max: 100,
-  },
-  render: (args) => (
-    <div className="w-[300px] space-y-4">
-      <Label>볼륨</Label>
-      <Slider {...args} />
+  render: () => (
+    <div className="w-100 h-10">
+      <Slider
+        defaultValue={[25, 50]}
+        min={0}
+        max={100}
+        step={5}
+        className="mx-auto w-full max-w-xs"
+      />
     </div>
   ),
 };
 
 export const Range: Story = {
-  args: {
-    defaultValue: [25, 75],
-    max: 100,
-  },
-  render: (args) => (
-    <div className="w-[300px] space-y-4">
-      <Label>가격 범위</Label>
-      <Slider {...args} />
+  render: () => (
+    <div className="w-100 h-10">
+      <Slider
+        defaultValue={[25, 50]}
+        min={0}
+        max={100}
+        step={5}
+        className="mx-auto w-full max-w-xs"
+      />
     </div>
   ),
 };
 
-export const MultipleThumbs: Story = {
-  args: {
-    defaultValue: [10, 40, 70, 90],
-    max: 100,
-  },
-  render: (args) => (
-    <div className="w-[300px] space-y-4">
-      <Label>다중 선택</Label>
-      <Slider {...args} />
-    </div>
-  ),
-};
-
-export const WithStep: Story = {
-  args: {
-    defaultValue: [50],
-    max: 100,
-    step: 10,
-  },
-  render: (args) => (
-    <div className="w-[300px] space-y-4">
-      <Label>밝기 (10% 단위)</Label>
-      <Slider {...args} />
-    </div>
-  ),
-};
-
-export const Disabled: Story = {
-  args: {
-    defaultValue: [50],
-    max: 100,
-    disabled: true,
-  },
-  render: (args) => (
-    <div className="w-[300px] space-y-4">
-      <Label>볼륨 (비활성화)</Label>
-      <Slider {...args} />
+export const Multiple: Story = {
+  render: () => (
+    <div className="w-100 h-10">
+      <Slider
+        defaultValue={[10, 20, 70]}
+        min={0}
+        max={100}
+        step={10}
+        className="mx-auto w-full max-w-xs"
+      />
     </div>
   ),
 };
 
 export const Vertical: Story = {
-  args: {
-    defaultValue: [50],
-    max: 100,
-    orientation: 'vertical',
-  },
-  render: (args) => (
-    <div className="flex h-[200px] items-center gap-4">
-      <Slider {...args} />
+  render: () => (
+    <div className="mx-auto flex w-100 h-40 max-w-xs items-center justify-center gap-6">
+      <Slider
+        defaultValue={[50]}
+        min={0}
+        max={100}
+        step={1}
+        orientation="vertical"
+        className="h-40"
+      />
+      <Slider
+        defaultValue={[25]}
+        min={0}
+        max={100}
+        step={1}
+        orientation="vertical"
+        className="h-40"
+      />
     </div>
   ),
 };
 
 export const Controlled: Story = {
-  render: (args) => {
-    const [value, setValue] = useState([50]);
+  render: () => {
+    const [value, setValue] = useState([0.3, 0.7]);
+
     return (
-      <div className="w-[300px] space-y-4">
-        <Label>현재 값: {value[0]}</Label>
+      <div className="mx-auto grid w-full max-w-xs gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="slider-demo-temperature">Temperature</Label>
+          <span className="text-muted-foreground text-sm">
+            {value.join(', ')}
+          </span>
+        </div>
         <Slider
-          {...args}
+          id="slider-demo-temperature"
           value={value}
-          onValueChange={(vals) => setValue(vals)}
-          max={100}
-          step={1}
+          onValueChange={(value) => setValue(value as number[])}
+          min={0}
+          max={1}
+          step={0.1}
         />
       </div>
     );
   },
+};
+
+export const Disabled: Story = {
+  render: () => (
+    <div className="w-100 h-10">
+      <Slider
+        defaultValue={[50]}
+        max={100}
+        step={1}
+        disabled
+        className="mx-auto w-full max-w-xs"
+      />
+    </div>
+  ),
 };
