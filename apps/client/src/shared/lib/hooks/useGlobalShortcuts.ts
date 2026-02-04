@@ -1,7 +1,12 @@
 import { useChatStore } from '@/stores/chat';
 import { useEffect } from 'react';
 
-export function useGlobalShortcuts() {
+interface ShortcutHandlers {
+  onNextTab?: () => void;
+  onPrevTab?: () => void;
+}
+
+export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
   const { isChatOpen, setChatOpen } = useChatStore();
 
   useEffect(() => {
@@ -21,6 +26,22 @@ export function useGlobalShortcuts() {
         return;
       }
 
+      if (isMod && (e.code === 'ArrowDown' || e.code === 'PageDown')) {
+        if (!isInput) {
+          e.preventDefault();
+          handlers?.onNextTab?.();
+          return;
+        }
+      }
+
+      if (isMod && (e.code === 'ArrowUp' || e.code === 'PageUp')) {
+        if (!isInput) {
+          e.preventDefault();
+          handlers?.onPrevTab?.();
+          return;
+        }
+      }
+
       if (key === 'escape') {
         if (isInput) {
           target.blur();
@@ -38,5 +59,5 @@ export function useGlobalShortcuts() {
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [isChatOpen, setChatOpen]);
+  }, [isChatOpen, setChatOpen, handlers]);
 }

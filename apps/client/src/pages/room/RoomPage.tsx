@@ -22,7 +22,7 @@ import { ProviderAPI } from '@/contexts/ProviderAPI';
 import { TabProvider } from '@/contexts/TabProvider';
 import TabViewer from './TabViewer';
 import { TabLayout } from './TabLayout';
-import { useGlobalShortcuts } from '@/shared/lib/hooks/useGlobalShortcuts';
+import { GlobalShortcutHandler } from './GlobalShortcutHandler';
 
 function RoomPage() {
   const {
@@ -78,8 +78,6 @@ function RoomPage() {
     setActiveFile(key);
   };
 
-  useGlobalShortcuts();
-
   return (
     <div
       className={`flex h-screen overflow-hidden transition-colors duration-500`}
@@ -91,6 +89,7 @@ function RoomPage() {
           <main className="flex min-h-0 flex-1">
             <TabProvider>
               <ProviderAPI>
+                <GlobalShortcutHandler />
                 <div
                   className="bg-background flex h-full min-h-0 flex-1 flex-col"
                   onDragOver={handleDragPrevent}
