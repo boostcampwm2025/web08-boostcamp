@@ -4,9 +4,9 @@ import { ExternalLink } from 'lucide-react';
 
 export function MoreTabContent() {
   return (
-    <div className="flex flex-col px-4 pt-0 pb-4">
+    <div className="flex flex-col gap-4">
       <SidebarHeader title="더보기" />
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         {MORE_MENU_ITEMS.map((item) => (
           <a
             key={item.key}
@@ -14,9 +14,9 @@ export function MoreTabContent() {
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              'group bg-muted/30 hover:border-border hover:bg-card',
+              'group bg-muted/30 hover:border-border hover:bg-card p-2',
               'flex items-center justify-between rounded-lg border border-transparent',
-              'p-3 text-sm font-medium transition-all hover:shadow-sm',
+              'text-sm font-medium transition-all hover:shadow-sm',
             )}
           >
             <div className="text-muted-foreground group-hover:text-foreground flex items-center gap-3">
