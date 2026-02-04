@@ -44,13 +44,15 @@ function FormField({ title, description, children }: FormFieldProps) {
 interface StepperFieldProps {
   title: string;
   description: string;
-  value: number;
+  value: number | '';
   min: number;
   max: number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDecrease: () => void;
   onIncrease: () => void;
   className?: string;
+  isInvalid?: boolean;
+  errorMessage?: string;
 }
 
 function StepperField({
@@ -63,36 +65,50 @@ function StepperField({
   onDecrease,
   onIncrease,
   className,
+  isInvalid,
+  errorMessage,
 }: StepperFieldProps) {
   return (
     <div className={className}>
       <FormField title={title} description={description}>
-        <ButtonGroup>
-          <Input
-            type="number"
-            value={value}
-            onChange={onChange}
-            className="h-9 w-14 [appearance:textfield] text-center [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onDecrease}
-            disabled={value <= min}
-            type="button"
+        <div className="flex flex-col items-end gap-1">
+          <ButtonGroup>
+            <Input
+              type="number"
+              value={value}
+              onChange={onChange}
+              aria-invalid={isInvalid}
+              className="w-14 [appearance:textfield] text-center [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onDecrease}
+              disabled={value === '' || value <= min}
+              type="button"
+            >
+              <Minus className="size-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onIncrease}
+              disabled={value !== '' && value >= max}
+              type="button"
+            >
+              <Plus className="size-4" />
+            </Button>
+          </ButtonGroup>
+          <FieldError
+            className={`text-xs transition-all duration-300 ${
+              isInvalid && errorMessage
+                ? 'translate-y-0 opacity-100'
+                : '-translate-y-1 opacity-0'
+            }`}
           >
-            <Minus className="size-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onIncrease}
-            disabled={value >= max}
-            type="button"
-          >
-            <Plus className="size-4" />
-          </Button>
-        </ButtonGroup>
+            {errorMessage || '\u00A0'}
+          </FieldError>
+        </div>
       </FormField>
     </div>
   );
@@ -178,6 +194,9 @@ export function CustomRoomForm({
       maxPts: LIMITS.MAX_CAN_EDIT,
     });
 
+  const [maxPtsInput, setMaxPtsInput] = useState<number | ''>(
+    LIMITS.MAX_CAN_EDIT,
+  );
   const [showRoomPassword, setShowRoomPassword] = useState(false);
   const [showHostPassword, setShowHostPassword] = useState(false);
 
@@ -198,8 +217,9 @@ export function CustomRoomForm({
   );
 
   const isMaxPtsValid =
-    customRoomConfig.maxPts >= LIMITS.MIN_PTS &&
-    customRoomConfig.maxPts <= LIMITS.MAX_PTS;
+    maxPtsInput !== '' &&
+    maxPtsInput >= LIMITS.MIN_PTS &&
+    maxPtsInput <= LIMITS.MAX_PTS;
 
   const isFormValid =
     isMaxPtsValid &&
@@ -227,27 +247,34 @@ export function CustomRoomForm({
   };
 
   const handleMaxPtsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
+    const rawValue = e.target.value;
+    if (rawValue === '') {
+      setMaxPtsInput('');
+      return;
+    }
+    const val = parseInt(rawValue);
     if (!isNaN(val)) {
-      handleChange(
-        'maxPts',
-        Math.min(Math.max(val, LIMITS.MIN_PTS), LIMITS.MAX_PTS),
+      const clampedVal = Math.min(
+        Math.max(val, LIMITS.MIN_PTS),
+        LIMITS.MAX_PTS,
       );
+      setMaxPtsInput(clampedVal);
+      handleChange('maxPts', clampedVal);
     }
   };
 
   const decreaseMaxPts = () => {
-    handleChange(
-      'maxPts',
-      Math.max(customRoomConfig.maxPts - 1, LIMITS.MIN_PTS),
-    );
+    const current = maxPtsInput === '' ? LIMITS.MIN_PTS : maxPtsInput;
+    const newVal = Math.max(current - 1, LIMITS.MIN_PTS);
+    setMaxPtsInput(newVal);
+    handleChange('maxPts', newVal);
   };
 
   const increaseMaxPts = () => {
-    handleChange(
-      'maxPts',
-      Math.min(customRoomConfig.maxPts + 1, LIMITS.MAX_PTS),
-    );
+    const current = maxPtsInput === '' ? LIMITS.MIN_PTS : maxPtsInput;
+    const newVal = Math.min(current + 1, LIMITS.MAX_PTS);
+    setMaxPtsInput(newVal);
+    handleChange('maxPts', newVal);
   };
 
   const handleRoomPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -288,13 +315,14 @@ export function CustomRoomForm({
           <StepperField
             title="참여 인원"
             description={`최소 ${LIMITS.MIN_PTS}명 ~ 최대 ${LIMITS.MAX_PTS}명`}
-            value={customRoomConfig.maxPts}
+            value={maxPtsInput}
             min={LIMITS.MIN_PTS}
             max={LIMITS.MAX_PTS}
             onChange={handleMaxPtsChange}
             onDecrease={decreaseMaxPts}
             onIncrease={increaseMaxPts}
-            className="mb-4"
+            isInvalid={maxPtsInput === ''}
+            errorMessage="참여 인원을 입력해주세요"
           />
 
           <PasswordField
