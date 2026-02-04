@@ -7,6 +7,8 @@ import type { AwarenessUpdate } from '@codejam/common';
 
 export class AwarenessManager {
   private awareness: Awareness;
+  private pendingUpdates: Uint8Array[] = [];
+  private isBuffering: boolean = false;
 
   constructor(awareness: Awareness) {
     this.awareness = awareness;
@@ -55,7 +57,57 @@ export class AwarenessManager {
    * Apply remote awareness update
    */
   applyRemoteUpdate(message: Uint8Array): void {
+    // Buffer updates during composition to prevent cursor position inconsistencies
+    if (this.isBuffering) {
+      console.log(
+        '[AwarenessManager] Buffering remote update during composition',
+      );
+      this.pendingUpdates.push(message);
+      return;
+    }
+
     this.applyUpdate(message, 'remote');
+  }
+
+  /**
+   * Enable or disable buffering of remote updates
+   * When disabled, automatically flushes any pending updates
+   */
+  setBuffering(enabled: boolean): void {
+    const wasBuffering = this.isBuffering;
+    const isBuffering = enabled;
+    this.isBuffering = isBuffering;
+    if (isBuffering === wasBuffering) return;
+
+    console.log(
+      `[AwarenessManager] Buffering ${enabled ? 'enabled' : 'disabled'}`,
+    );
+
+    // Flush pending updates when buffering is disabled
+    if (wasBuffering && !isBuffering && this.pendingUpdates.length > 0) {
+      this.flushPendingUpdates();
+    }
+  }
+
+  /**
+   * Flush all pending buffered updates
+   */
+  private flushPendingUpdates(): void {
+    // Snapshot current buffer and clear it
+    // (handles re-entrancy if user starts composing during flush)
+    const updates = [...this.pendingUpdates];
+    this.pendingUpdates = [];
+
+    console.log(
+      `[AwarenessManager] Flushing ${updates.length} pending updates`,
+    );
+
+    // Apply all buffered updates sequentially
+    for (const update of updates) {
+      this.applyUpdate(update, 'remote');
+    }
+
+    console.log(`[AwarenessManager] Flushed ${updates.length} pending updates`);
   }
 
   /**

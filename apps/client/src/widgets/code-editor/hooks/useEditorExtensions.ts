@@ -82,13 +82,15 @@ interface UseEditorExtensionsProps {
  */
 
 const onCompositionStart = () => {
-  const yDocManager = useFileStore.getState().yDocManager;
+  const { yDocManager, awarenessManager } = useFileStore.getState();
   yDocManager?.setBuffering(true);
+  awarenessManager?.setBuffering(true);
 };
 
 const onCompositionEnd = () => {
-  const yDocManager = useFileStore.getState().yDocManager;
+  const { yDocManager, awarenessManager } = useFileStore.getState();
   yDocManager?.setBuffering(false);
+  awarenessManager?.setBuffering(false);
 };
 
 export function useEditorExtensions(props: UseEditorExtensionsProps) {
