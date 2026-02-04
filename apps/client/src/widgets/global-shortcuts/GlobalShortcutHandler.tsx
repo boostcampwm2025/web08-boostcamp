@@ -12,10 +12,12 @@ import { useSidebarStore } from '@/stores/sidebar';
 import { useConsoleStore } from '@/stores/console';
 import { useShortcutStore } from '@/stores/shortcut';
 import { FileSelectDialog } from '@/widgets/dialog/FileSelectDialog';
+import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 
 export function GlobalShortcutHandler() {
   const { activeSidebarTab, toggleSidebarTab } = useSidebarStore();
   const { toggleConsole } = useConsoleStore();
+  const { toggleTheme } = useDarkMode();
 
   const { handleToggleSplit } = useSplitHandlers();
   const { handleFocusSplit } = useSplitFocus();
@@ -43,6 +45,7 @@ export function GlobalShortcutHandler() {
     onShortcutHold: (holding) => setHUDOpen(holding),
     onOpenFile: handleOpenDialog,
     onFocusEditor: handleFocusEditor,
+    onToggleTheme: toggleTheme,
   });
 
   return (

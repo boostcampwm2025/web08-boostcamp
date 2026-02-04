@@ -39,6 +39,7 @@ export function ShortcutListContent({ className }: ShortcutListContentProps) {
 
       <ShortcutGroup title="도움말">
         <ShortcutRow label="단축키 가이드" keys={[modKey, 'Shift', 'P']} />
+        <ShortcutRow label="다크모드 토글" keys={[modKey, 'Shift', 'D']} />
       </ShortcutGroup>
     </div>
   );

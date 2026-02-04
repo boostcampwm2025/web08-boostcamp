@@ -14,6 +14,7 @@ interface ShortcutHandlers {
   onShortcutHold?: (holding: boolean) => void;
   onOpenFile?: () => void; // 파일 열기
   onFocusEditor?: () => void; // 에디터 포커스
+  onToggleTheme?: () => void; // 다크모드 토글
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -122,6 +123,13 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
       if (isMod && e.shiftKey && key === 'p') {
         e.preventDefault();
         handlers?.onShortcutHold?.(true);
+        return;
+      }
+
+      // Toggle Theme
+      if (isMod && e.shiftKey && key === 'd') {
+        e.preventDefault();
+        handlers?.onToggleTheme?.();
         return;
       }
     };
