@@ -9,6 +9,13 @@ import { type Extension, StateField, StateEffect } from '@codemirror/state';
  * to prevent DOM updates that would destroy the browser's composition text node.
  * Flushes buffered updates when composition ends
  */
+
+/**
+ * Composition idle timeout
+ * force flush if user abandons composition
+ */
+const COMPOSITION_IDLE_TIMEOUT = 5000; // 5 seconds
+
 interface CompositionState {
   composing: boolean;
   compositionStart: number | null;
@@ -49,7 +56,45 @@ const compositionStateField = StateField.define<CompositionState>({
 export function compositionTracker(
   callbacks?: CompositionCallbacks,
 ): Extension {
+  // rAF handle to delay onCompositionEnd
+  // Checks if user starts composing again (Korean IME)
   let frame: number | null = null;
+
+  // Idle timeout handle
+  // Prevents infinite buffering if composition abandoned
+  let timer: number | null = null;
+
+  const startIdleTimer = (view: EditorView) => {
+    clearIdleTimer();
+
+    timer = window.setTimeout(() => {
+      const message = '[CompositionTracker] Composition idle timeout';
+      console.log(message);
+
+      timer = null;
+
+      // Force composition to end by blurring and refocusing
+      view.contentDOM.blur();
+      view.contentDOM.focus();
+
+      // Mark composition as ended
+      const effects = setCompositionState.of({
+        composing: false,
+        compositionStart: null,
+      });
+      view.dispatch({ effects });
+
+      // Flush buffered updates
+      callbacks?.onCompositionEnd?.();
+    }, COMPOSITION_IDLE_TIMEOUT);
+  };
+
+  const clearIdleTimer = () => {
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
 
   return [
     compositionStateField,
@@ -64,6 +109,9 @@ export function compositionTracker(
           cancelAnimationFrame(frame);
           frame = null;
         }
+
+        // Start idle timeout
+        startIdleTimer(view);
 
         // Call start callback
         callbacks?.onCompositionStart?.();
@@ -83,9 +131,15 @@ export function compositionTracker(
       // Composition updates
       compositionupdate(_event, view) {
         const state = view.state.field(compositionStateField);
-        if (state.composing) return false;
 
-        // Fallback: compositionstart was missed. Treat as start
+        // Reset idle timer on activity
+        if (state.composing) {
+          startIdleTimer(view);
+          return false;
+        }
+
+        // Fallback: compositionstart was missed - treat as start
+        startIdleTimer(view);
         callbacks?.onCompositionStart?.();
 
         const effects = setCompositionState.of({
@@ -100,6 +154,9 @@ export function compositionTracker(
       // Composition ends
       compositionend(_event, view) {
         console.log('[CompositionTracker] Composition ended');
+
+        // Clear idle timer
+        clearIdleTimer();
 
         // Mark composition as ended in state
         const effects = setCompositionState.of({
@@ -125,4 +182,12 @@ export function compositionTracker(
       },
     }),
   ];
+}
+
+/**
+ * Helper function to check if editor is currently composing
+ */
+export function isComposing(view: EditorView): boolean {
+  const state = view.state.field(compositionStateField);
+  return view.composing || state.composing;
 }
