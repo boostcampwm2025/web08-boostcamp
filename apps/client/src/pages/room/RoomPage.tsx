@@ -22,6 +22,7 @@ import { ProviderAPI } from '@/contexts/ProviderAPI';
 import { TabProvider } from '@/contexts/TabProvider';
 import TabViewer from './TabViewer';
 import { TabLayout } from './TabLayout';
+import { GlobalShortcutHandler, ShortcutHUD } from '@/widgets/global-shortcuts';
 
 function RoomPage() {
   const {
@@ -88,6 +89,7 @@ function RoomPage() {
           <main className="flex min-h-0 flex-1">
             <TabProvider>
               <ProviderAPI>
+                <GlobalShortcutHandler />
                 <div
                   className="bg-background flex h-full min-h-0 flex-1 flex-col"
                   onDragOver={handleDragPrevent}
@@ -141,6 +143,7 @@ function RoomPage() {
         <Toaster richColors position="top-center" />
         <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
         <HostClaimRequestDialog />
+        <ShortcutHUD />
       </div>
     </div>
   );

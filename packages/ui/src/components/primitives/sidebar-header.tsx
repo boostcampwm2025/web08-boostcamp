@@ -15,7 +15,7 @@ export function SidebarHeader({
   className,
 }: SidebarHeaderProps) {
   return (
-    <div className={cn('flex items-center justify-between', className)}>
+    <div className={cn('flex items-center justify-between py-3', className)}>
       <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
         <h2 className="text-sm font-bold tracking-wide uppercase">{title}</h2>
         {count !== undefined && (
