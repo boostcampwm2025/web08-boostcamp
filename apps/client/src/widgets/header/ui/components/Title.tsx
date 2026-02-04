@@ -1,6 +1,5 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Pencil } from 'lucide-react';
-import { Button } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { usePermission } from '@/shared/lib/hooks/usePermission';
 import { PERMISSION } from '@codejam/common';
@@ -8,31 +7,19 @@ import { PERMISSION } from '@codejam/common';
 export function Title() {
   const docMeta = useFileStore((state) => state.docMeta);
   const fileManager = useFileStore((state) => state.fileManager);
-
   const { can } = usePermission();
   const canEdit = can(PERMISSION.EDIT_DOCS);
 
   const [editTitle, setEditTitle] = useState('');
   const [isEditable, setIsEditable] = useState(false);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEditTitle(e.target.value);
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.code === 'Enter') {
-      handleSubmit();
-    }
-    if (e.code === 'Escape') {
-      setIsEditable(false);
-      setEditTitle(docMeta?.title ?? '');
-    }
-  };
+  const textStyles =
+    'font-sans text-lg font-bold tracking-tight text-foreground leading-none';
+  const underlineStyles =
+    'border-b-2 border-border group-hover:border-muted-foreground transition-colors';
 
   const handleSubmit = () => {
     if (!fileManager) return;
-
-    // Update Y.Doc
     const newTitle = editTitle.trim() || docMeta?.title || '';
     fileManager.setTitle(newTitle);
     setIsEditable(false);
@@ -46,44 +33,45 @@ export function Title() {
 
   if (canEdit && isEditable) {
     return (
-      <input
-        type="text"
-        className="outline-input focus:outline-ring mx-1 field-sizing-content max-w-full min-w-0 bg-transparent px-1 text-xl font-bold outline"
-        maxLength={100}
-        value={editTitle}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onBlur={handleSubmit}
-        autoFocus
-      />
+      <div className="flex h-10 min-w-0 flex-1 items-center px-4">
+        <div className="group flex max-w-full items-center gap-2">
+          <input
+            type="text"
+            className={`${textStyles} ${underlineStyles} focus:border-muted-foreground [field-sizing:content] max-w-full min-w-[60px] bg-transparent pb-1 outline-none`}
+            value={editTitle}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setEditTitle(e.target.value)
+            }
+            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+              if (e.code === 'Enter') handleSubmit();
+              if (e.code === 'Escape') {
+                setIsEditable(false);
+                setEditTitle(docMeta?.title ?? '');
+              }
+            }}
+            onBlur={handleSubmit}
+            autoFocus
+          />
+          <Pencil className="text-muted-foreground size-4 shrink-0" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="group flex min-w-0 items-center gap-2 px-2">
-      <h1 className="truncate text-xl font-bold">{docMeta?.title || ''}</h1>
-      {canEdit && <EditButton onClick={handleEditClick} />}
+    <div className="flex h-10 min-w-0 flex-1 items-center px-4">
+      <div
+        onClick={handleEditClick}
+        className="group hover:bg-muted/30 -ml-2 inline-flex max-w-full cursor-pointer items-center gap-2 rounded-md px-2 transition-colors"
+      >
+        <h1 className={`${textStyles} ${underlineStyles} truncate pb-1`}>
+          {docMeta?.title || '제목 없음'}
+        </h1>
+
+        {canEdit && (
+          <Pencil className="text-muted-foreground size-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+        )}
+      </div>
     </div>
-  );
-}
-
-/**
- * Edit Button
- */
-
-interface EditButtonProps {
-  onClick: () => void;
-}
-
-function EditButton({ onClick }: EditButtonProps) {
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-      onClick={onClick}
-    >
-      <Pencil className="h-4 w-4" />
-    </Button>
   );
 }
