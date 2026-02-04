@@ -7,6 +7,7 @@ import {
   useTabClose,
   useFileOpen,
   useEditorFocus,
+  useCodeExecution,
 } from './hooks';
 import { useSidebarStore } from '@/stores/sidebar';
 import { useConsoleStore } from '@/stores/console';
@@ -27,6 +28,7 @@ export function GlobalShortcutHandler() {
   const { isDialogOpen, setIsDialogOpen, handleOpenDialog, handleSelectFile } =
     useFileOpen();
   const { handleFocusEditor } = useEditorFocus();
+  const { handleExecuteCode } = useCodeExecution();
 
   const { setHUDOpen } = useShortcutStore();
 
@@ -46,6 +48,7 @@ export function GlobalShortcutHandler() {
     onOpenFile: handleOpenDialog,
     onFocusEditor: handleFocusEditor,
     onToggleTheme: toggleTheme,
+    onExecuteCode: handleExecuteCode,
   });
 
   return (

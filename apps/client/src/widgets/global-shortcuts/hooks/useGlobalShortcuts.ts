@@ -15,6 +15,7 @@ interface ShortcutHandlers {
   onOpenFile?: () => void; // 파일 열기
   onFocusEditor?: () => void; // 에디터 포커스
   onToggleTheme?: () => void; // 다크모드 토글
+  onExecuteCode?: () => void; // 코드 실행
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -31,6 +32,13 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable;
+
+      // Execute Code (코드 타이핑하면서도 실행할 수 있게 허용)
+      if (isMod && e.shiftKey && key === 'r') {
+        e.preventDefault();
+        handlers?.onExecuteCode?.();
+        return;
+      }
 
       if (key === 'escape') {
         if (isInput) {
