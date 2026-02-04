@@ -4,9 +4,15 @@ import { ERROR_CODE } from '@codejam/common';
 import { getAuthStatus, joinRoom, verifyPassword } from '@/shared/api/room';
 import { emitJoinRoom } from '@/stores/socket-events';
 import { socket } from '@/shared/api/socket';
+import { useRoomStore } from '@/stores/room';
 
 export function useRoomJoin() {
   const { roomCode: paramCode } = useParams<{ roomCode: string }>();
+
+  // roomCode를 store에 설정 (동기적으로 즉시 설정)
+  if (paramCode && useRoomStore.getState().roomCode !== paramCode) {
+    useRoomStore.getState().setRoomCode(paramCode);
+  }
 
   // 에러 상태
   const [roomError, setRoomError] = useState<string>('');
