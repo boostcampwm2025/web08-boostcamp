@@ -1,4 +1,4 @@
-import { RadixDialog as Dialog, cn } from '@codejam/ui';
+import { cn } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import {
   memo,
@@ -101,13 +101,19 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
         )}
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        {dialogType === 'RENAME' ? (
-          <RenameDialog fileId={fileId} fileName={fileName} onOpen={setOpen} />
-        ) : (
-          <DeleteDialog fileId={fileId} fileName={fileName} onOpen={setOpen} />
-        )}
-      </Dialog>
+      <RenameDialog
+        fileId={fileId}
+        fileName={fileName}
+        open={open && dialogType === 'RENAME'}
+        onOpenChange={setOpen}
+      />
+
+      <DeleteDialog
+        fileId={fileId}
+        fileName={fileName}
+        open={open && dialogType === 'DELETE'}
+        onOpenChange={setOpen}
+      />
     </>
   );
 });
