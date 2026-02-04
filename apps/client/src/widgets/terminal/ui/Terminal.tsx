@@ -58,8 +58,8 @@ export function Terminal({ variant }: TerminalProps) {
     const fitTerminal = () => {
       try {
         fitAddon.fit();
-      } catch (e) {
-        console.warn('Failed to fit terminal:', e);
+      } catch {
+        // Ignore fit errors
       }
     };
 
