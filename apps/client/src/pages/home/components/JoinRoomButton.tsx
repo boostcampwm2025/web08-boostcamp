@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 
 interface JoinRoomButtonProps {
   onClick: () => void;

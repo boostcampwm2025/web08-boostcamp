@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   cn,
-  RadixButton as Button,
+  Button,
   Combobox,
   ComboboxInput,
   ComboboxContent,

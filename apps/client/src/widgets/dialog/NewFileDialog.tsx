@@ -1,8 +1,4 @@
-import {
-  RadixButton as Button,
-  RadixInput as Input,
-  RadixLabel as Label,
-} from '@codejam/ui';
+import { Button, RadixInput as Input, RadixLabel as Label } from '@codejam/ui';
 import {
   RadixDialog as Dialog,
   RadixDialogClose as DialogClose,

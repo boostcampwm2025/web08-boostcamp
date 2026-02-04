@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import { toast } from '@codejam/ui';
 
 interface RoomCodeProps {

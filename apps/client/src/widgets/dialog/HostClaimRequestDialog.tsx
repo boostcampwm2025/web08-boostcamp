@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import {
   RadixDialog as Dialog,
   RadixDialogContent as DialogContent,
