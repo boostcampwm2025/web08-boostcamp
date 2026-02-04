@@ -77,6 +77,9 @@ importers:
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.7)(react@19.2.3)
+      react-rnd:
+        specifier: ^10.5.2
+        version: 10.5.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-router-dom:
         specifier: ^7.10.1
         version: 7.10.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -222,6 +225,9 @@ importers:
       cookie:
         specifier: ^1.1.1
         version: 1.1.1
+      cookie-parser:
+        specifier: ^1.4.7
+        version: 1.4.7
       ioredis:
         specifier: ^5.8.2
         version: 5.8.2
@@ -286,6 +292,9 @@ importers:
       '@nestjs/testing':
         specifier: ^11.0.1
         version: 11.1.9(@nestjs/common@11.1.9(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(@nestjs/platform-express@11.1.9)
+      '@types/cookie-parser':
+        specifier: ^1.4.10
+        version: 1.4.10(@types/express@5.0.6)
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
@@ -2535,6 +2544,11 @@ packages:
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
+  '@types/cookie-parser@1.4.10':
+    resolution: {integrity: sha512-B4xqkqfZ8Wek+rCOeRxsjMS9OgvzebEzzLYw7NHYuvzb7IdxOkI0ZHGgeEBX4PUM7QGVvNSK60T3OvWj3YfBRg==}
+    peerDependencies:
+      '@types/express': '*'
+
   '@types/cookie@0.4.1':
     resolution: {integrity: sha512-XW/Aa8APYr6jSVVA1y/DEIZX0/GMKLEVekNG727R8cs56ahETkRAy/3DR7+fJyh7oUgGwNQaRfXCun0+KbWY7Q==}
 
@@ -3511,6 +3525,10 @@ packages:
     resolution: {integrity: sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==}
     engines: {node: '>=0.8'}
 
+  clsx@1.2.1:
+    resolution: {integrity: sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==}
+    engines: {node: '>=6'}
+
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
@@ -3585,6 +3603,13 @@ packages:
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
+
+  cookie-parser@1.4.7:
+    resolution: {integrity: sha512-nGUvgXnotP3BsjiLX2ypbQnWoGUPIIfHQNZkkC668ntrzGWEZVW70HDEB1qnNGMicPje6EttlIgzo51YSwNQGw==}
+    engines: {node: '>= 0.8.0'}
+
+  cookie-signature@1.0.6:
+    resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
 
   cookie-signature@1.2.2:
     resolution: {integrity: sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==}
@@ -5631,6 +5656,12 @@ packages:
     resolution: {integrity: sha512-K5zQjDllxWkf7Z5xJdV0/B0WTNqx6vxG70zJE4N0kBs4LovmEYWJzQGxC9bS9RAKu3bgM40lrd5zoLJ12MQ5BA==}
     engines: {node: '>= 0.10'}
 
+  re-resizable@6.11.2:
+    resolution: {integrity: sha512-2xI2P3OHs5qw7K0Ud1aLILK6MQxW50TcO+DetD9eIV58j84TqYeHoZcL9H4GXFXXIh7afhH8mv5iUCXII7OW7A==}
+    peerDependencies:
+      react: ^16.13.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.13.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   react-docgen-typescript@2.4.0:
     resolution: {integrity: sha512-ZtAp5XTO5HRzQctjPU0ybY0RRCQO19X/8fxn3w7y2VVTUbGHDKULPTL4ky3vB05euSgG5NpALhEhDPvQ56wvXg==}
     peerDependencies:
@@ -5644,6 +5675,12 @@ packages:
     resolution: {integrity: sha512-yELu4WmLPw5Mr/lmeEpox5rw3RETacE++JgHqQzd2dg+YbJuat3jH4ingc+WPZhxaoFzdv9y33G+F7Nl5O0GBg==}
     peerDependencies:
       react: ^19.2.3
+
+  react-draggable@4.4.6:
+    resolution: {integrity: sha512-LtY5Xw1zTPqHkVmtM3X8MUOxNDOUhv/khTgBgrUvwaS064bwVvxT+q5El0uUFNx5IEPKXuRejr7UqLwBIg5pdw==}
+    peerDependencies:
+      react: '>= 16.3.0'
+      react-dom: '>= 16.3.0'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -5683,6 +5720,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-rnd@10.5.2:
+    resolution: {integrity: sha512-0Tm4x7k7pfHf2snewJA8x7Nwgt3LV+58MVEWOVsFjk51eYruFEa6Wy7BNdxt4/lH0wIRsu7Gm3KjSXY2w7YaNw==}
+    peerDependencies:
+      react: '>=16.3.0'
+      react-dom: '>=16.3.0'
 
   react-router-dom@7.10.1:
     resolution: {integrity: sha512-JNBANI6ChGVjA5bwsUIwJk7LHKmqB4JYnYfzFwyp2t12Izva11elds2jx7Yfoup2zssedntwU0oZ5DEmk5Sdaw==}
@@ -6329,6 +6372,9 @@ packages:
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
     engines: {node: '>=6'}
+
+  tslib@2.6.2:
+    resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
@@ -9018,6 +9064,10 @@ snapshots:
     dependencies:
       '@types/node': 22.19.3
 
+  '@types/cookie-parser@1.4.10(@types/express@5.0.6)':
+    dependencies:
+      '@types/express': 5.0.6
+
   '@types/cookie@0.4.1': {}
 
   '@types/cookiejar@2.1.5': {}
@@ -10082,6 +10132,8 @@ snapshots:
 
   clone@1.0.4: {}
 
+  clsx@1.2.1: {}
+
   clsx@2.1.1: {}
 
   cluster-key-slot@1.1.2: {}
@@ -10144,6 +10196,13 @@ snapshots:
   content-type@1.0.5: {}
 
   convert-source-map@2.0.0: {}
+
+  cookie-parser@1.4.7:
+    dependencies:
+      cookie: 0.7.2
+      cookie-signature: 1.0.6
+
+  cookie-signature@1.0.6: {}
 
   cookie-signature@1.2.2: {}
 
@@ -12516,6 +12575,11 @@ snapshots:
       iconv-lite: 0.7.1
       unpipe: 1.0.0
 
+  re-resizable@6.11.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
   react-docgen-typescript@2.4.0(typescript@5.9.3):
     dependencies:
       typescript: 5.9.3
@@ -12539,6 +12603,13 @@ snapshots:
     dependencies:
       react: 19.2.3
       scheduler: 0.27.0
+
+  react-draggable@4.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      clsx: 1.2.1
+      prop-types: 15.8.1
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
 
   react-is@16.13.1: {}
 
@@ -12584,6 +12655,14 @@ snapshots:
       use-sidecar: 1.1.3(@types/react@19.2.7)(react@19.2.3)
     optionalDependencies:
       '@types/react': 19.2.7
+
+  react-rnd@10.5.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      re-resizable: 6.11.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      react-draggable: 4.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      tslib: 2.6.2
 
   react-router-dom@7.10.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
@@ -13332,6 +13411,8 @@ snapshots:
       json5: 2.2.3
       minimist: 1.2.8
       strip-bom: 3.0.0
+
+  tslib@2.6.2: {}
 
   tslib@2.8.1: {}
 

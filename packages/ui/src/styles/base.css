@@ -63,10 +63,3 @@
     background: transparent;
   }
 }
-
-@layer base {
-  ::selection {
-    color: var(--primary-foreground);
-    background-color: var(--primary);
-  }
-}

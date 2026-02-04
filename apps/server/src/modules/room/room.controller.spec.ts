@@ -117,7 +117,7 @@ describe('RoomController', () => {
         expect.anything(),
       );
 
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual({ success: true, token: serviceResult.token });
     });
   });
 });

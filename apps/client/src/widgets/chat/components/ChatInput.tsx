@@ -133,7 +133,7 @@ export function ChatInput() {
   };
 
   return (
-    <div className="border-border relative flex items-end gap-2 border-t px-3 py-2">
+    <div className="border-border relative flex items-end gap-2 border-t px-3 py-2 select-none">
       {/* 파일 선택 Popover */}
       {mentionState.isOpen && filteredFiles.length > 0 && (
         <div className="border-border bg-popover/95 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 absolute bottom-full left-3 mb-2 w-72 origin-bottom rounded-xl border p-1.5 shadow-xl backdrop-blur-sm duration-150">

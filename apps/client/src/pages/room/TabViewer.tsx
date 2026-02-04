@@ -75,10 +75,10 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
     <Tabs
       value={activeTab[tabKey]}
       onValueChange={handleValueChange}
-      className="flex min-h-0 flex-1"
+      className="flex min-h-0 w-full flex-1 overflow-y-hidden"
     >
       <ScrollArea>
-        <TabsList variant="line" className="overflow-hidden">
+        <TabsList variant="line">
           {myTabs.map((fileId) => (
             <ContextMenu key={fileId}>
               <ContextMenuTrigger>
@@ -121,7 +121,7 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
                   <FileContentViewer fileId={fileId} readOnly={readOnly} />
                 </Suspense>
               ) : (
-                <EmptyView />
+                <EmptyView deleted />
               )
             ) : null}
           </TabsContent>
