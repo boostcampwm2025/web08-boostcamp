@@ -6,6 +6,7 @@ import {
   useTabNavigation,
   useTabClose,
   useFileOpen,
+  useEditorFocus,
 } from './hooks';
 import { useSidebarStore } from '@/stores/sidebar';
 import { useConsoleStore } from '@/stores/console';
@@ -23,6 +24,7 @@ export function GlobalShortcutHandler() {
   const { handleCloseActiveTab } = useTabClose();
   const { isDialogOpen, setIsDialogOpen, handleOpenDialog, handleSelectFile } =
     useFileOpen();
+  const { handleFocusEditor } = useEditorFocus();
 
   const { setHUDOpen } = useShortcutStore();
 
@@ -40,6 +42,7 @@ export function GlobalShortcutHandler() {
     onFocusSplit: handleFocusSplit,
     onShortcutHold: (holding) => setHUDOpen(holding),
     onOpenFile: handleOpenDialog,
+    onFocusEditor: handleFocusEditor,
   });
 
   return (

@@ -23,6 +23,7 @@ export function ShortcutListContent({ className }: ShortcutListContentProps) {
 
       <ShortcutGroup title="에디터 & 탭">
         <ShortcutRow label="파일 열기" keys={[modKey, 'O']} />
+        <ShortcutRow label="에디터 포커스" keys={[modKey, 'E']} />
         <ShortcutRow label="탭 닫기" keys={['Alt', 'W']} />
         <ShortcutRow label="탭 탐색" keys={[modKey, '← / →']} />
         <ShortcutRow label="출력창 토글" keys={[modKey, 'J']} />

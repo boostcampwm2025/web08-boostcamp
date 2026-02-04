@@ -13,6 +13,7 @@ interface ShortcutHandlers {
   onFocusSplit?: (index: number) => void; // 특정 스플릿 포커스
   onShortcutHold?: (holding: boolean) => void;
   onOpenFile?: () => void; // 파일 열기
+  onFocusEditor?: () => void; // 에디터 포커스
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -50,6 +51,12 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
       if (isMod && key === 'b') {
         e.preventDefault();
         handlers?.onToggleSidebar?.();
+      }
+
+      // Editor Focus
+      if (isMod && key === 'e') {
+        e.preventDefault();
+        handlers?.onFocusEditor?.();
       }
 
       if (isMod && (e.code === 'ArrowDown' || e.code === 'PageDown')) {
