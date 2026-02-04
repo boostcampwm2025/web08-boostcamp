@@ -1,0 +1,1 @@
+export { GlobalShortcutHandler } from './GlobalShortcutHandler';

@@ -22,7 +22,7 @@ import { ProviderAPI } from '@/contexts/ProviderAPI';
 import { TabProvider } from '@/contexts/TabProvider';
 import TabViewer from './TabViewer';
 import { TabLayout } from './TabLayout';
-import { GlobalShortcutHandler } from './GlobalShortcutHandler';
+import { GlobalShortcutHandler } from '@/widgets/global-shortcuts';
 
 function RoomPage() {
   const {
