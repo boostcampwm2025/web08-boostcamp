@@ -13,6 +13,9 @@ export class YDocManager {
   private yDoc: YDoc;
   private initialDocLoaded: boolean = false;
 
+  private pendingUpdates: Uint8Array[] = [];
+  private isBuffering: boolean = false;
+
   constructor(yDoc: YDoc) {
     this.yDoc = yDoc;
   }
@@ -63,10 +66,54 @@ export class YDocManager {
   }
 
   /**
-   * Apply remote document update (convenience method)
+   * Apply remote document update
    */
   applyRemoteUpdate(message: Uint8Array): Uint8Array | null {
+    // Buffer updates during composition
+    if (this.isBuffering) {
+      console.log('[YDocManager] Buffering remote update during composition');
+      this.pendingUpdates.push(message);
+      return null;
+    }
+
     return this.applyUpdate(message, 'remote');
+  }
+
+  /**
+   * Enable or disable buffering of remote updates
+   * When disabled, automatically flushes any pending updates
+   */
+  setBuffering(enabled: boolean): void {
+    const wasBuffering = this.isBuffering;
+    const isBuffering = enabled;
+    if (isBuffering === wasBuffering) return;
+
+    this.isBuffering = isBuffering;
+
+    console.log(`[YDocManager] Buffering ${enabled ? 'enabled' : 'disabled'}`);
+
+    // Flush pending updates when buffering is disabled
+    if (wasBuffering && !isBuffering && this.pendingUpdates.length > 0) {
+      this.flushPendingUpdates();
+    }
+  }
+
+  /**
+   * Flush all pending buffered updates
+   */
+  private flushPendingUpdates(): void {
+    // Snapshot current buffer and clear it
+    const updates = [...this.pendingUpdates];
+    this.pendingUpdates = [];
+
+    console.log(`[YDocManager] Flushing ${updates.length} pending updates`);
+
+    // Apply all buffered updates sequentially
+    for (const update of updates) {
+      this.applyUpdate(update, 'remote');
+    }
+
+    console.log(`[YDocManager] Flushed ${updates.length} pending updates`);
   }
 
   /**
