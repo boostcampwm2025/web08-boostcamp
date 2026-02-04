@@ -22,6 +22,7 @@ import { ProviderAPI } from '@/contexts/ProviderAPI';
 import { TabProvider } from '@/contexts/TabProvider';
 import TabViewer from './TabViewer';
 import { TabLayout } from './TabLayout';
+import { useGlobalShortcuts } from '@/shared/lib/hooks/useGlobalShortcuts';
 
 function RoomPage() {
   const {
@@ -76,6 +77,8 @@ function RoomPage() {
   const handleOnActiveTab = (_: number, key: string) => {
     setActiveFile(key);
   };
+
+  useGlobalShortcuts();
 
   return (
     <div
