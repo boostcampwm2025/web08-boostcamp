@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Pencil } from 'lucide-react';
-import { Input, Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { usePermission } from '@/shared/lib/hooks/usePermission';
 import { PERMISSION } from '@codejam/common';
@@ -46,9 +46,9 @@ export function Title() {
 
   if (canEdit && isEditable) {
     return (
-      <Input
+      <input
         type="text"
-        className="w-auto min-w-32 text-xl font-bold"
+        className="outline-input focus:outline-ring mx-1 field-sizing-content max-w-full min-w-0 bg-transparent px-1 text-xl font-bold outline"
         value={editTitle}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -59,7 +59,7 @@ export function Title() {
   }
 
   return (
-    <div className="group flex min-w-0 items-center gap-2">
+    <div className="group flex min-w-0 items-center gap-2 px-2">
       <h1 className="truncate text-xl font-bold">{docMeta?.title || ''}</h1>
       {canEdit && <EditButton onClick={handleEditClick} />}
     </div>

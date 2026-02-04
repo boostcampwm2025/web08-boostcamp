@@ -14,7 +14,7 @@ export default function Header({ roomCode }: HeaderProps) {
   const { role } = usePermission();
 
   return (
-    <header className="flex items-center justify-between gap-1 px-2 py-1">
+    <header className="flex items-center justify-between gap-1 py-1">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <Title />
       </div>
