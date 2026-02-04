@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 interface ShortcutHandlers {
   onNextTab?: () => void;
   onPrevTab?: () => void;
+  onCloseTab?: () => void;
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -12,6 +13,7 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMod = e.ctrlKey || e.metaKey; // Win: Ctrl, Mac: Cmd
+      const isAlt = e.altKey;
       const key = e.key.toLowerCase();
 
       const target = e.target as HTMLElement;
@@ -24,6 +26,14 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         e.preventDefault();
         setChatOpen(!isChatOpen);
         return;
+      }
+
+      if (isAlt && key === 'w') {
+        if (!isInput) {
+          e.preventDefault();
+          handlers?.onCloseTab?.();
+          return;
+        }
       }
 
       if (isMod && (e.code === 'ArrowDown' || e.code === 'PageDown')) {
