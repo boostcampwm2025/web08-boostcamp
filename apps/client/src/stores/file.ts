@@ -10,6 +10,7 @@ import {
   type AwarenessManager,
   type FileManager,
   type FileMetadata,
+  type DocMetadata,
 } from '@/shared/lib/collaboration';
 
 interface FileState {
@@ -24,6 +25,9 @@ interface FileState {
   viewerFileId: string | null;
   isInitialized: boolean;
   isInitialDocLoaded: boolean;
+
+  // Document metadata
+  docMeta: DocMetadata | null;
 
   // File metadata
   files: FileMetadata[];
@@ -79,6 +83,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   isInitialized: false,
   isInitialDocLoaded: false,
 
+  docMeta: null,
   files: [],
   tempFiles: [],
 
@@ -133,6 +138,12 @@ export const useFileStore = create<FileState>((set, get) => ({
       if (!fileManager.getFileNode(activeFileId)) {
         set({ activeFileId: null });
       }
+    });
+
+    // Setup document metadata listener
+    fileManager.onDocMetadataChange(() => {
+      const docMeta = fileManager.getDocMetadata();
+      set({ docMeta });
     });
 
     // Setup file metadata listener
