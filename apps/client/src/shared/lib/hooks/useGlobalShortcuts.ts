@@ -4,7 +4,10 @@ import { useEffect } from 'react';
 interface ShortcutHandlers {
   onNextTab?: () => void;
   onPrevTab?: () => void;
+  onNextSidebarTab?: () => void;
+  onPrevSidebarTab?: () => void;
   onCloseTab?: () => void;
+  onToggleSidebar?: () => void;
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -22,36 +25,6 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable;
 
-      if (!isInput && (key === '/' || (isMod && key === '/'))) {
-        e.preventDefault();
-        setChatOpen(!isChatOpen);
-        return;
-      }
-
-      if (isAlt && key === 'w') {
-        if (!isInput) {
-          e.preventDefault();
-          handlers?.onCloseTab?.();
-          return;
-        }
-      }
-
-      if (isMod && (e.code === 'ArrowDown' || e.code === 'PageDown')) {
-        if (!isInput) {
-          e.preventDefault();
-          handlers?.onNextTab?.();
-          return;
-        }
-      }
-
-      if (isMod && (e.code === 'ArrowUp' || e.code === 'PageUp')) {
-        if (!isInput) {
-          e.preventDefault();
-          handlers?.onPrevTab?.();
-          return;
-        }
-      }
-
       if (key === 'escape') {
         if (isInput) {
           target.blur();
@@ -64,6 +37,50 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
           e.preventDefault();
           return;
         }
+      }
+
+      if (isInput) return;
+
+      // Sidebar
+      if (isMod && key === 'b') {
+        e.preventDefault();
+        handlers?.onToggleSidebar?.();
+      }
+
+      if (isMod && (e.code === 'ArrowDown' || e.code === 'PageDown')) {
+        e.preventDefault();
+        handlers?.onNextSidebarTab?.();
+        return;
+      }
+      if (isMod && (e.code === 'ArrowUp' || e.code === 'PageUp')) {
+        e.preventDefault();
+        handlers?.onPrevSidebarTab?.();
+        return;
+      }
+
+      // Tab
+      if (isAlt && key === 'w') {
+        e.preventDefault();
+        handlers?.onCloseTab?.();
+        return;
+      }
+
+      if (isMod && e.code === 'ArrowRight') {
+        e.preventDefault();
+        handlers?.onNextTab?.();
+        return;
+      }
+      if (isMod && e.code === 'ArrowLeft') {
+        e.preventDefault();
+        handlers?.onPrevTab?.();
+        return;
+      }
+
+      // Chat
+      if (!isInput && (key === '/' || (isMod && key === '/'))) {
+        e.preventDefault();
+        setChatOpen(!isChatOpen);
+        return;
       }
     };
 

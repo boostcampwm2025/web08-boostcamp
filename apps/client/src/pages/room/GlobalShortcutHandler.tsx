@@ -3,13 +3,67 @@ import { ActiveTabContext } from '@/contexts/TabProvider';
 import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 import { useGlobalShortcuts } from '@/shared/lib/hooks/useGlobalShortcuts';
 import { useFileStore } from '@/stores/file';
+import { useSidebarStore } from '@/stores/sidebar';
+import type { SidebarTab } from '@/widgets/room-sidebar/lib/types';
+
+const SIDEBAR_ORDER: SidebarTab[] = [
+  'PARTICIPANTS',
+  'FILES',
+  'MORE',
+  'SETTINGS',
+];
 
 export function GlobalShortcutHandler() {
   const { activeTab, setActiveTab } = useContext(ActiveTabContext);
   const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
     useContext(LinearTabApiContext);
   const setActiveFileId = useFileStore((state) => state.setActiveFile);
+  const { activeSidebarTab, toggleSidebarTab, setActiveSidebarTab } =
+    useSidebarStore();
 
+  // Sidebar 위아래로 탭 전환
+  const handleSidebarSwitch = useCallback(
+    (direction: 'next' | 'prev') => {
+      const currentIndex = activeSidebarTab
+        ? SIDEBAR_ORDER.indexOf(activeSidebarTab)
+        : -1;
+
+      let nextIndex;
+      if (direction === 'next') {
+        nextIndex = (currentIndex + 1) % SIDEBAR_ORDER.length;
+      } else {
+        nextIndex =
+          (currentIndex - 1 + SIDEBAR_ORDER.length) % SIDEBAR_ORDER.length;
+      }
+
+      setActiveSidebarTab(SIDEBAR_ORDER[nextIndex]);
+    },
+    [activeSidebarTab, setActiveSidebarTab],
+  );
+
+  // File Tab 죄우로 전환
+  const handleTabSwitch = useCallback(
+    (direction: 'next' | 'prev') => {
+      const currentLinearKey = activeTab.active;
+      const fileTabMap = takeTab(currentLinearKey);
+      if (!fileTabMap) return;
+
+      const fileIds = Object.keys(fileTabMap);
+      const currentFileId = activeTab[currentLinearKey];
+      const currentIndex = fileIds.indexOf(currentFileId);
+      if (currentIndex === -1) return;
+
+      const nextIndex =
+        direction === 'next'
+          ? (currentIndex + 1) % fileIds.length
+          : (currentIndex - 1 + fileIds.length) % fileIds.length;
+
+      setActiveTab(currentLinearKey, fileIds[nextIndex]);
+    },
+    [activeTab, setActiveTab, takeTab],
+  );
+
+  // File Tan 삭제
   const handleCloseActiveTab = useCallback(() => {
     const tabKey = activeTab.active; // 현재 활성화된 레이아웃(Split) 키
     const fileId = activeTab[tabKey]; // 해당 레이아웃에서 선택된 파일 ID
@@ -62,33 +116,15 @@ export function GlobalShortcutHandler() {
     setActiveFileId,
   ]);
 
-  const handleTabSwitch = (direction: 'next' | 'prev') => {
-    const currentLinearKey = activeTab.active; // 현재 포커스된 레이아웃 키
-    const fileTabMap = takeTab(currentLinearKey); // 해당 레이아웃의 파일들
-
-    if (!fileTabMap) return;
-
-    const fileIds = Object.keys(fileTabMap);
-    const currentFileId = activeTab[currentLinearKey];
-    const currentIndex = fileIds.indexOf(currentFileId);
-
-    if (currentIndex === -1) return;
-
-    let nextIndex;
-    if (direction === 'next') {
-      nextIndex = (currentIndex + 1) % fileIds.length;
-    } else {
-      nextIndex = (currentIndex - 1 + fileIds.length) % fileIds.length;
-    }
-
-    // 다음 탭으로 전환
-    setActiveTab(currentLinearKey, fileIds[nextIndex]);
-  };
-
   useGlobalShortcuts({
     onNextTab: () => handleTabSwitch('next'),
     onPrevTab: () => handleTabSwitch('prev'),
+    onNextSidebarTab: () => handleSidebarSwitch('next'),
+    onPrevSidebarTab: () => handleSidebarSwitch('prev'),
     onCloseTab: handleCloseActiveTab,
+    onToggleSidebar: () => {
+      toggleSidebarTab(activeSidebarTab || 'FILES');
+    },
   });
 
   return null; // UI는 렌더링하지 않음
