@@ -11,6 +11,7 @@ interface ShortcutHandlers {
   onToggleOutput?: () => void;
   onToggleSplit?: () => void; // 화면 분할 토글
   onFocusSplit?: (index: number) => void; // 특정 스플릿 포커스
+  onShortcutHold?: (holding: boolean) => void;
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -101,9 +102,32 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         setChatOpen(!isChatOpen);
         return;
       }
+
+      // Show Shortcuts
+      if (isMod && e.shiftKey && key === 'p') {
+        e.preventDefault();
+        handlers?.onShortcutHold?.(true);
+        return;
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (
+        key === 'p' ||
+        e.key === 'Control' ||
+        e.key === 'Shift' ||
+        e.key === 'Meta'
+      ) {
+        handlers?.onShortcutHold?.(false);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('keyup', handleKeyUp, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('keyup', handleKeyUp, true);
+    };
   }, [isChatOpen, setChatOpen, handlers]);
 }

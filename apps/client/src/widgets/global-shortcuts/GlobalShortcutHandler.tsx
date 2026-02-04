@@ -8,6 +8,7 @@ import {
 } from './hooks';
 import { useSidebarStore } from '@/stores/sidebar';
 import { useConsoleStore } from '@/stores/console';
+import { useShortcutStore } from '@/stores/shortcut';
 
 export function GlobalShortcutHandler() {
   const { activeSidebarTab, toggleSidebarTab } = useSidebarStore();
@@ -18,6 +19,8 @@ export function GlobalShortcutHandler() {
   const { handleSidebarSwitch } = useSidebarNavigation();
   const { handleTabSwitch } = useTabNavigation();
   const { handleCloseActiveTab } = useTabClose();
+
+  const { setHUDOpen } = useShortcutStore();
 
   useGlobalShortcuts({
     onNextTab: () => handleTabSwitch('next'),
@@ -31,6 +34,7 @@ export function GlobalShortcutHandler() {
     onToggleOutput: toggleConsole,
     onToggleSplit: handleToggleSplit,
     onFocusSplit: handleFocusSplit,
+    onShortcutHold: (holding) => setHUDOpen(holding),
   });
 
   return null; // UI는 렌더링하지 않음
