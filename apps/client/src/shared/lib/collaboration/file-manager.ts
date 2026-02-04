@@ -1,12 +1,17 @@
 import { Doc as YDoc, Map as YMap } from 'yjs';
 import { v7 as uuidv7 } from 'uuid';
 import {
+  DEFAULT_DOC_TITLE,
   DEFAULT_LANGUAGE,
   getDefaultFileName,
   getDefaultFileTemplate,
   type FileType,
 } from '@codejam/common';
 import { FileNode } from './file-node';
+
+export interface DocMetadata {
+  title: string;
+}
 
 export interface FileMetadata {
   id: string;
@@ -43,6 +48,38 @@ export class FileManager {
 
   getFileNamesMap(): YMap<string> {
     return this.names;
+  }
+
+  /**
+   * Get the document metadata
+   */
+  getDocMetadata(): DocMetadata {
+    const data = { title: this.getTitle() };
+    return data;
+  }
+
+  /**
+   * Register a callback when document metadata changes
+   * Triggers on: title changes and other document-level metadata updates
+   */
+  onDocMetadataChange(callback: () => void): void {
+    this.meta.observe(() => callback());
+  }
+
+  /**
+   * Get the document title
+   * Returns empty string if no title is set
+   */
+  getTitle(): string {
+    const title = this.meta.get('title') as string;
+    return title ?? '';
+  }
+
+  /**
+   * Set the document title
+   */
+  setTitle(title: string): void {
+    this.meta.set('title', title);
   }
 
   /**
@@ -83,6 +120,10 @@ export class FileManager {
     // Create if empty and not previously initialized
     if (this.files.size > 0 || isInitialized) return null;
 
+    // Initialize Y.Doc metadata
+    this.meta.set('title', DEFAULT_DOC_TITLE);
+
+    // Create default file
     const language = DEFAULT_LANGUAGE;
     const name = getDefaultFileName(language);
     const template = getDefaultFileTemplate(language);
