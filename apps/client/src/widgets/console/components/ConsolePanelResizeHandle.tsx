@@ -19,13 +19,13 @@ export function ConsolePanelResizeHandle({
     <div
       onMouseDown={onMouseDown}
       className={cn(
-        'group absolute inset-y-0 -left-2 z-[100] flex w-4 cursor-ew-resize items-center justify-center',
+        'group absolute inset-y-0 -left-2 z-[40] flex w-4 cursor-ew-resize items-center justify-center',
         isResizing && 'bg-transparent',
       )}
     >
       <div
         className={cn(
-          'absolute right-[7px] z-[101] h-full w-[1px] transition-colors',
+          'absolute right-[7px] z-[41] h-full w-[1px] transition-colors',
           isResizing ? 'bg-primary/30 w-[1.5px]' : 'bg-border/60',
         )}
       />
@@ -39,7 +39,7 @@ export function ConsolePanelResizeHandle({
           onToggle();
         }}
         className={cn(
-          'absolute z-[102] flex h-10 w-4 cursor-pointer items-center justify-center rounded-sm border border-white/20 shadow-sm backdrop-blur-md transition-all',
+          'absolute z-[42] flex h-10 w-4 cursor-pointer items-center justify-center rounded-sm border border-white/20 shadow-sm backdrop-blur-md transition-all',
           'text-muted-foreground hover:text-primary bg-white/20 hover:bg-white/40',
           'dark:border-white/5 dark:bg-white/5 dark:hover:bg-white/10',
           'opacity-100',
