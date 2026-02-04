@@ -26,7 +26,7 @@ export function ShareDialog({ children, roomCode }: ShareDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="bg-card text-card-foreground overflow-hidden rounded-3xl border-none p-0 shadow-xl sm:max-w-[480px]">
+      <DialogContent className="bg-card text-card-foreground overflow-hidden rounded-3xl border-none p-0 shadow-xl sm:max-w-120">
         <div className="p-8">
           <DialogHeader className="mb-8 flex flex-row items-center gap-4 space-y-0">
             <div className="bg-brand-green-50 dark:bg-brand-green/10 rounded-2xl p-3">

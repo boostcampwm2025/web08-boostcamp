@@ -1,110 +1,106 @@
 import {
   Button,
-  RadixInput as Input,
-  RadixLabel as Label,
-  RadixDialogClose as DialogClose,
-  RadixDialogContent as DialogContent,
-  RadixDialogDescription as DialogDescription,
-  RadixDialogFooter as DialogFooter,
-  RadixDialogHeader as DialogHeader,
-  RadixDialogTitle as DialogTitle,
+  Input,
+  Label,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
-import { useContext, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useContext, useState, type FormEvent } from 'react';
 import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 import { ActiveTabContext } from '@/contexts/TabProvider';
+import { filenameSchema } from '@codejam/common';
 
 type RenameDialogProps = {
   fileId: string;
   fileName: string;
-  onOpen: (value: boolean) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
-export function RenameDialog({ fileId, fileName, onOpen }: RenameDialogProps) {
-  const [newFilename, setNewFilename] = useState(fileName);
-  const [helperMessage, setHelperMessage] = useState('');
-  const getFileId = useFileStore((state) => state.getFileId);
+export function RenameDialog({
+  fileId,
+  fileName: initialFileName,
+  open,
+  onOpenChange,
+}: RenameDialogProps) {
+  const [errorMessage, setErrorMessage] = useState('');
+  const findFileIdByName = useFileStore((state) => state.getFileId);
   const renameFile = useFileStore((state) => state.renameFile);
   const { updateLinearTab } = useContext(LinearTabApiContext);
   const { activeTab } = useContext(ActiveTabContext);
 
-  const errorPass = (): boolean => {
-    const name = newFilename.trim();
+  const closeDialog = () => {
+    setErrorMessage('');
+    onOpenChange(false);
+  };
 
-    if (name.length === 0) {
-      setHelperMessage('파일 이름을 입력해주세요.');
-      return false;
+  const validateFilename = (name: string) => {
+    const result = filenameSchema.safeParse(name);
+    if (!result.success) {
+      return { success: false, error: result.error.issues[0].message };
     }
-
-    if (name !== fileName && getFileId(name)) {
-      setHelperMessage('이미 존재하는 파일입니다.');
-      return false;
+    const newFilename = result.data;
+    if (newFilename !== initialFileName && findFileIdByName(newFilename)) {
+      return { success: false, error: '이미 존재하는 파일입니다.' };
     }
-
-    return true;
+    return { success: true, data: newFilename };
   };
 
-  const clear = () => {
-    setNewFilename('');
-    setHelperMessage('');
-    onOpen(false);
-  };
-
-  const handleChangeFilename = (ev: ChangeEvent<HTMLInputElement>) => {
-    setNewFilename(ev.target.value);
-  };
-
-  const handleOnSubmit = (ev: FormEvent) => {
+  const handleRename = (ev: FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    if (!errorPass()) {
+
+    const formData = new FormData(ev.currentTarget);
+    const filename = formData.get('filename') as string;
+    const validationResult = validateFilename(filename);
+    if (!validationResult.success) {
+      setErrorMessage(validationResult.error as string);
       return;
     }
-
-    // Rename file
-    const newName = newFilename.trim();
-    renameFile(fileId, newName);
+    const newFilename = validationResult.data as string;
+    renameFile(fileId, newFilename);
     updateLinearTab(activeTab.active, fileId, {
-      fileName: newName,
+      fileName: newFilename,
     });
-
-    clear();
+    closeDialog();
   };
 
   return (
-    <DialogContent className="sm:max-w-md">
-      <form onSubmit={handleOnSubmit}>
-        <DialogHeader>
-          <DialogTitle>파일 이름 변경</DialogTitle>
-          <DialogDescription>파일의 이름을 변경합니다.</DialogDescription>
-        </DialogHeader>
-        <div className="mt-2 mb-2 flex items-center space-x-2">
-          <Label htmlFor="filename" className="sr-only">
-            파일명
-          </Label>
-          <Input
-            id="filename"
-            value={newFilename}
-            onChange={handleChangeFilename}
-            className="h-9"
-            autoFocus
-          />
-        </div>
-        {helperMessage && (
-          <p className="text-destructive p-0.5 text-[12px] text-red-500">
-            {helperMessage}
-          </p>
-        )}
-        <DialogFooter className="sm:justify-start">
-          <Button type="submit" variant="default" size="sm">
-            변경
-          </Button>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary" size="sm">
-              닫기
-            </Button>
-          </DialogClose>
-        </DialogFooter>
-      </form>
-    </DialogContent>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <form onSubmit={handleRename} className="contents">
+          <DialogHeader>
+            <DialogTitle>파일 이름 변경</DialogTitle>
+            <DialogDescription>파일의 이름을 변경합니다.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="filename" className="text-right">
+                파일명
+              </Label>
+              <Input
+                id="filename"
+                name="filename"
+                defaultValue={initialFileName}
+                className="col-span-3"
+                autoFocus
+              />
+            </div>
+            {errorMessage && (
+              <p className="p-0.5 text-[12px] text-red-500">{errorMessage}</p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button type="submit">변경</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
