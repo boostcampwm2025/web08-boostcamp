@@ -34,6 +34,20 @@ import { Throttle } from '@nestjs/throttler';
 import { WsThrottlerGuard } from '../../common/guards/ws-throttler.guard';
 import { WsExceptionFilter } from '../../common/filters/ws-exception.filter';
 
+/**
+ * Throttle Limit (환경변수로 조절 가능)
+ * - 운영 서버: 기본값 적용
+ * - 스테이징/테스트: .env에서 상향 설정하여 부하테스트 가능
+ */
+const EXECUTE_CODE_LIMIT = parseInt(
+  process.env.EXECUTE_CODE_THROTTLE_LIMIT || '6',
+  10,
+);
+const CHAT_MESSAGE_LIMIT = parseInt(
+  process.env.CHAT_MESSAGE_THROTTLE_LIMIT || '10',
+  10,
+);
+
 @UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   cors: {
@@ -212,7 +226,7 @@ export class CollaborationGateway
   /** C -> S 채팅 메시지 전송 */
   @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
   @UseGuards(WsThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 1000 } })
+  @Throttle({ default: { limit: CHAT_MESSAGE_LIMIT, ttl: 1000 } })
   async handleChatMessage(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: ChatMessageSendPayload,
@@ -227,8 +241,7 @@ export class CollaborationGateway
 
   /** C -> S 코드 실행 요청 */
   @UseGuards(PermissionGuard, WsThrottlerGuard)
-  @Throttle({ default: { limit: 6, ttl: 60000 } })
-  @UseGuards(PermissionGuard)
+  @Throttle({ default: { limit: EXECUTE_CODE_LIMIT, ttl: 60000 } })
   @SubscribeMessage(SOCKET_EVENTS.EXECUTE_CODE)
   async handleExecuteCode(
     @ConnectedSocket() client: CollabSocket,
