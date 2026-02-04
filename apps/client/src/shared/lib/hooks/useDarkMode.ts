@@ -74,6 +74,14 @@ const checkAndActivateHiddenTheme = (
     toast(randomMsg, {
       description: '새로고침하면 원래대로 돌아갑니다 😉',
       duration: 5000,
+      style: {
+        textAlign: 'center',
+      },
+      classNames: {
+        toast: 'justify-center items-center',
+        title: 'text-center w-full',
+        description: 'text-center w-full',
+      },
     });
 
     return themeType;
