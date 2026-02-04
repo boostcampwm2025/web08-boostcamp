@@ -33,7 +33,6 @@ export function useRoomJoin() {
 
   const handleJoinWithToken = useCallback((roomCode: string, token: string) => {
     const sendJoinEvent = () => {
-      console.log('🚀 [Socket] Joining room with token...');
       emitJoinRoom(roomCode, token);
     };
 
@@ -42,7 +41,6 @@ export function useRoomJoin() {
       sendJoinEvent();
     } else {
       // 2. 아직 연결 중이라면 연결되는 순간 딱 한 번 실행되도록 예약
-      console.log('⏳ [Socket] Not connected yet. Waiting for connection...');
       socket.once('connect', sendJoinEvent);
     }
   }, []);
