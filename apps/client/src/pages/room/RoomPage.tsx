@@ -1,15 +1,14 @@
-import { useEffect, type DragEvent } from 'react';
+import type { DragEvent } from 'react';
 import { Header } from '@/widgets/header';
 import { useSocket } from '@/shared/lib/hooks/useSocket';
 import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
-import { useRoomStore } from '@/stores/room';
-import { usePt } from '@/stores/pts';
 import { RadixToaster as Toaster } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import { HostClaimRequestDialog } from '@/widgets/dialog/HostClaimRequestDialog';
-import { ROLE, type RoomJoinStatus } from '@codejam/common';
+import { PERMISSION, type RoomJoinStatus } from '@codejam/common';
+import { usePermission } from '@/shared/lib/hooks/usePermission';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
@@ -31,13 +30,13 @@ function RoomPage() {
     isPasswordDialogOpen,
     setIsPasswordDialogOpen,
     setIsNicknameDialogOpen,
-    roomError,
     passwordError,
     handleNicknameConfirm,
     handlePasswordConfirm,
   } = useRoomJoin();
+
   const { setIsDuplicated, isDuplicated, handleFileChange } = useFileRename(
-    paramCode || '',
+    paramCode!,
   );
 
   useAwarenessSync();
@@ -45,26 +44,16 @@ function RoomPage() {
 
   const setActiveFile = useFileStore((state) => state.setActiveFile);
   const activeFileId = useFileStore((state) => state.activeFileId);
-  const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const getFileName = useFileStore((state) => state.getFileName);
 
   const loader = useLoaderData<RoomJoinStatus>();
 
-  useSocket(paramCode || '');
+  useSocket(paramCode!);
 
   const { isDark } = useDarkMode();
 
-  useEffect(() => {
-    if (!paramCode) {
-      throw new Error('Invalid roomCode');
-    }
-
-    setRoomCode(paramCode);
-  }, [paramCode, setRoomCode]);
-
-  const myPtId = useRoomStore((state) => state.myPtId);
-  const myPt = usePt(myPtId || '');
-  const isViewer = myPt?.role === ROLE.VIEWER;
+  const { can } = usePermission();
+  const canEdit = can(PERMISSION.EDIT_DOCS);
 
   const handleDragPrevent = (ev: DragEvent) => {
     ev.preventDefault();
@@ -89,71 +78,70 @@ function RoomPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <Header roomCode={paramCode!} />
-      <div className="flex min-h-0 flex-1">
-        {roomError && (
-          <div className="bg-red-500 p-4 text-center text-white">
-            {roomError}
-          </div>
-        )}
-        <main className="flex min-h-0 flex-1">
-          <TabProvider>
-            <ProviderAPI>
-              <RoomSidebar />
-              <div
-                className="bg-background flex h-full min-h-0 flex-1 flex-col"
-                onDragOver={handleDragPrevent}
-                onDrop={handleFileDrop}
-              >
-                <TabLayout
-                  min={1}
-                  max={2}
-                  keyName="fileId"
-                  convertProcessFn={convertProcessFn}
-                  onCreateLinearTab={handleOnActiveTab}
-                  onAppendLinearTab={handleOnActiveTab}
-                  initialTabValue={{
-                    key: activeFileId,
-                    value: {
-                      fileName: getFileName(activeFileId),
-                    },
-                  }}
+    <div
+      className={`flex h-screen overflow-hidden transition-colors duration-500`}
+    >
+      <RoomSidebar />
+      <div className="flex w-full flex-col">
+        <Header roomCode={paramCode!} />
+        <div className="flex min-h-0 flex-1">
+          <main className="flex min-h-0 flex-1">
+            <TabProvider>
+              <ProviderAPI>
+                <div
+                  className="bg-background flex h-full min-h-0 flex-1 flex-col"
+                  onDragOver={handleDragPrevent}
+                  onDrop={handleFileDrop}
                 >
-                  {(tabKey: number) => (
-                    <TabViewer tabKey={tabKey} readOnly={isViewer} />
-                  )}
-                </TabLayout>
-              </div>
-              <Chat />
-            </ProviderAPI>
-          </TabProvider>
-          <Output variant={isDark ? 'dark' : 'light'} />
-        </main>
+                  <TabLayout
+                    min={1}
+                    max={2}
+                    keyName="fileId"
+                    convertProcessFn={convertProcessFn}
+                    onCreateLinearTab={handleOnActiveTab}
+                    onAppendLinearTab={handleOnActiveTab}
+                    initialTabValue={{
+                      key: activeFileId,
+                      value: {
+                        fileName: getFileName(activeFileId),
+                      },
+                    }}
+                  >
+                    {(tabKey: number) => (
+                      <TabViewer tabKey={tabKey} readOnly={!canEdit} />
+                    )}
+                  </TabLayout>
+                </div>
+                <Chat />
+              </ProviderAPI>
+            </TabProvider>
+            <Output variant={isDark ? 'dark' : 'light'} />
+          </main>
+        </div>
+        {loader === 'FULL' ? (
+          <ErrorDialog
+            title="사람이 가득 찼습니다!"
+            description="현재 방에 인원이 많습니다."
+            buttonLabel="뒤로가기"
+            onSubmit={() => {
+              window.location.href = '/';
+            }}
+          />
+        ) : (
+          <PrepareStage
+            isNicknameDialogOpen={isNicknameDialogOpen}
+            isPasswordDialogOpen={isPasswordDialogOpen}
+            setIsNicknameDialogOpen={setIsNicknameDialogOpen}
+            setIsPasswordDialogOpen={setIsPasswordDialogOpen}
+            passwordError={passwordError}
+            handleNicknameConfirm={handleNicknameConfirm}
+            handlePasswordConfirm={handlePasswordConfirm}
+          />
+        )}
+        <Toaster richColors position="top-center" />
+        <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
+        <HostClaimRequestDialog />
       </div>
-      {loader === 'FULL' ? (
-        <ErrorDialog
-          title="사람이 가득 찼습니다!"
-          description="현재 방에 인원이 많습니다."
-          buttonLabel="뒤로가기"
-          onSubmit={() => {
-            window.location.href = '/';
-          }}
-        />
-      ) : (
-        <PrepareStage
-          isNicknameDialogOpen={isNicknameDialogOpen}
-          isPasswordDialogOpen={isPasswordDialogOpen}
-          setIsNicknameDialogOpen={setIsNicknameDialogOpen}
-          setIsPasswordDialogOpen={setIsPasswordDialogOpen}
-          passwordError={passwordError}
-          handleNicknameConfirm={handleNicknameConfirm}
-          handlePasswordConfirm={handlePasswordConfirm}
-        />
-      )}
-      <Toaster richColors position="top-center" />
-      <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
-      <HostClaimRequestDialog />
     </div>
   );
 }
