@@ -1,4 +1,4 @@
-import { Doc as YDoc, Map as YMap, YMapEvent } from 'yjs';
+import { Doc as YDoc, Map as YMap } from 'yjs';
 import { v7 as uuidv7 } from 'uuid';
 import {
   DEFAULT_DOC_TITLE,
