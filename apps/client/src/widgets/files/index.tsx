@@ -28,7 +28,7 @@ export function FileList() {
   }, [files, searchQuery, sortKey]);
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex h-full w-full flex-col gap-2">
       <HeaderSection
         count={processedFiles.length}
         roomCode={roomCode}
@@ -53,7 +53,7 @@ export function FileList() {
 }
 
 function Divider() {
-  return <div className="mx-4 border-b border-gray-200 dark:border-gray-700" />;
+  return <div className="border-b border-gray-200 dark:border-gray-700" />;
 }
 
 function HeaderSection({
@@ -66,15 +66,13 @@ function HeaderSection({
   hasPermission: boolean;
 }) {
   return (
-    <div className="px-4">
-      <SidebarHeader
-        title="파일"
-        count={count}
-        action={
-          roomCode && hasPermission && <FileHeaderActions roomCode={roomCode} />
-        }
-      />
-    </div>
+    <SidebarHeader
+      title="파일"
+      count={count}
+      action={
+        roomCode && hasPermission && <FileHeaderActions roomCode={roomCode} />
+      }
+    />
   );
 }
 
@@ -90,14 +88,12 @@ function FilterSection({
   onSortChange: (key: FileSortKey) => void;
 }) {
   return (
-    <div className="px-4 pt-0.5 pb-3">
-      <FileFilterBar
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
-        sortKey={sortKey}
-        onSortChange={onSortChange}
-      />
-    </div>
+    <FileFilterBar
+      searchQuery={searchQuery}
+      onSearchChange={onSearchChange}
+      sortKey={sortKey}
+      onSortChange={onSortChange}
+    />
   );
 }
 
@@ -111,7 +107,7 @@ function FileItems({
   searchQuery: string;
 }) {
   return (
-    <div className="scrollbar-hide flex-1 overflow-y-auto px-4 py-2">
+    <div className="scrollbar-hide flex-1 overflow-y-auto">
       {files.length > 0 ? (
         <div className="flex flex-col gap-0.5">
           {files.map((file) => (
@@ -135,9 +131,5 @@ function FileItems({
 }
 
 function GaugeSection() {
-  return (
-    <div className="px-4 py-3">
-      <CapacityGauge />
-    </div>
-  );
+  return <CapacityGauge />;
 }
