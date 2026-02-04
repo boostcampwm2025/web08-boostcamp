@@ -5,6 +5,7 @@ import { useGlobalShortcuts } from '@/shared/lib/hooks/useGlobalShortcuts';
 import { useFileStore } from '@/stores/file';
 import { useSidebarStore } from '@/stores/sidebar';
 import type { SidebarTab } from '@/widgets/room-sidebar/lib/types';
+import { useConsoleStore } from '@/stores/console';
 
 const SIDEBAR_ORDER: SidebarTab[] = [
   'PARTICIPANTS',
@@ -20,6 +21,7 @@ export function GlobalShortcutHandler() {
   const setActiveFileId = useFileStore((state) => state.setActiveFile);
   const { activeSidebarTab, toggleSidebarTab, setActiveSidebarTab } =
     useSidebarStore();
+  const { toggleConsole } = useConsoleStore();
 
   // Sidebar 위아래로 탭 전환
   const handleSidebarSwitch = useCallback(
@@ -125,6 +127,7 @@ export function GlobalShortcutHandler() {
     onToggleSidebar: () => {
       toggleSidebarTab(activeSidebarTab || 'FILES');
     },
+    onToggleOutput: toggleConsole,
   });
 
   return null; // UI는 렌더링하지 않음

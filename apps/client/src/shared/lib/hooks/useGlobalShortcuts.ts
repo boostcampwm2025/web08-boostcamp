@@ -8,6 +8,7 @@ interface ShortcutHandlers {
   onPrevSidebarTab?: () => void;
   onCloseTab?: () => void;
   onToggleSidebar?: () => void;
+  onToggleOutput?: () => void;
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -56,6 +57,12 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         e.preventDefault();
         handlers?.onPrevSidebarTab?.();
         return;
+      }
+
+      // Output
+      if (isMod && key === 'j') {
+        e.preventDefault();
+        handlers?.onToggleOutput?.();
       }
 
       // Tab
