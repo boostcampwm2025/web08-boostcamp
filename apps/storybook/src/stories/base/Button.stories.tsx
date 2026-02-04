@@ -24,15 +24,7 @@ const meta = {
     },
     size: {
       control: 'select',
-      options: [
-        'default',
-        'sm',
-        'lg',
-        'icon',
-        'icon-xs',
-        'icon-sm',
-        'icon-lg',
-      ],
+      options: ['default', 'sm', 'lg', 'icon', 'icon-xs', 'icon-sm', 'icon-lg'],
       description: 'The size of the button',
     },
     disabled: {
