@@ -8,7 +8,7 @@ interface ShortcutListProps {
 
 export function ShortcutList({ onBack }: ShortcutListProps) {
   return (
-    <div className="flex h-full flex-col overflow-y-auto px-4 pb-4">
+    <div className="flex h-full flex-col px-4 pb-4">
       <SidebarHeader
         title="단축키 안내"
         action={
@@ -18,7 +18,7 @@ export function ShortcutList({ onBack }: ShortcutListProps) {
         }
       />
 
-      <div className="mt-4">
+      <div className="mt-4 flex-1 overflow-y-auto">
         <ShortcutListContent />
       </div>
     </div>
