@@ -31,45 +31,49 @@ export function Title() {
     setIsEditable(true);
   };
 
-  if (canEdit && isEditable) {
-    return (
-      <div className="flex h-10 min-w-0 flex-1 items-center px-4">
-        <div className="group flex max-w-full items-center gap-2">
-          <input
-            type="text"
-            className={`${textStyles} ${underlineStyles} focus:border-muted-foreground [field-sizing:content] max-w-full min-w-[60px] bg-transparent pb-1 outline-none`}
-            value={editTitle}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setEditTitle(e.target.value)
-            }
-            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-              if (e.code === 'Enter') handleSubmit();
-              if (e.code === 'Escape') {
-                setIsEditable(false);
-                setEditTitle(docMeta?.title ?? '');
-              }
-            }}
-            onBlur={handleSubmit}
-            autoFocus
-          />
-          <Pencil className="text-muted-foreground size-4 shrink-0" />
-        </div>
-      </div>
-    );
-  }
+  const isEditMode = canEdit && isEditable;
 
   return (
-    <div className="flex h-10 min-w-0 flex-1 items-center px-4">
+    <div className="flex h-10 min-w-0 flex-1 items-center px-2">
       <div
-        onClick={handleEditClick}
-        className="group hover:bg-muted/30 -ml-2 inline-flex max-w-full cursor-pointer items-center gap-2 rounded-md px-2 transition-colors"
+        onClick={isEditMode ? undefined : handleEditClick}
+        className={`group flex min-w-0 items-center gap-2 ${
+          isEditMode
+            ? ''
+            : 'hover:bg-muted/30 cursor-pointer rounded-md transition-colors'
+        }`}
       >
-        <h1 className={`${textStyles} ${underlineStyles} truncate pb-1`}>
-          {docMeta?.title || '제목 없음'}
-        </h1>
+        <input
+          type="text"
+          className={`${textStyles} ${underlineStyles} min-w-0 bg-transparent outline-none ${
+            isEditMode
+              ? 'focus:border-muted-foreground field-sizing-content'
+              : 'pointer-events-none field-sizing-content truncate'
+          }`}
+          value={isEditMode ? editTitle : docMeta?.title || '제목 없음'}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setEditTitle(e.target.value)
+          }
+          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+            if (e.code === 'Enter') handleSubmit();
+            if (e.code === 'Escape') {
+              setIsEditable(false);
+              setEditTitle(docMeta?.title ?? '');
+            }
+          }}
+          onBlur={handleSubmit}
+          readOnly={!isEditMode}
+          autoFocus={isEditMode}
+        />
 
         {canEdit && (
-          <Pencil className="text-muted-foreground size-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+          <Pencil
+            className={`text-muted-foreground size-4 shrink-0 ${
+              isEditMode
+                ? ''
+                : 'opacity-0 transition-opacity group-hover:opacity-100'
+            }`}
+          />
         )}
       </div>
     </div>
