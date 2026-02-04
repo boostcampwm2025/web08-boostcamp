@@ -64,6 +64,22 @@ jobs:
         if: steps.changes.outputs.client == 'true'
         run: |
           cd apps/client
+
+          cat > vercel.json <<'EOF'
+          {
+            "rewrites": [
+              {
+                "source": "/api/(.*)",
+                "destination": "https://staging.codejam.kro.kr/api/$1"
+              },
+              {
+                "source": "/(.*)",
+                "destination": "/index.html"
+              }
+            ]
+          }
+          EOF
+
           mkdir -p .vercel
           cat > .vercel/project.json <<'EOF'
           {

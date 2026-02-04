@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
     DESTROY: (roomCode: string) => `${API_PREFIX}/rooms/${roomCode}`,
     JOIN: (roomCode: string) => `${API_PREFIX}/rooms/${roomCode}/join`,
     VERIFY: (roomCode: string) => `${API_PREFIX}/rooms/${roomCode}/verify`,
+    AUTH_STATUS: (roomCode: string) =>
+      `${API_PREFIX}/rooms/${roomCode}/auth-status`,
   },
   HEALTH: `health`,
 } as const;

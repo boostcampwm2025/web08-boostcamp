@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   passwordSchema,
   roomCodeSchema,
+  roomTokenSchema,
   roomTypeSchema,
   whoCanDestroyRoomSchema,
 } from '../entities/room.schema.js';
@@ -10,8 +11,7 @@ import { nicknameSchema, ptIdSchema, ptSchema } from '../entities/pt.schema.js';
 // 방 입장 요청 스키마 (C -> S)
 export const joinRoomPayloadSchema = z.object({
   roomCode: roomCodeSchema,
-  nickname: nicknameSchema.optional(),
-  password: passwordSchema.optional(),
+  token: roomTokenSchema.optional(),
 });
 
 // 입장 환영 메시지 스키마 (S -> C)

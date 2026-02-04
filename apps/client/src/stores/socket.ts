@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { RoomCode } from '@codejam/common';
 import { socket } from '@/shared/api/socket';
-import { setupDomainEventHandlers, emitJoinRoom } from './socket-events';
+import { setupDomainEventHandlers } from './socket-events';
 
 interface SocketState {
   socket: typeof socket;
@@ -39,7 +39,6 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     const onConnect = () => {
       console.log('🟢 Connected to Socket Server');
       set({ isConnected: true });
-      emitJoinRoom(roomCode);
     };
 
     const onDisconnect = () => {
