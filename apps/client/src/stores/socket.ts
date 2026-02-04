@@ -37,12 +37,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     }
 
     const onConnect = () => {
-      console.log('🟢 Connected to Socket Server');
       set({ isConnected: true });
     };
 
     const onDisconnect = () => {
-      console.log('🔴 Disconnected');
       set({ isConnected: false });
     };
 

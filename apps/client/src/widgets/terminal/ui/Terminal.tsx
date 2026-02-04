@@ -59,7 +59,7 @@ export function Terminal({ variant }: TerminalProps) {
       try {
         fitAddon.fit();
       } catch (e) {
-        console.warn('Failed to fit terminal:', e);
+        // Ignore fit errors
       }
     };
 

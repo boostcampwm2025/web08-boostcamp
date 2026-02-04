@@ -8,7 +8,6 @@ interface UploadFileResult {
 export function getType(file: File): string {
   if (!file.type) return 'unknown';
   const type = file.type.split('/')[0];
-  console.log(file.type);
   return type;
 }
 
