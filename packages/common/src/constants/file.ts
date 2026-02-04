@@ -47,6 +47,8 @@ export const EXT_TYPES = [
   "dockerfile", "dockerignore"
 ];
 
+export const DEFAULT_DOC_TITLE = '제목 없음';
+
 export const DEFAULT_LANGUAGE: Language = 'javascript';
 
 export const DEFAULT_FILE_NAME: Record<Language, string> = {
