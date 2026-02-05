@@ -17,11 +17,11 @@ export function RoleBadge({ role }: RoleBadgeProps) {
       )}
     >
       <span className="relative flex h-1.5 w-1.5">
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-current" />
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-75" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-current leading-0" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current leading-0 opacity-75" />
       </span>
       <div className="flex w-full justify-center">
-        <span className="z-10 text-[10px] font-bold uppercase select-none">
+        <span className="z-10 text-[10px] leading-0 font-bold uppercase select-none">
           {role.toUpperCase()}
         </span>
       </div>

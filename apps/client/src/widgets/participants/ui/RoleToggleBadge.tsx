@@ -34,7 +34,7 @@ export function RoleToggleBadge({
         </div> */}
 
         <div className="flex w-full justify-center px-2">
-          <span className="z-10 text-[10px] font-bold uppercase select-none">
+          <span className="z-10 text-[10px] leading-0 font-bold uppercase select-none">
             {displayText || role.toUpperCase()}
           </span>
         </div>
@@ -75,7 +75,7 @@ export function RoleToggleBadge({
       <div className="flex w-full justify-center px-2">
         <span
           className={cn(
-            'z-10 text-[10px] font-bold uppercase select-none',
+            'z-10 text-[10px] leading-0 font-bold uppercase select-none',
             isRight && 'hidden',
           )}
         >
@@ -84,7 +84,7 @@ export function RoleToggleBadge({
 
         <span
           className={cn(
-            'z-10 text-[10px] font-bold uppercase select-none',
+            'z-10 text-[10px] leading-0 font-bold uppercase select-none',
             !isRight && 'hidden',
           )}
         >
