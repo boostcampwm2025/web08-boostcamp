@@ -59,9 +59,6 @@ export class AwarenessManager {
   applyRemoteUpdate(message: Uint8Array): void {
     // Buffer updates during composition to prevent cursor position inconsistencies
     if (this.isBuffering) {
-      console.log(
-        '[AwarenessManager] Buffering remote update during composition',
-      );
       this.pendingUpdates.push(message);
       return;
     }
@@ -79,10 +76,6 @@ export class AwarenessManager {
     this.isBuffering = isBuffering;
     if (isBuffering === wasBuffering) return;
 
-    console.log(
-      `[AwarenessManager] Buffering ${enabled ? 'enabled' : 'disabled'}`,
-    );
-
     // Flush pending updates when buffering is disabled
     if (wasBuffering && !isBuffering && this.pendingUpdates.length > 0) {
       this.flushPendingUpdates();
@@ -98,16 +91,10 @@ export class AwarenessManager {
     const updates = [...this.pendingUpdates];
     this.pendingUpdates = [];
 
-    console.log(
-      `[AwarenessManager] Flushing ${updates.length} pending updates`,
-    );
-
     // Apply all buffered updates sequentially
     for (const update of updates) {
       this.applyUpdate(update, 'remote');
     }
-
-    console.log(`[AwarenessManager] Flushed ${updates.length} pending updates`);
   }
 
   /**
