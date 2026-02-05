@@ -10,6 +10,7 @@ import * as Y from 'yjs';
 
 // Plugins
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
+import { compositionTracker } from '../plugin/CompositionTracker';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import {
   lineAvatarExtension,
@@ -22,6 +23,7 @@ import { type Language } from '@codejam/common';
 
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
+import { useFileStore } from '@/stores/file';
 import {
   rainbowEditorTheme,
   neonEditorTheme,
@@ -82,6 +84,23 @@ interface UseEditorExtensionsProps {
   alwaysShowCursorLabels: boolean;
 }
 
+/**
+ * Composition Tracker Callbacks
+ * Buffer updates during composition
+ */
+
+const onCompositionStart = () => {
+  const { yDocManager, awarenessManager } = useFileStore.getState();
+  yDocManager?.setBuffering(true);
+  awarenessManager?.setBuffering(true);
+};
+
+const onCompositionEnd = () => {
+  const { yDocManager, awarenessManager } = useFileStore.getState();
+  yDocManager?.setBuffering(false);
+  awarenessManager?.setBuffering(false);
+};
+
 export function useEditorExtensions(props: UseEditorExtensionsProps) {
   const {
     yText,
@@ -126,6 +145,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       yCollab(yText, awareness),
       getLanguageExtension(language),
       // safeInput({ allowAscii: true }),
+      compositionTracker({ onCompositionStart, onCompositionEnd }),
       capacityLimitInputBlocker(),
 
       cursorTheme,
