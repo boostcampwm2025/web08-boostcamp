@@ -3,7 +3,6 @@ import { useFileStore } from '@/stores/file';
 import { lazy, Suspense, useContext, useEffect, type MouseEvent } from 'react';
 import { EmptyView } from './EmptyView';
 import {
-  Button,
   ScrollArea,
   ScrollBar,
   Tabs,
@@ -11,6 +10,7 @@ import {
   TabsList,
   TabsTrigger,
   toast,
+  cn,
 } from '@codejam/ui';
 import { X, Play } from 'lucide-react';
 import { ActiveTabContext } from '@/contexts/TabProvider';
@@ -142,29 +142,47 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
               </span>
               <div className="flex items-center">
                 {isFileExecutable(fileId) && (
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    className="opacity-60"
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className={cn(
+                      'hover:bg-accent inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-sm opacity-60 transition-colors hover:opacity-100',
+                    )}
                     onClick={(e: MouseEvent) => {
                       e.stopPropagation();
                       handleExecuteCode(fileId);
                     }}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleExecuteCode(fileId);
+                      }
+                    }}
                   >
                     <Play className="h-3 w-3" />
-                  </Button>
+                  </span>
                 )}
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  className="opacity-60"
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    'hover:bg-accent inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-sm opacity-60 transition-colors hover:opacity-100',
+                  )}
                   onClick={(e: MouseEvent) => {
                     e.stopPropagation();
                     handleDeleteTab(fileId);
                   }}
+                  onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDeleteTab(fileId);
+                    }
+                  }}
                 >
                   <X className="h-3 w-3" />
-                </Button>
+                </span>
               </div>
             </TabsTrigger>
           ))}
