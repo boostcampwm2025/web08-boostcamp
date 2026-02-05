@@ -345,11 +345,6 @@ export class FileService {
     if (!pdoc) return 0;
 
     const docByteLength = pdoc.snapshotByteLength + pdoc.updatesByteLength;
-
-    this.logger
-      .debug(`[Expected Doc size] Snapshot: ${pdoc.snapshotByteLength}bytes, 
-      Updates: ${pdoc.updatesByteLength}bytes`);
-
     return docByteLength + message.byteLength;
   }
 

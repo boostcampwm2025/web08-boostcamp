@@ -174,9 +174,6 @@ export class PersistenceDoc implements IPersistenceDoc {
       return this.handleClockInconsistency(startClock, offset, currentRetries);
     }
 
-    const message = `Fetched ${updates.length} updates for ${this.name} (offset: ${offset})`;
-    this.logger.debug(message);
-
     this.mtx(() => {
       this.doc.transact(() => {
         updates.forEach((update) => {
