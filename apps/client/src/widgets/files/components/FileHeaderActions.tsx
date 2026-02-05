@@ -1,4 +1,4 @@
-import { useCallback, useContext, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Plus, Upload, Image } from 'lucide-react';
 import { Button } from '@codejam/ui';
 import { NewFileDialog } from '@/widgets/dialog/NewFileDialog';
@@ -6,8 +6,6 @@ import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
 import { ImageUploadDialog } from '@/widgets/dialog/ImageUploadDialog';
 import { useFileStore } from '@/stores/file';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
-import { ActiveTabContext } from '@/contexts/TabProvider';
-import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 import { uploadFile } from '@/shared/lib/file';
 import { EXT_TYPES } from '@codejam/common';
 
@@ -17,10 +15,8 @@ const getAcceptedExtensions = () => {
 };
 
 export function FileHeaderActions({ roomCode }: { roomCode: string }) {
-  const { appendLinear } = useContext(LinearTabApiContext);
-  const { activeTab } = useContext(ActiveTabContext);
   const uploadRef = useRef<HTMLInputElement>(null);
-  const { getFileId, createFile, setActiveFile, getFileName } = useFileStore();
+  const { getFileId, createFile, setActiveFile } = useFileStore();
   const { handleCheckRename } = useFileRename(roomCode);
 
   const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
@@ -73,9 +69,6 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
       const result = await handleCheckRename(fullNames);
       if (result) {
         const fileId = createFile(fullNames, '');
-        appendLinear(activeTab.active, fileId, {
-          fileName: getFileName(fileId),
-        });
         setActiveFile(fileId);
       }
     }

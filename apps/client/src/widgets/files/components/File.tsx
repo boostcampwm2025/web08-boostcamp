@@ -1,17 +1,9 @@
 import { cn } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
-import {
-  memo,
-  useContext,
-  useState,
-  type DragEvent,
-  type MouseEvent,
-} from 'react';
-import { LinearTabApiContext } from '@/contexts/ProviderAPI';
+import { memo, useState, type DragEvent, type MouseEvent } from 'react';
 import { RenameDialog } from '@/widgets/dialog/RenameDialog';
 import { DeleteDialog } from '@/widgets/dialog/DeleteDialog';
 import { FileMoreMenu } from './FileMoreMenu';
-import { ActiveTabContext } from '@/contexts/TabProvider';
 
 type DialogType = 'RENAME' | 'DELETE' | undefined;
 type FileProps = {
@@ -27,9 +19,6 @@ const INACTIVE_FILE_HOVER =
 export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const setActiveFile = useFileStore((state) => state.setActiveFile);
   const activeFileId = useFileStore((state) => state.activeFileId);
-  const getFileName = useFileStore((state) => state.getFileName);
-  const { appendLinear } = useContext(LinearTabApiContext);
-  const { activeTab } = useContext(ActiveTabContext);
 
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
@@ -41,9 +30,6 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
 
   const handleClick = () => {
     setActiveFile(fileId);
-    appendLinear(activeTab.active, fileId, {
-      fileName: getFileName(fileId),
-    });
   };
 
   const handleActionClick = (type: DialogType) => {
