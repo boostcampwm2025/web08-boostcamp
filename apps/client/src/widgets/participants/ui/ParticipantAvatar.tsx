@@ -22,5 +22,5 @@ export function ParticipantAvatar({ ptId }: ParticipantProps) {
       <span className="text-yellow-500">👑</span>
     ) : undefined;
 
-  return <Avatar id={ptHash} badge={badge} size={32} />;
+  return <Avatar id={ptHash} badge={badge} size={40} />;
 }
