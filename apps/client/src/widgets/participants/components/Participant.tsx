@@ -1,6 +1,7 @@
 import { memo } from 'react';
+import { Pencil } from 'lucide-react';
 import { PRESENCE, ROLE } from '@codejam/common';
-import { cn, Input } from '@codejam/ui';
+import { cn } from '@codejam/ui';
 import { ParticipantAvatar } from '../ui';
 import type { ParticipantProps } from '../lib/types';
 import { ROLE_BADGE_STYLES } from '../lib/types';
@@ -18,10 +19,12 @@ export const Participant = memo(({ ptId }: ParticipantProps) => {
     role,
   } = useParticipant(ptId);
 
+  const isEditMode = isMe && nickname.isEditing;
+
   if (!pt) return null;
 
   return (
-    <div className="hover:bg-accent/50 flex items-center justify-between rounded-sm p-2 transition-colors select-none">
+    <div className="hover:bg-accent flex items-center justify-between rounded-xs p-2 transition-colors select-none">
       <div
         className={cn(
           'flex items-center gap-3',
@@ -32,35 +35,45 @@ export const Participant = memo(({ ptId }: ParticipantProps) => {
 
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1.5">
-              {isMe && nickname.isEditing ? (
-                <Input
-                  type="text"
-                  className="w-24 text-sm font-semibold"
-                  value={nickname.value}
-                  onChange={nickname.handleChange}
-                  onKeyDown={nickname.handleKeyDown}
-                  onBlur={nickname.handleSubmit}
-                  autoFocus
-                />
-              ) : (
-                <span
+            <div
+              onClick={isEditMode ? undefined : nickname.handleClick}
+              className={`group flex min-w-0 items-center gap-1 ${
+                isEditMode ? '' : 'cursor-pointer'
+              }`}
+            >
+              <input
+                type="text"
+                className={cn(
+                  'bg-transparent text-sm font-semibold text-gray-900 outline-none dark:text-gray-100',
+                  'border-b border-transparent transition-colors',
+                  isEditMode
+                    ? 'border-muted-foreground field-sizing-content'
+                    : 'group-hover:border-muted-foreground/50 pointer-events-none field-sizing-content truncate',
+                )}
+                value={isEditMode ? nickname.value : pt.nickname}
+                onChange={nickname.handleChange}
+                onKeyDown={nickname.handleKeyDown}
+                onBlur={nickname.handleSubmit}
+                readOnly={!isEditMode}
+                autoFocus={isEditMode}
+              />
+              {isMe && (
+                <Pencil
                   className={cn(
-                    'truncate text-sm font-semibold text-gray-900 dark:text-gray-100',
-                    isMe && 'cursor-text',
+                    'text-muted-foreground size-3 shrink-0',
+                    isEditMode
+                      ? ''
+                      : 'opacity-0 transition-opacity group-hover:opacity-100',
                   )}
-                  onClick={nickname.handleClick}
-                >
-                  {pt.nickname}
-                </span>
+                />
               )}
             </div>
-            {isMe && nickname.isEditing && nickname.error && (
+            {nickname.error && (
               <span className="text-xs text-red-500">{nickname.error}</span>
             )}
           </div>
 
-          <div className="flex h-6 items-center gap-1">
+          <div className="flex items-center gap-1">
             {pt.ptHash && (
               <span className="font-mono text-xs text-gray-400 dark:text-gray-500">
                 #{pt.ptHash}
@@ -113,7 +126,9 @@ export const Participant = memo(({ ptId }: ParticipantProps) => {
                     <div
                       className={cn(
                         'absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-sm bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-gray-600',
-                        role.isEditor ? 'left-0.5 translate-x-full' : 'left-0.5',
+                        role.isEditor
+                          ? 'left-0.5 translate-x-full'
+                          : 'left-0.5',
                       )}
                     />
                     <div
