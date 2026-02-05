@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import { SidebarHeader } from '@codejam/ui';
 import { CapacityGauge } from '../capacity-gauge';
 import { FileHeaderActions } from './components/FileHeaderActions';
+import { FileSortControls } from './components/FileSortControls';
 import type { FileSortKey } from './lib/types';
 import { filterFiles, sortFiles } from './lib/file-logic';
 import { FileFilterBar } from './components/FileFilterBar';
@@ -91,8 +92,9 @@ function FilterSection({
     <FileFilterBar
       searchQuery={searchQuery}
       onSearchChange={onSearchChange}
-      sortKey={sortKey}
-      onSortChange={onSortChange}
+      sortControls={
+        <FileSortControls sortKey={sortKey} onSortChange={onSortChange} />
+      }
     />
   );
 }
