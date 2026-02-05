@@ -19,10 +19,10 @@ export function FileFilterBar({
 }: FileFilterBarProps) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="mt-1">
+      <div>
         <InputGroup>
           <InputGroupAddon align="inline-start">
-            <Search className="text-muted-foreground size-4" />
+            <Search className="text-muted-foreground" />
           </InputGroupAddon>
           <InputGroupInput
             value={searchQuery}
