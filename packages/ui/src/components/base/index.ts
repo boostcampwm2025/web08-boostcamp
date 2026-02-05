@@ -118,3 +118,11 @@ export {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from './alert-dialog';
+export {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+  EmptyMedia,
+} from './empty';

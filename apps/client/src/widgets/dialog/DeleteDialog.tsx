@@ -43,8 +43,8 @@ export function DeleteDialog({
               <Trash2Icon />
             </AlertDialogMedia>
             <AlertDialogTitle>
-              <strong className="text-primary">{fileName}</strong> 파일을
-              삭제할까요?
+              <strong className="text-primary break-all">{fileName}</strong>{' '}
+              파일을 삭제할까요?
             </AlertDialogTitle>
             <AlertDialogDescription>
               삭제하면 되돌릴 수 없어요.

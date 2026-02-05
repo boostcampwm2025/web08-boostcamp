@@ -21,9 +21,9 @@ export interface FileMetadata {
 
 export class FileManager {
   private yDoc: YDoc;
-  private files: YMap<YMap<unknown>>;
-  private names: YMap<string>;
-  private meta: YMap<unknown>;
+  private files!: YMap<YMap<unknown>>;
+  private names!: YMap<string>;
+  private meta!: YMap<unknown>;
 
   constructor(yDoc: YDoc) {
     this.yDoc = yDoc;

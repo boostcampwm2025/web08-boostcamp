@@ -1,4 +1,10 @@
-import { Button } from '@codejam/ui';
+import {
+  DialogDescription,
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+  InputGroupButton,
+} from '@codejam/ui';
 import { Check, Copy } from 'lucide-react';
 
 interface Props {
@@ -8,23 +14,30 @@ interface Props {
 }
 
 export const RoomCodeSection = ({ roomCode, copied, onCopy }: Props) => (
-  <div className="mb-8 space-y-3">
-    <span className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase">
-      Room Code
-    </span>
-    <div className="flex gap-2">
-      <div className="border-border bg-muted/30 flex flex-1 items-center justify-center rounded-xl border-2 border-dashed py-4">
-        <span className="text-foreground font-mono text-3xl font-bold tracking-[0.3em]">
-          {roomCode}
-        </span>
-      </div>
-      <Button
-        onClick={onCopy}
-        className="bg-brand-green hover:bg-brand-green/90 flex h-auto shrink-0 gap-2 rounded-xl px-6 text-white shadow-sm transition-all active:scale-95"
-      >
-        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-        {copied ? '완료' : '복사'}
-      </Button>
-    </div>
+  <div className="space-y-2">
+    <DialogDescription>Room Code</DialogDescription>
+    <InputGroup className="h-16 w-full">
+      <InputGroupInput
+        type="text"
+        value={roomCode}
+        readOnly
+        className="h-full text-center font-mono text-3xl font-bold tracking-widest md:text-3xl"
+      />
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton
+          size="icon-sm"
+          onClick={onCopy}
+          type="button"
+          title="방 코드 복사"
+          className="h-12 w-12"
+        >
+          {copied ? (
+            <Check className="size-6 text-green-500" />
+          ) : (
+            <Copy className="size-6" />
+          )}
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   </div>
 );
