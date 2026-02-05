@@ -14,7 +14,13 @@ const getAcceptedExtensions = () => {
   return ['text/*', ...extensions].join(',');
 };
 
-export function FileHeaderActions({ roomCode }: { roomCode: string }) {
+export function FileHeaderActions({
+  roomCode,
+  onCreateClick,
+}: {
+  roomCode: string;
+  onCreateClick?: () => void;
+}) {
   const uploadRef = useRef<HTMLInputElement>(null);
   const { getFileId, createFile, setActiveFile } = useFileStore();
   const { handleCheckRename } = useFileRename(roomCode);
@@ -95,17 +101,27 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
   };
 
   return (
-    <div className="flex items-center gap-0.5">
-      <NewFileDialog onSubmit={handleNewFile}>
-        <Button variant="ghost" size="icon" className="h-6 w-6" title="새 파일">
-          <Plus size={16} />
+    <div className="flex items-center">
+      {onCreateClick ? (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          title="새 파일"
+          onClick={onCreateClick}
+        >
+          <Plus />
         </Button>
-      </NewFileDialog>
+      ) : (
+        <NewFileDialog onSubmit={handleNewFile}>
+          <Button variant="ghost" size="icon-sm" title="새 파일">
+            <Plus />
+          </Button>
+        </NewFileDialog>
+      )}
 
       <Button
         variant="ghost"
-        size="icon"
-        className="h-6 w-6"
+        size="icon-sm"
         title="파일 업로드"
         onClick={() => uploadRef.current?.click()}
       >
@@ -117,17 +133,16 @@ export function FileHeaderActions({ roomCode }: { roomCode: string }) {
           accept={getAcceptedExtensions()}
           onChange={handleUploadFile}
         />
-        <Upload size={16} />
+        <Upload />
       </Button>
 
       <Button
         variant="ghost"
-        size="icon"
-        className="h-6 w-6"
+        size="icon-sm"
         title="이미지 공유"
         onClick={() => setIsUrlDialogOpen(true)}
       >
-        <Image size={16} />
+        <Image />
       </Button>
       <ImageUploadDialog
         open={isUrlDialogOpen}
