@@ -43,4 +43,4 @@ export const cardColorSchemes: Record<string, CardColorScheme> = {
 } as const;
 
 export const CARD_BASE_STYLES =
-  'rounded-3xl shadow-lg ring-2 ring-transparent transition-shadow flex flex-col h-full justify-between py-12 px-8 pb-4';
+  'rounded-3xl shadow-lg ring-2 ring-transparent transition-shadow flex flex-col h-full justify-between py-12 px-8 pb-4 bg-white dark:bg-zinc-800 border border-border';
