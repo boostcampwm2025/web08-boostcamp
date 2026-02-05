@@ -5,6 +5,15 @@ import { DeleteDialog } from '@/widgets/dialog/DeleteDialog';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { FileMoreMenu } from './FileMoreMenu';
 import { InlineFileInput } from './InlineFileInput';
+import { FileIcon } from 'lucide-react';
+import { extname } from '@/shared/lib/file';
+
+import CIcon from '@/assets/exts/c.svg?react';
+import CppIcon from '@/assets/exts/cpp.svg?react';
+import JavaIcon from '@/assets/exts/java.svg?react';
+import JavaScriptIcon from '@/assets/exts/javascript.svg?react';
+import TypeScriptIcon from '@/assets/exts/typescript.svg?react';
+import PythonIcon from '@/assets/exts/python.svg?react';
 
 type DialogType = 'RENAME' | 'DELETE' | undefined;
 type FileProps = {
@@ -16,6 +25,30 @@ type FileProps = {
 const ACTIVE_FILE_BG = 'bg-accent/80 text-primary rounded-sm';
 const INACTIVE_FILE_HOVER =
   'hover:bg-muted/60 text-muted-foreground hover:text-foreground rounded-lg';
+
+const iconMap: Record<
+  string,
+  React.ComponentType<React.SVGProps<SVGSVGElement>>
+> = {
+  c: CIcon,
+  cpp: CppIcon,
+  java: JavaIcon,
+  js: JavaScriptIcon,
+  ts: TypeScriptIcon,
+  py: PythonIcon,
+};
+
+const getFileIcon = (fileName: string) => {
+  const extension = extname(fileName);
+  if (!extension) return <FileIcon className="h-4 w-4 shrink-0" />;
+
+  const Icon = iconMap[extension.toLowerCase()];
+  return Icon ? (
+    <Icon className="h-4 w-4 shrink-0" />
+  ) : (
+    <FileIcon className="h-4 w-4 shrink-0" />
+  );
+};
 
 export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const setActiveFile = useFileStore((state) => state.setActiveFile);
@@ -127,10 +160,11 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
         onMouseUp={onMouseUp}
         onDragStart={handleDragStart}
       >
-        <div className="flex w-full items-center space-x-3 overflow-hidden">
-          <p className="truncate text-sm" title={fileName}>
+        <div className="flex w-full items-center gap-1.5 overflow-hidden">
+          {getFileIcon(fileName)}
+          <span className="truncate text-sm" title={fileName}>
             {fileName}
-          </p>
+          </span>
         </div>
 
         {/* 더보기 액션 버튼 */}

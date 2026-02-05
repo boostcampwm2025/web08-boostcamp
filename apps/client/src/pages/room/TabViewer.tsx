@@ -12,12 +12,19 @@ import {
   toast,
   cn,
 } from '@codejam/ui';
-import { X, Play } from 'lucide-react';
+import { X, Play, FileIcon } from 'lucide-react';
 import { ActiveTabContext } from '@/contexts/TabProvider';
 import { useCodeExecutionStore } from '@/stores/code-execution';
 import { emitExecuteCode } from '@/stores/socket-events';
 import { extname, getPistonLanguage } from '@/shared/lib/file';
 import { useSettings } from '@/shared/lib/hooks/useSettings';
+
+import CIcon from '@/assets/exts/c.svg?react';
+import CppIcon from '@/assets/exts/cpp.svg?react';
+import JavaIcon from '@/assets/exts/java.svg?react';
+import JavaScriptIcon from '@/assets/exts/javascript.svg?react';
+import TypeScriptIcon from '@/assets/exts/typescript.svg?react';
+import PythonIcon from '@/assets/exts/python.svg?react';
 
 type TabViewerProps = {
   tabKey: number;
@@ -31,6 +38,32 @@ type FileViewerTab = {
 };
 
 const FileContentViewer = lazy(() => import('./FileContentViewer'));
+
+const iconMap: Record<
+  string,
+  React.ComponentType<React.SVGProps<SVGSVGElement>>
+> = {
+  c: CIcon,
+  cpp: CppIcon,
+  java: JavaIcon,
+  js: JavaScriptIcon,
+  ts: TypeScriptIcon,
+  py: PythonIcon,
+};
+
+const getFileIcon = (fileName: string | null) => {
+  if (!fileName) return <FileIcon className="h-3.5 w-3.5 shrink-0" />;
+
+  const extension = extname(fileName);
+  if (!extension) return <FileIcon className="h-3.5 w-3.5 shrink-0" />;
+
+  const Icon = iconMap[extension.toLowerCase()];
+  return Icon ? (
+    <Icon className="h-3.5 w-3.5 shrink-0" />
+  ) : (
+    <FileIcon className="h-3.5 w-3.5 shrink-0" />
+  );
+};
 
 export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
   const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
@@ -129,8 +162,9 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
             <TabsTrigger
               key={fileId}
               value={fileId}
-              className="group flex p-1 pb-0"
+              className="group flex gap-1.5 p-1 pb-0"
             >
+              {getFileIcon(getFileName(fileId) || fileTab[fileId].fileName)}
               <span className="inline-block flex-1">
                 {getFileName(fileId) ? (
                   getFileName(fileId)
