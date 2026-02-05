@@ -12,7 +12,7 @@ type FileProps = {
   hasPermission: boolean;
 };
 
-const ACTIVE_FILE_BG = 'bg-primary/10 text-primary font-semibold rounded-lg';
+const ACTIVE_FILE_BG = 'bg-accent/80 text-primary font-semibold rounded-lg';
 const INACTIVE_FILE_HOVER =
   'hover:bg-muted/60 text-muted-foreground hover:text-foreground rounded-lg';
 
@@ -63,7 +63,7 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
       <div
         draggable
         className={cn(
-          'group relative my-0.5 flex cursor-pointer items-center justify-between p-2 px-3 transition-all duration-200 select-none',
+          'group relative flex h-10 cursor-pointer items-center justify-between px-2 transition-all duration-200 select-none',
           isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER,
         )}
         onMouseDown={onMouseDown}
