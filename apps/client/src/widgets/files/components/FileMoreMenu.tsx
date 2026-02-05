@@ -1,19 +1,6 @@
 import { useState } from 'react';
-import {
-  Copy,
-  Download,
-  Edit2,
-  Trash2,
-  Check,
-  MoreHorizontal,
-} from 'lucide-react';
-import {
-  RadixPopover as Popover,
-  RadixPopoverContent as PopoverContent,
-  RadixPopoverTrigger as PopoverTrigger,
-  toast,
-  cn,
-} from '@codejam/ui';
+import { Copy, Download, Edit2, Trash2, Check } from 'lucide-react';
+import { toast, cn, Button } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { copyFile, downloadFile } from '@/shared/lib/file';
 
@@ -36,7 +23,6 @@ export function FileMoreMenu({
   const getFileContent = useFileStore((state) => state.getFileContent);
   const getFileType = useFileStore((state) => state.getFileType);
 
-  // 복사 로직
   const handleCopy = async () => {
     if (isCopied) return;
     const content = getFileContent(fileId);
@@ -59,7 +45,6 @@ export function FileMoreMenu({
     }
   };
 
-  // 다운로드 로직
   const handleDownload = async () => {
     const content = getFileContent(fileId);
     const type = getFileType(fileId);
@@ -81,62 +66,55 @@ export function FileMoreMenu({
   return (
     <div
       className={cn(
-        'transition-opacity duration-200',
-        isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+        'animate-in fade-in slide-in-from-right-1 items-center duration-200',
+        isActive ? 'flex' : 'hidden group-hover:flex',
       )}
       onMouseDown={(e) => e.stopPropagation()}
       onMouseUp={(e) => e.stopPropagation()}
     >
-      <Popover>
-        <PopoverTrigger asChild>
-          <button className="hover:bg-muted/80 flex h-6 w-6 items-center justify-center rounded-md transition-colors">
-            <MoreHorizontal className="size-4" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="z-50 w-36 p-1" align="start">
-          {/* 복사 버튼 */}
-          <button
-            onClick={handleCopy}
-            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            {isCopied ? (
-              <Check className="size-3.5 text-green-500" />
-            ) : (
-              <Copy className="size-3.5" />
-            )}
-            <span>내용 복사</span>
-          </button>
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={handleCopy}
+        className="text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+        title="내용 복사"
+      >
+        {isCopied ? (
+          <Check className="size-4 text-green-500" />
+        ) : (
+          <Copy className="size-4" />
+        )}
+      </Button>
 
-          {/* 다운로드 버튼 */}
-          <button
-            onClick={handleDownload}
-            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            <Download className="size-3.5" />
-            <span>다운로드</span>
-          </button>
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={handleDownload}
+        className="text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+        title="다운로드"
+      >
+        <Download className="size-4" />
+      </Button>
 
-          <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={() => onActionClick('RENAME')}
+        className="text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+        title="이름 변경"
+      >
+        <Edit2 className="size-4" />
+      </Button>
 
-          {/* 이름 변경 */}
-          <button
-            onClick={() => onActionClick('RENAME')}
-            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            <Edit2 className="size-3.5" />
-            <span>이름 변경</span>
-          </button>
-
-          {/* 삭제 */}
-          <button
-            onClick={() => onActionClick('DELETE')}
-            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-red-500 outline-none hover:bg-red-50 dark:hover:bg-red-900/20"
-          >
-            <Trash2 className="size-3.5" />
-            <span>삭제</span>
-          </button>
-        </PopoverContent>
-      </Popover>
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={() => onActionClick('DELETE')}
+        className="text-muted-foreground hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+        title="삭제"
+      >
+        <Trash2 className="size-4" />
+      </Button>
     </div>
   );
 }
