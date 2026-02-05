@@ -82,13 +82,13 @@ function RoomPage() {
     <div
       className={`flex h-screen overflow-hidden transition-colors duration-500`}
     >
-      <RoomSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Header roomCode={paramCode!} />
-        <div className="flex min-h-0 flex-1">
-          <main className="flex min-h-0 flex-1">
-            <TabProvider>
-              <ProviderAPI>
+      <TabProvider>
+        <ProviderAPI>
+          <RoomSidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Header roomCode={paramCode!} />
+            <div className="flex min-h-0 flex-1">
+              <main className="flex min-h-0 flex-1">
                 <GlobalShortcutHandler />
                 <div
                   className="bg-background flex h-full min-h-0 flex-1 flex-col"
@@ -115,36 +115,39 @@ function RoomPage() {
                   </TabLayout>
                 </div>
                 <Chat />
-              </ProviderAPI>
-            </TabProvider>
-            <Output variant={isDark ? 'dark' : 'light'} />
-          </main>
-        </div>
-        {loader === 'FULL' ? (
-          <ErrorDialog
-            title="사람이 가득 찼습니다!"
-            description="현재 방에 인원이 많습니다."
-            buttonLabel="뒤로가기"
-            onSubmit={() => {
-              window.location.href = '/';
-            }}
-          />
-        ) : (
-          <PrepareStage
-            isNicknameDialogOpen={isNicknameDialogOpen}
-            isPasswordDialogOpen={isPasswordDialogOpen}
-            setIsNicknameDialogOpen={setIsNicknameDialogOpen}
-            setIsPasswordDialogOpen={setIsPasswordDialogOpen}
-            passwordError={passwordError}
-            handleNicknameConfirm={handleNicknameConfirm}
-            handlePasswordConfirm={handlePasswordConfirm}
-          />
-        )}
-        <Toaster richColors position="top-center" />
-        <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
-        <HostClaimRequestDialog />
-        <ShortcutHUD />
-      </div>
+                <Output variant={isDark ? 'dark' : 'light'} />
+              </main>
+            </div>
+            {loader === 'FULL' ? (
+              <ErrorDialog
+                title="사람이 가득 찼습니다!"
+                description="현재 방에 인원이 많습니다."
+                buttonLabel="뒤로가기"
+                onSubmit={() => {
+                  window.location.href = '/';
+                }}
+              />
+            ) : (
+              <PrepareStage
+                isNicknameDialogOpen={isNicknameDialogOpen}
+                isPasswordDialogOpen={isPasswordDialogOpen}
+                setIsNicknameDialogOpen={setIsNicknameDialogOpen}
+                setIsPasswordDialogOpen={setIsPasswordDialogOpen}
+                passwordError={passwordError}
+                handleNicknameConfirm={handleNicknameConfirm}
+                handlePasswordConfirm={handlePasswordConfirm}
+              />
+            )}
+            <Toaster richColors position="top-center" />
+            <DuplicateDialog
+              open={isDuplicated}
+              onOpenChange={setIsDuplicated}
+            />
+            <HostClaimRequestDialog />
+            <ShortcutHUD />
+          </div>
+        </ProviderAPI>
+      </TabProvider>
     </div>
   );
 }
