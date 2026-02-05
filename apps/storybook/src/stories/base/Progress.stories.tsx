@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Progress } from '@codejam/ui';
+import { useState, useEffect } from 'react';
 
 const meta = {
   title: 'Base/Progress',
@@ -11,7 +12,7 @@ const meta = {
   argTypes: {
     value: {
       control: { type: 'range', min: 0, max: 100, step: 1 },
-      description: '진행률 (0-100)',
+      description: 'Progress value (0-100)',
     },
   },
 } satisfies Meta<typeof Progress>;
@@ -21,7 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    value: 50,
+    value: 60,
   },
   render: (args) => (
     <div className="w-[300px]">
@@ -30,38 +31,19 @@ export const Default: Story = {
   ),
 };
 
-export const Empty: Story = {
-  args: {
-    value: 0,
-  },
-  render: (args) => (
-    <div className="w-[300px] space-y-2">
-      <div className="text-sm text-muted-foreground">시작 전</div>
-      <Progress {...args} />
-    </div>
-  ),
-};
+export const Controlled: Story = {
+  render: () => {
+    const [progress, setProgress] = useState(13);
 
-export const Half: Story = {
-  args: {
-    value: 50,
-  },
-  render: (args) => (
-    <div className="w-[300px] space-y-2">
-      <div className="text-sm text-muted-foreground">진행 중... 50%</div>
-      <Progress {...args} />
-    </div>
-  ),
-};
+    useEffect(() => {
+      const timer = setTimeout(() => setProgress(66), 500);
+      return () => clearTimeout(timer);
+    }, []);
 
-export const Complete: Story = {
-  args: {
-    value: 100,
+    return (
+      <div className="w-[300px]">
+        <Progress value={progress} />
+      </div>
+    );
   },
-  render: (args) => (
-    <div className="w-[300px] space-y-2">
-      <div className="text-sm text-muted-foreground">완료!</div>
-      <Progress {...args} />
-    </div>
-  ),
 };

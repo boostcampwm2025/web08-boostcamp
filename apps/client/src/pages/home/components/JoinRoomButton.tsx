@@ -1,23 +1,31 @@
-import { RadixButton as Button } from '@codejam/ui';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@codejam/ui';
 
 interface JoinRoomButtonProps {
   onClick: () => void;
-  isLoading: boolean;
   disabled: boolean;
+  isLoading: boolean;
 }
 
 export function JoinRoomButton({
   onClick,
-  isLoading,
   disabled,
+  isLoading,
 }: JoinRoomButtonProps) {
   return (
     <Button
       onClick={onClick}
-      disabled={disabled || isLoading}
-      className="bg-brand-green h-14 w-full rounded-xl text-lg font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-lg disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
+      disabled={disabled}
+      className="bg-brand-green w-full rounded-xl p-7 text-xl text-white shadow-md transition-all hover:bg-emerald-600"
     >
-      {isLoading ? '입장 중...' : '입장하기'}
+      {isLoading ? (
+        <span className="inline-flex items-center gap-3">
+          <Loader2 className="size-7 animate-spin" />
+          입장 중
+        </span>
+      ) : (
+        '입장하기'
+      )}
     </Button>
   );
 }

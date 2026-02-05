@@ -1,4 +1,18 @@
 import {
+  type ActiveTab,
+  type ActiveTabInterface,
+  type DraggingSignal,
+  type DraggingSignalInterface,
+  type DraggingTabInterface,
+  type DropSignal,
+  type DropSignalInterface,
+  type LinearTab,
+  type LinearTabInterface,
+  type LinearTabWidth,
+  type LinearTabWidthInterface,
+  type Position,
+} from '@/types/tab-provider';
+import {
   createContext,
   useEffect,
   useRef,
@@ -6,65 +20,14 @@ import {
   type RefObject,
 } from 'react';
 
-export type LinearValue =
-  | string
-  | number
-  | null
-  | boolean
-  | undefined
-  | {
-      [x: string]: LinearValue;
-    };
-
-export type Position = {
-  x: number;
-  y: number;
-};
-
-export type LinearTab = {
-  [tabKey: number]: {
-    [linearKey: string]: LinearValue;
-  };
-};
-
-export type LinearTabWidth = {
-  [tabKey: number]: number;
-};
-
-export type DropSignal =
-  | {
-      signal: true;
-      dataTransfer: DataTransfer | null;
-      clientX: number;
-      clientY: number;
-    }
-  | {
-      signal: false;
-    };
-
-export interface LinearTabWidthInterface {
-  linearTabWidth: LinearTabWidth | undefined;
-  setLinearTabWidth: (value: LinearTabWidth | undefined) => void;
-}
-
-export interface LinearTabInterface {
-  linearTab: LinearTab | undefined;
-  setLinearTab: (value: LinearTab | undefined) => void;
-}
-
-export interface DraggingTabInterface {
-  draggingTab: number | undefined;
-  setDraggingTab: (value: number | undefined) => void;
-}
-
-export interface DropSignalInterface {
-  dropSignal: DropSignal;
-  setDropSignal: (dropSignal: DropSignal) => void;
-}
-
 export const DropSignalContext = createContext<DropSignalInterface>({
   dropSignal: { signal: false },
   setDropSignal: () => {},
+});
+
+export const DraggingSignalContext = createContext<DraggingSignalInterface>({
+  draggingSignal: { signal: false },
+  setDraggingSignal: () => {},
 });
 
 export const PositionContext = createContext<
@@ -86,6 +49,13 @@ export const FullWidthContext = createContext<RefObject<number> | undefined>(
   undefined,
 );
 
+export const ActiveTabContext = createContext<ActiveTabInterface>({
+  activeTab: {
+    active: 0,
+  },
+  setActiveTab: () => {},
+});
+
 export const LinearRefContext =
   createContext<RefObject<HTMLDivElement | null> | null>(null);
 
@@ -100,11 +70,15 @@ export function TabProvider({ children }: ProviderProps) {
   const [draggingTab, setDraggingTab] = useState<number>();
   const [linearTab, setLinearTab] = useState<LinearTab>();
   const [eachWidth, setEachWidth] = useState<LinearTabWidth>();
-  const eachWidthRef = useRef<LinearTabWidth | undefined>(undefined);
   const [dropSignal, setDropSignal] = useState<DropSignal>({ signal: false });
+  const [draggingSignal, setDraggingSignal] = useState<DraggingSignal>({
+    signal: false,
+  });
+  const [activeTab, setActiveTab] = useState<ActiveTab>({ active: 0 });
 
   const throttleRef = useRef<number>(null);
   const fullWidth = useRef(0);
+  const eachWidthRef = useRef<LinearTabWidth | undefined>(undefined);
 
   useEffect(() => {
     eachWidthRef.current = eachWidth;
@@ -123,6 +97,13 @@ export function TabProvider({ children }: ProviderProps) {
 
       const entries = Object.entries(eachWidthRef.current!);
       const { x } = positionRef.current;
+
+      if (x < 0) {
+        setDraggingTab(undefined);
+        setDraggingSignal({ signal: false });
+        return;
+      }
+
       const find = entries.find(([, value], idx) => {
         if (idx === entries.length - 1) {
           return true;
@@ -136,6 +117,11 @@ export function TabProvider({ children }: ProviderProps) {
       if (find) {
         setDraggingTab(parseInt(find[0]));
       }
+
+      setDraggingSignal({
+        signal: true,
+        position: positionRef.current,
+      });
     }, 60);
   };
 
@@ -153,14 +139,16 @@ export function TabProvider({ children }: ProviderProps) {
           return;
         }
 
-        const diff = prevWidth - current.offsetWidth;
         setEachWidth((prev) => {
           if (!prev) {
             return prev;
           }
-
+          const length = Object.keys(prev).length;
           return Object.fromEntries(
-            Object.entries(prev).map(([key, width]) => [key, width + diff]),
+            Object.entries(prev).map(([key]) => [
+              key,
+              current.offsetWidth / length,
+            ]),
           );
         });
       }
@@ -177,11 +165,9 @@ export function TabProvider({ children }: ProviderProps) {
       const x = ev.clientX - rect.left;
       const y = ev.clientY - rect.top;
 
-      if (x >= 0 && y >= 0 && x <= rect.width && y <= rect.height) {
-        ev.preventDefault();
-        positionRef.current = { x, y };
-        throttle();
-      }
+      ev.preventDefault();
+      positionRef.current = { x, y };
+      throttle();
     };
 
     const handleDrop = (ev: DragEvent) => {
@@ -201,6 +187,9 @@ export function TabProvider({ children }: ProviderProps) {
           dataTransfer,
           signal: true,
         });
+        setDraggingSignal({ signal: false });
+        clearTimeout(throttleRef.current ?? undefined);
+        throttleRef.current = null;
       }
     };
 
@@ -233,11 +222,35 @@ export function TabProvider({ children }: ProviderProps) {
                   setLinearTab,
                 }}
               >
-                <DraggingTabContext.Provider
-                  value={{ draggingTab, setDraggingTab }}
+                <DraggingSignalContext.Provider
+                  value={{ draggingSignal, setDraggingSignal }}
                 >
-                  {children}
-                </DraggingTabContext.Provider>
+                  <ActiveTabContext.Provider
+                    value={{
+                      activeTab,
+                      setActiveTab: (tabKey: number, activeTabKey?: string) => {
+                        setActiveTab((prev) => {
+                          return activeTabKey
+                            ? {
+                                ...prev,
+                                [tabKey]: activeTabKey,
+                                active: tabKey,
+                              }
+                            : {
+                                ...prev,
+                                active: tabKey,
+                              };
+                        });
+                      },
+                    }}
+                  >
+                    <DraggingTabContext.Provider
+                      value={{ draggingTab, setDraggingTab }}
+                    >
+                      {children}
+                    </DraggingTabContext.Provider>
+                  </ActiveTabContext.Provider>
+                </DraggingSignalContext.Provider>
               </LinearTabContext.Provider>
             </LinearTabWidthContext.Provider>
           </PositionContext.Provider>

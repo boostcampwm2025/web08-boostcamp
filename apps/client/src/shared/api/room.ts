@@ -4,26 +4,29 @@ import type {
   CreateCustomRoomResponse,
   CreateCustomRoomRequest,
 } from '@codejam/common';
-import { API_ENDPOINTS } from '@codejam/common';
+import { API_ENDPOINTS, ROOM_JOIN_STATUS, MESSAGE } from '@codejam/common';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.PROD
+  ? ''
+  : import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export async function checkRoomJoinable(
   roomCode: string,
 ): Promise<RoomJoinStatus> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOINABLE(roomCode)}`,
-    );
-    const text = (await response.text()) as RoomJoinStatus;
-    if (text === 'NOT_FOUND') {
-      throw new Error('Room not found');
-    }
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOINABLE(roomCode)}`,
+  );
+  const status = (await response.text()) as RoomJoinStatus;
 
-    return text;
-  } catch (e) {
-    const error = e as Error;
-    throw error;
+  switch (status) {
+    case ROOM_JOIN_STATUS.NOT_FOUND:
+      throw new Error(MESSAGE.ERROR.ROOM_NOT_FOUND);
+    case ROOM_JOIN_STATUS.FULL:
+      throw new Error(MESSAGE.ERROR.ROOM_FULL);
+    case ROOM_JOIN_STATUS.JOINABLE:
+      return status;
+    default:
+      throw new Error(MESSAGE.ERROR.SERVER_ERROR);
   }
 }
 
@@ -93,28 +96,39 @@ export const joinRoom = async (
   nickname: string,
   password: string | null,
 ) => {
-  const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/join`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nickname, password }),
-    credentials: 'include',
-  });
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.ROOM.JOIN(roomCode)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname, password }),
+      credentials: 'include',
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || 'Failed to join room');
+    const message =
+      data.error?.message || data.message || 'Failed to join room';
+    throw new Error(message);
   }
+
+  return data;
 };
 
 export async function verifyPassword(roomCode: string, password: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/rooms/${roomCode}/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${API_BASE_URL}${API_ENDPOINTS.ROOM.VERIFY(roomCode)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: password }),
       },
-      body: JSON.stringify({ password: password }),
-    });
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -132,4 +146,29 @@ export async function verifyPassword(roomCode: string, password: string) {
     const error = e as Error;
     throw error;
   }
+}
+
+export async function getAuthStatus(
+  roomCode: string,
+): Promise<{ authenticated: boolean; token: string }> {
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.ROOM.AUTH_STATUS(roomCode)}`,
+    {
+      method: 'GET',
+      credentials: 'include',
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const serverError = data.error;
+    const error = new Error(
+      serverError?.message || '인증 확인 실패',
+    ) as Error & { code?: string };
+    error.code = serverError?.code;
+    throw error;
+  }
+
+  return data;
 }

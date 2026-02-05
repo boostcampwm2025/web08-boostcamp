@@ -80,6 +80,20 @@
 
 @theme inline {
   --animate-buzz: buzz 0.4s ease-in-out forwards;
+  --animate-shake: shake 0.2s ease-in-out;
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-4px);
+    }
+    75% {
+      transform: translateX(4px);
+    }
+  }
 
   @keyframes buzz {
     0%,
@@ -116,17 +130,17 @@
   --font-mono: 'JetBrains Mono', 'D2Coding', Menlo, Monaco, Consolas, monospace;
 
   /* 브랜드 컬러 */
-  --color-brand-blue: #2f81f7;
-  --color-brand-green: #33bd7f;
-  --color-brand-purple: #8b5cf6;
-  --color-brand-orange: #f97316;
-  --color-brand-red: #ef4444;
+  --color-brand-blue: oklch(0.6182 0.1935 258.33);
+  --color-brand-green: oklch(0.7107 0.1479 158.87);
+  --color-brand-purple: oklch(0.6056 0.2189 292.72);
+  --color-brand-orange: oklch(0.7049 0.1867 47.6);
+  --color-brand-red: oklch(0.6368 0.2078 25.33);
 
-  --color-brand-blue-50: #eff6ff;
-  --color-brand-green-50: #f0fdf4;
-  --color-brand-purple-50: #f5f3ff;
-  --color-brand-orange-50: #fff7ed;
-  --color-brand-red-50: #fef2f2;
+  --color-brand-blue-50: oklch(0.9705 0.0142 254.6);
+  --color-brand-green-50: oklch(0.9819 0.0181 155.83);
+  --color-brand-purple-50: oklch(0.9691 0.0161 293.76);
+  --color-brand-orange-50: oklch(0.9796 0.0158 73.68);
+  --color-brand-red-50: oklch(0.9705 0.0129 17.38);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

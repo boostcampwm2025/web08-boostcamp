@@ -40,6 +40,22 @@ jobs:
       - name: Build client for Vercel
         run: |
           cd apps/client
+
+          cat > vercel.json <<'EOF'
+          {
+            "rewrites": [
+              {
+                "source": "/api/(.*)",
+                "destination": "https://production.codejam.kro.kr/api/$1"
+              },
+              {
+                "source": "/(.*)",
+                "destination": "/index.html"
+              }
+            ]
+          }
+          EOF
+
           mkdir -p .vercel
           cat > .vercel/project.json <<'EOF'
           {
@@ -103,6 +119,7 @@ jobs:
               --name server-prod \
               --restart unless-stopped \
               -p 3000:3000 \
+              -p 9091:9091 \
               --env-file /root/.env.prod \
               ${{ secrets.NCP_REGISTRY_URL }}/server:prod-${{ github.sha }}
             docker image prune -af

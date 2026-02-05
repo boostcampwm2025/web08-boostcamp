@@ -1,16 +1,15 @@
 import { createContext, useContext } from 'react';
 import {
+  ActiveTabContext,
   FullWidthContext,
   LinearTabContext,
   LinearTabWidthContext,
-  type LinearValue,
 } from './TabProvider';
-import { useTabStore } from '@/stores/tab';
-import { useFileStore } from '@/stores/file';
+import type { LinearValue } from '@/types/tab-provider';
 
 export interface TabProviderAPI {
   checkLinearWidth: () => number;
-  createLinearTab: (key: string, value: LinearValue) => number;
+  createLinearTab: (tabKey: number, key: string, value: LinearValue) => number;
   updateLinearTab: (tabKey: number, key: string, value: LinearValue) => void;
   deleteLinearTab: (tabKey: number) => void;
   appendLinear: (tabKey: number, key: string, value: LinearValue) => void;
@@ -46,17 +45,8 @@ export function ProviderAPI({ children }: ProviderApiProps) {
     LinearTabWidthContext,
   );
   const { linearTab, setLinearTab } = useContext(LinearTabContext);
+  const { activeTab, setActiveTab } = useContext(ActiveTabContext);
   const fullWidth = useContext(FullWidthContext);
-
-  const getFileId = useFileStore((state) => state.getFileId);
-  const setActiveFile = useFileStore((state) => state.setActiveFile);
-  const setTabs = useTabStore((state) => state.setTabs);
-  const setActiveTabKey = useTabStore((state) => state.setActiveTabKey);
-  const setActiveTabContent = useTabStore((state) => state.setActiveTabContent);
-  const setActiveTab = useTabStore((state) => state.setActiveTab);
-
-  const tabs = useTabStore((state) => state.tabs);
-  const activeTabKey = useTabStore((state) => state.activeTabKey);
 
   const checkLinearWidth = (): number => {
     if (!fullWidth) {
@@ -73,9 +63,12 @@ export function ProviderAPI({ children }: ProviderApiProps) {
     return last[1] / 2;
   };
 
-  const createLinearTab = (key: string, value: LinearValue): number => {
+  const createLinearTab = (
+    tabKey: number,
+    key: string,
+    value: LinearValue,
+  ): number => {
     const width = checkLinearWidth();
-    const now = Date.now();
     const sortTabWidth = linearTabWidth
       ? Object.fromEntries(
           Object.entries(linearTabWidth).map(([key]) => {
@@ -85,22 +78,19 @@ export function ProviderAPI({ children }: ProviderApiProps) {
       : {};
     const updateWidth = {
       ...sortTabWidth,
-      [now]: width,
+      [tabKey]: width,
     };
     const updateTab = {
       ...linearTab,
-      [now]: {
+      [tabKey]: {
         [key]: value,
       },
     };
-    const fileId = getFileId(key)!;
-    setActiveFile(fileId);
-    setTabs([...tabs, now.toString()]);
     setLinearTabWidth(updateWidth);
     setLinearTab(updateTab);
-    setActiveTab(now, key);
+    setActiveTab(tabKey, key);
 
-    return now;
+    return tabKey;
   };
 
   const deleteLinearTab = (tabKey: number) => {
@@ -114,14 +104,12 @@ export function ProviderAPI({ children }: ProviderApiProps) {
         .map(([key, prev]) => [key, prev * 2]),
     );
 
-    const updateTab = Object.fromEntries(
-      Object.entries(linearTab).filter(([key]) => tabKey != parseInt(key)),
+    const entries = Object.entries(linearTab).filter(
+      ([key]) => tabKey != parseInt(key),
     );
-    const keys = Object.keys(updateTab);
-    setTabs(keys);
-    if (tabKey == activeTabKey) {
-      setActiveTabKey(parseInt(keys[0]));
-      setActiveTabContent(updateTab[parseInt(keys[0])]);
+    const updateTab = Object.fromEntries(entries);
+    if (tabKey == activeTab.active) {
+      setActiveTab(parseInt(entries[0][0]));
     }
 
     setLinearTabWidth(updateWidth);
@@ -140,11 +128,8 @@ export function ProviderAPI({ children }: ProviderApiProps) {
         [key]: value,
       },
     };
-    const fileId = getFileId(key)!;
-    setActiveFile(fileId);
+
     setActiveTab(tabKey, key);
-    setActiveTabKey(tabKey);
-    setActiveTabContent(updateTab[tabKey]);
     setLinearTab(updateTab);
   };
 
@@ -153,15 +138,17 @@ export function ProviderAPI({ children }: ProviderApiProps) {
       return;
     }
 
+    const entries = Object.entries(linearTab[tabKey]).filter(
+      ([target]) => key !== target,
+    );
     const updateTab = {
       ...linearTab,
-      [tabKey]: Object.fromEntries(
-        Object.entries(linearTab[tabKey]).filter(([target]) => key !== target),
-      ),
+      [tabKey]: Object.fromEntries(entries),
     };
 
-    setActiveTabKey(tabKey);
-    setActiveTabContent(updateTab[tabKey]);
+    if (entries.length > 0) {
+      setActiveTab(tabKey, entries[0][0]);
+    }
     setLinearTab(updateTab);
   };
 
@@ -196,13 +183,12 @@ export function ProviderAPI({ children }: ProviderApiProps) {
     const updateTab = {
       ...linearTab,
       [tabKey]: {
+        ...linearTab[tabKey],
         [key]: value,
       },
     };
-
-    setActiveTabKey(tabKey);
-    setActiveTabContent(updateTab[tabKey]);
     setLinearTab(updateTab);
+    setActiveTab(tabKey, key);
   };
 
   const tabKeys = (): number[] => Object.keys(linearTabWidth ?? []).map(Number);

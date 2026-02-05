@@ -1,60 +1,47 @@
-import { socket } from '@/shared/api/socket';
 import { useFileStore } from '@/stores/file';
-import {
-  SOCKET_EVENTS,
-  type FilenameCheckResultPayload,
-} from '@codejam/common';
+import { EXT_TYPES } from '@codejam/common';
 import { useState } from 'react';
 import { toast } from '@codejam/ui';
 import { extname } from '../file';
 
 export function useFileRename(roomCode: string | null) {
   const [isDuplicated, setIsDuplicated] = useState(false);
-  const {
-    getFileId,
-    createFile,
-    setActiveFile,
-    activeFileId,
-    measureCapacity,
-    addTempFile,
-    clearTempFile,
-    getTempFiles,
-  } = useFileStore();
+
+  const activeFileId = useFileStore((state) => state.activeFileId);
+
+  const getFileId = useFileStore((state) => state.getFileId);
+  const createFile = useFileStore((state) => state.createFile);
+  const setActiveFile = useFileStore((state) => state.setActiveFile);
+  const measureCapacity = useFileStore((state) => state.measureCapacity);
+  const addTempFile = useFileStore((state) => state.addTempFile);
+  const clearTempFile = useFileStore((state) => state.clearTempFile);
+  const getTempFiles = useFileStore((state) => state.getTempFiles);
 
   if (!roomCode) {
     throw new Error('Invalid roomCode');
   }
 
-  const handleShowModal = (result: FilenameCheckResultPayload): boolean => {
-    if (!result.error) {
-      setIsDuplicated(false);
-      return true;
+  /**
+   * Checks extension and duplicate names
+   */
+  const handleCheckRename = (filename: string): boolean => {
+    // Check extension
+    const ext = extname(filename);
+
+    if (!ext || !EXT_TYPES.includes(ext)) {
+      toast.error('유효하지 않은 확장자입니다.');
+      return false;
     }
 
-    if (result.type === 'duplicate') {
+    // Check duplicate
+    if (getFileId(filename)) {
       setIsDuplicated(true);
+      toast.error('중복되는 파일명입니다.');
+      return false;
     }
 
-    if (result.message) {
-      toast.error(result.message);
-    }
-
-    return false;
-  };
-
-  const handleCheckRename = (filename: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      socket.emit(
-        SOCKET_EVENTS.CHECK_FILENAME,
-        {
-          roomCode,
-          filename,
-        },
-        (response: FilenameCheckResultPayload) => {
-          resolve(handleShowModal(response));
-        },
-      );
-    });
+    setIsDuplicated(false);
+    return true;
   };
 
   const checkInvalidFiles = (files: File[]) => {
@@ -99,7 +86,7 @@ export function useFileRename(roomCode: string | null) {
       if (getFileId(file.name)) {
         addTempFile(file);
       } else {
-        const result = await handleCheckRename(file.name);
+        const result = handleCheckRename(file.name);
         if (result) {
           const content = await file.text();
           const fileId = createFile(file.name, content);

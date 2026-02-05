@@ -1,23 +1,46 @@
 import { useMemo } from 'react';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { EditorView, basicSetup } from 'codemirror';
+import { keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 import { yCollab } from 'y-codemirror.next';
 import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';
 
 // Plugins
 import { readOnlyToast } from '../plugin/ReadOnlyToast';
+import { compositionTracker } from '../plugin/CompositionTracker';
 import { capacityLimitInputBlocker } from '../plugin/CapacityLimitInputBlocker';
 import {
   lineAvatarExtension,
   type AvatarUser,
   type RemoteUser,
 } from '../plugin/LineAvatars';
+import { localTheme, type LocalUser } from '../plugin/LocalTheme';
 import { getLanguageExtension } from '../lib/constants';
 import { type Language } from '@codejam/common';
 
+import { useRoomStore } from '@/stores/room';
+import { usePt } from '@/stores/pts';
+import { useFileStore } from '@/stores/file';
+import {
+  rainbowEditorTheme,
+  neonEditorTheme,
+  pastelEditorTheme,
+} from '../plugin/TrollEditorTheme';
+
 const cursorTheme = EditorView.theme({
+  // 원격 라인 선택으로 인한 텍스트 밀림 방지
+  '.cm-yLineSelection': {
+    margin: '0px 0px 0px 6px', // cm-line padding = 6px
+  },
+
+  // 원격으로 선택된 부분의 상하 패딩 조정
+  '.cm-ySelection': {
+    padding: '2px 0px 2px 0px',
+  },
+
   // 커서 이름표 스타일
   '.cm-ySelectionInfo': {
     padding: '2px 6px',
@@ -49,6 +72,7 @@ interface UseEditorExtensionsProps {
   language: Language;
   readOnly: boolean;
   isDark: boolean;
+  hiddenTheme: 'rainbow' | 'neon' | 'pastel' | null;
   fontSize: number;
   users: RemoteUser[];
   handleGutterClick: (params: {
@@ -60,6 +84,23 @@ interface UseEditorExtensionsProps {
   alwaysShowCursorLabels: boolean;
 }
 
+/**
+ * Composition Tracker Callbacks
+ * Buffer updates during composition
+ */
+
+const onCompositionStart = () => {
+  const { yDocManager, awarenessManager } = useFileStore.getState();
+  yDocManager?.setBuffering(true);
+  awarenessManager?.setBuffering(true);
+};
+
+const onCompositionEnd = () => {
+  const { yDocManager, awarenessManager } = useFileStore.getState();
+  yDocManager?.setBuffering(false);
+  awarenessManager?.setBuffering(false);
+};
+
 export function useEditorExtensions(props: UseEditorExtensionsProps) {
   const {
     yText,
@@ -67,6 +108,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
     language,
     readOnly,
     isDark,
+    hiddenTheme,
     fontSize,
     users,
     handleGutterClick,
@@ -74,6 +116,11 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
     showGutterAvatars,
     alwaysShowCursorLabels,
   } = props;
+
+  // Get user info
+  const myPtId = useRoomStore((state) => state.myPtId);
+  const myPt = usePt(myPtId);
+  const me: LocalUser = { color: myPt?.color, name: myPt?.nickname };
 
   // Compartments
   const compartments = useMemo(
@@ -83,6 +130,7 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
       avatar: new Compartment(),
       readOnly: new Compartment(),
       cursorStyle: new Compartment(),
+      localTheme: new Compartment(),
     }),
     [],
   );
@@ -92,16 +140,29 @@ export function useEditorExtensions(props: UseEditorExtensionsProps) {
 
     return [
       basicSetup,
+      keymap.of(vscodeKeymap),
       EditorView.lineWrapping,
       yCollab(yText, awareness),
       getLanguageExtension(language),
       // safeInput({ allowAscii: true }),
+      compositionTracker({ onCompositionStart, onCompositionEnd }),
       capacityLimitInputBlocker(),
 
       cursorTheme,
 
       // Dynamic Compartments Initial Config
-      compartments.theme.of(isDark ? oneDark : []),
+      compartments.localTheme.of(localTheme(me)),
+      compartments.theme.of(
+        hiddenTheme === 'rainbow'
+          ? rainbowEditorTheme
+          : hiddenTheme === 'neon'
+            ? neonEditorTheme
+            : hiddenTheme === 'pastel'
+              ? pastelEditorTheme
+              : isDark
+                ? oneDark
+                : [],
+      ),
       compartments.fontSize.of(
         EditorView.theme({ '&': { fontSize: `${fontSize}px` } }),
       ),

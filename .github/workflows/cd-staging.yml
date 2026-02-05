@@ -64,6 +64,22 @@ jobs:
         if: steps.changes.outputs.client == 'true'
         run: |
           cd apps/client
+
+          cat > vercel.json <<'EOF'
+          {
+            "rewrites": [
+              {
+                "source": "/api/(.*)",
+                "destination": "https://staging.codejam.kro.kr/api/$1"
+              },
+              {
+                "source": "/(.*)",
+                "destination": "/index.html"
+              }
+            ]
+          }
+          EOF
+
           mkdir -p .vercel
           cat > .vercel/project.json <<'EOF'
           {
@@ -152,6 +168,7 @@ jobs:
               --name server-staging \
               --restart unless-stopped \
               -p 3001:3000 \
+              -p 9091:9091 \
               --env-file /root/.env.staging \
               ${{ secrets.NCP_REGISTRY_URL }}/server:staging-${{ github.sha }}
             docker image prune -af

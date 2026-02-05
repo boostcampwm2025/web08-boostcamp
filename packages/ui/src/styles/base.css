@@ -5,6 +5,7 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
   body {
     @apply bg-background text-foreground;
@@ -64,9 +65,9 @@
 }
 
 @layer base {
-  ::selection {
-    color: var(--primary-foreground);
-    background-color: var(--primary);
+  /* tailwind4에서 버튼의 기본 커서가 default로 변경됨. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
   }
 }
-

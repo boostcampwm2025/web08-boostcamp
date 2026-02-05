@@ -7,6 +7,8 @@ export const ERROR_MESSAGES = {
   ROOM_EXPIRED: '방이 만료되었습니다',
   INVALID_TOKEN: '유효하지 않은 토큰입니다',
   INVALID_PASSWORD: '비밀번호가 일치하지 않습니다',
+  PASSWORD_REQUIRED: '비밀번호가 필요합니다.',
+  NICKNAME_REQUIRED: '닉네임 설정이 필요합니다.',
   UNAUTHORIZED: '권한이 없습니다',
   INVALID_ROOM_CODE: '올바른 방 코드 형식이 아닙니다',
   PT_NOT_FOUND: '참가자를 찾을 수 없습니다',

@@ -19,6 +19,7 @@ import {
   ERROR_MESSAGES,
   ROOM_CONFIG,
   DEFAULT_HOST,
+  getAvatarColors,
 } from '@codejam/common';
 import { customAlphabet } from 'nanoid';
 import { Pt } from '../pt/pt.entity';
@@ -136,12 +137,15 @@ export class RoomService {
         // 2. Host Pt 생성 및 토큰 발급 (Quick Room 제외)
         let token: string | undefined;
         if (options.roomType !== ROOM_TYPE.QUICK) {
+          const ptHash = this.ptService.generatePtHash();
+          const avatarColors = getAvatarColors(ptHash);
+
           const hostPt = manager.create(Pt, {
             room: savedRoom,
-            ptHash: this.ptService.generatePtHash(),
+            ptHash,
             role: options.roomCreatorRole,
             nickname: DEFAULT_HOST.NICKNAME,
-            color: DEFAULT_HOST.COLOR,
+            color: avatarColors.shape,
             presence: PRESENCE.ONLINE,
           });
           const savedPt = await manager.save(hostPt);
@@ -243,6 +247,47 @@ export class RoomService {
   }
 
   // --- Join & Auth Methods ---
+
+  async checkAuthStatus(
+    roomCode: string,
+    token?: string,
+  ): Promise<{ authenticated: boolean; token?: string }> {
+    const room = await this.findRoomByCode(roomCode);
+    if (!room) {
+      throw new ApiException(
+        ERROR_CODE.ROOM_NOT_FOUND,
+        ERROR_MESSAGES.ROOM_NOT_FOUND,
+        404,
+      );
+    }
+
+    if (token) {
+      try {
+        const decoded = this.roomTokenService.verify(token);
+        if (
+          decoded &&
+          decoded.roomCode.toUpperCase() === room.roomCode.toUpperCase()
+        ) {
+          return { authenticated: true, token };
+        }
+      } catch (e) {
+        this.logger.warn(`Auth status check - Token invalid: ${e.message}`);
+      }
+    }
+
+    if (room.roomPassword) {
+      throw new ApiException(
+        ERROR_CODE.PASSWORD_REQUIRED,
+        ERROR_MESSAGES.PASSWORD_REQUIRED,
+        401,
+      );
+    }
+    throw new ApiException(
+      ERROR_CODE.NICKNAME_REQUIRED,
+      ERROR_MESSAGES.NICKNAME_REQUIRED,
+      401,
+    );
+  }
 
   /**
    * [HTTP 전용] 방 입장 처리 (Pt 생성 & Token 발행)

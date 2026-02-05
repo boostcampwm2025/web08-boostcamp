@@ -23,7 +23,7 @@ import {
   // File schemas
   fileIdSchema,
   filenameSchema,
-  filenameCheckResultTypeSchema,
+  fileTypeSchema,
   languageSchema,
   extTypeSchema,
 } from '../schemas/entities/index.js';
@@ -93,10 +93,8 @@ export type FileId = z.infer<typeof fileIdSchema>;
 /** 파일명 */
 export type Filename = z.infer<typeof filenameSchema>;
 
-/** 파일 이름 확인 결과 타입 */
-export type FilenameCheckResultType = z.infer<
-  typeof filenameCheckResultTypeSchema
->;
+/** 파일 타입 */
+export type FileType = z.infer<typeof fileTypeSchema>;
 
 /** 프로그래밍 언어 타입 */
 export type Language = z.infer<typeof languageSchema>;

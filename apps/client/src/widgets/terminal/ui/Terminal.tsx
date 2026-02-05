@@ -9,6 +9,7 @@ import {
   useExecutionError,
 } from '../hooks';
 import 'xterm/css/xterm.css';
+import { handleKeyDown } from './keyboard';
 
 export interface TerminalProps {
   variant: TerminalVariant;
@@ -58,8 +59,8 @@ export function Terminal({ variant }: TerminalProps) {
     const fitTerminal = () => {
       try {
         fitAddon.fit();
-      } catch (e) {
-        console.warn('Failed to fit terminal:', e);
+      } catch {
+        // Ignore fit errors
       }
     };
 
@@ -73,6 +74,9 @@ export function Terminal({ variant }: TerminalProps) {
       resizeTimeout = setTimeout(() => fitTerminal(), 0);
     });
     if (terminalRef.current) observer.observe(terminalRef.current);
+
+    // Attach custom key event handler
+    xterm.attachCustomKeyEventHandler((event) => handleKeyDown(event, xterm));
 
     // Cleanup
     return () => {

@@ -7,9 +7,10 @@ import {
   RadixDialogHeader as DialogHeader,
   RadixDialogTitle as DialogTitle,
 } from '@codejam/ui';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { extname, purename } from '@/shared/lib/file';
+import { uploadFile } from '@/shared/lib/file';
 
 interface DuplicateDialogProps {
   open: boolean;
@@ -26,34 +27,37 @@ export function DuplicateDialog({
   onClick,
   file,
 }: DuplicateDialogProps) {
-  const { overwriteFile, createFile, getFileId, getFileIdMap } = useFileStore();
+  const overwriteFile = useFileStore((state) => state.overwriteFile);
+  const createFile = useFileStore((state) => state.createFile);
+  const getFileId = useFileStore((state) => state.getFileId);
+  const getFileNamesMap = useFileStore((state) => state.getFileNamesMap);
 
   const handleOverwrite = async () => {
     const fileId = getFileId(filename);
-    if (!fileId) {
-      return;
-    }
+    if (!fileId || !file) return;
 
-    const content = await file?.text();
-    overwriteFile(fileId, content);
-    onOpenChange(false);
-    onClick();
+    try {
+      const { content, type } = await uploadFile(file);
+      overwriteFile(fileId, content, type);
+      onOpenChange(false);
+      onClick();
+    } catch (error) {
+      console.error('Failed to overwrite file:', error);
+    }
   };
 
   const handleRename = async () => {
     const fileId = getFileId(filename);
-    if (!fileId) {
-      return;
-    }
+    if (!fileId) return;
 
     const newName = (): string => {
-      const fileIdMap = getFileIdMap();
-      if (!fileIdMap) {
+      const fileNamesMap = getFileNamesMap();
+      if (!fileNamesMap) {
         return filename;
       }
 
       const entries: [string, string][] = Object.entries(
-        fileIdMap.toJSON(),
+        fileNamesMap.toJSON(),
       ).filter(([name]) => {
         const pure = purename(filename);
         const size = pure.length;
@@ -74,10 +78,18 @@ export function DuplicateDialog({
 
       return `${pure.replace(/\((\d+)\)$/i, `(${(parseInt(fileMatch[1]) + 1).toString()})`)}.${ext}`;
     };
-    const content = (await file?.text()) ?? '';
-    createFile(newName(), content);
-    onOpenChange(false);
-    onClick();
+
+    if (!file) return;
+
+    try {
+      const { content, type } = await uploadFile(file);
+      const name = newName();
+      createFile(name, content, type);
+      onOpenChange(false);
+      onClick();
+    } catch (error) {
+      console.error('Failed to create file with new name:', error);
+    }
   };
 
   return (

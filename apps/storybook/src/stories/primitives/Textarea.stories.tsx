@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Textarea, Label } from '@codejam/ui';
+import { Textarea, Label, RadixButton as Button } from '@codejam/ui';
 
 const meta = {
   title: 'Primitives/Textarea',
@@ -103,6 +103,43 @@ export const MaxLength: Story = {
       <Label htmlFor="textarea-maxlength">코멘트</Label>
       <Textarea id="textarea-maxlength" {...args} />
       <p className="text-xs text-muted-foreground">최대 200자</p>
+    </div>
+  ),
+};
+
+export const Field: Story = {
+  render: () => (
+    <div className="grid w-[400px] gap-1.5">
+      <Label htmlFor="message-2">메시지</Label>
+      <Textarea placeholder="메시지를 입력하세요." id="message-2" />
+      <p className="text-sm text-muted-foreground">
+        이 메시지는 지원팀에게 전송됩니다.
+      </p>
+    </div>
+  ),
+};
+
+export const Invalid: Story = {
+  render: () => (
+    <div className="grid w-[400px] gap-1.5">
+      <Label htmlFor="message-invalid" className="text-destructive">
+        잘못된 메시지
+      </Label>
+      <Textarea
+        placeholder="메시지를 입력하세요."
+        id="message-invalid"
+        aria-invalid="true"
+      />
+      <p className="text-sm text-destructive">이 항목은 필수입니다.</p>
+    </div>
+  ),
+};
+
+export const WithButton: Story = {
+  render: () => (
+    <div className="grid w-[400px] gap-2">
+      <Textarea placeholder="메시지를 입력하세요." />
+      <Button>메시지 전송</Button>
     </div>
   ),
 };

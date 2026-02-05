@@ -29,8 +29,8 @@ USER appuser
 # 환경 변수 설정
 ENV NODE_ENV=production
 
-# 포트 개방
-EXPOSE 3000
+# 포트 개방 (앱 3000, 메트릭 9091)
+EXPOSE 3000 9091
 
 # Health check 설정
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

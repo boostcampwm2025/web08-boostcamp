@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Button } from '@codejam/ui';
+import { Button, ButtonGroup } from '@codejam/ui';
+import { ChevronRight, Loader2, Mail } from 'lucide-react';
 
 const meta = {
   title: 'Base/Button',
@@ -19,16 +20,16 @@ const meta = {
         'ghost',
         'link',
       ],
-      description: '버튼 변형',
+      description: 'The visual style of the button',
     },
     size: {
       control: 'select',
-      options: ['default', 'sm', 'lg', 'icon', 'icon-sm', 'icon-lg'],
-      description: '버튼 크기',
+      options: ['default', 'sm', 'lg', 'icon', 'icon-xs', 'icon-sm', 'icon-lg'],
+      description: 'The size of the button',
     },
     disabled: {
       control: 'boolean',
-      description: '비활성화 상태',
+      description: 'Whether the button is disabled',
     },
   },
 } satisfies Meta<typeof Button>;
@@ -37,77 +38,91 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {
-    children: 'Button',
-    variant: 'default',
-  },
-};
-
-export const Destructive: Story = {
-  args: {
-    children: 'Delete',
-    variant: 'destructive',
-  },
-};
-
-export const Outline: Story = {
-  args: {
-    children: 'Outline',
-    variant: 'outline',
-  },
+  render: () => <Button>Button</Button>,
 };
 
 export const Secondary: Story = {
-  args: {
-    children: 'Secondary',
-    variant: 'secondary',
-  },
+  render: () => <Button variant="secondary">Secondary</Button>,
+};
+
+export const Destructive: Story = {
+  render: () => <Button variant="destructive">Destructive</Button>,
+};
+
+export const Outline: Story = {
+  render: () => <Button variant="outline">Outline</Button>,
 };
 
 export const Ghost: Story = {
-  args: {
-    children: 'Ghost',
-    variant: 'ghost',
-  },
+  render: () => <Button variant="ghost">Ghost</Button>,
 };
 
 export const Link: Story = {
-  args: {
-    children: 'Link',
-    variant: 'link',
-  },
+  render: () => <Button variant="link">Link</Button>,
 };
 
-export const Small: Story = {
-  args: {
-    children: 'Small',
-    size: 'sm',
-  },
-};
-
-export const Large: Story = {
-  args: {
-    children: 'Large',
-    size: 'lg',
-  },
-};
-
-export const Disabled: Story = {
-  args: {
-    children: 'Disabled',
-    disabled: true,
-  },
-};
-
-export const AllVariants: Story = {
+export const Icon: Story = {
   render: () => (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="default">Default</Button>
-      <Button variant="destructive">Destructive</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="secondary">Secondary</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="link">Link</Button>
+    <Button size="icon" variant="outline">
+      <ChevronRight />
+    </Button>
+  ),
+};
+
+export const WithIcon: Story = {
+  render: () => (
+    <Button>
+      <Mail /> Login with Email
+    </Button>
+  ),
+};
+
+export const Rounded: Story = {
+  render: () => <Button className="rounded-full">Rounded Button</Button>,
+};
+
+export const Spinner: Story = {
+  render: () => (
+    <Button disabled>
+      <Loader2 className="animate-spin" />
+      Please wait
+    </Button>
+  ),
+};
+
+export const AsLink: Story = {
+  render: () => <Button render={<a href="#" />}>Login</Button>,
+};
+
+export const ButtonGroupUsage: Story = {
+  render: () => (
+    <ButtonGroup>
+      <Button variant="outline">Year</Button>
+      <Button variant="outline">Month</Button>
+      <Button variant="outline">Day</Button>
+    </ButtonGroup>
+  ),
+};
+
+export const Sizes: Story = {
+  render: () => (
+    <div className="flex flex-col gap-4 items-center">
+      <div className="flex gap-2 items-center">
+        <Button size="default">Default</Button>
+        <Button size="sm">Small</Button>
+        <Button size="lg">Large</Button>
+      </div>
+      <div className="flex gap-2 items-center">
+        <Button size="icon" variant="outline">
+          <ChevronRight />
+        </Button>
+        <Button size="icon-sm" variant="outline">
+          <ChevronRight />
+        </Button>
+        <Button size="icon-lg" variant="outline">
+          <ChevronRight />
+        </Button>
+      </div>
     </div>
   ),
 };

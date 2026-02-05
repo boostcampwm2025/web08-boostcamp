@@ -23,12 +23,5 @@ export const PRESENCE = {
 // 참가자 presence 타입
 export const PT_PRESENCES = Object.values(PRESENCE);
 
-// 참가자 색상 (HEX 코드)
-export const PT_COLORS = [
-  '#ef4444',
-  '#22c55e',
-  '#3b82f6',
-  '#eab308',
-  '#a855f7',
-  '#ec4899',
-] as const;
+// 참가자 색상 (SHAPE_COLORS 사용)
+export { SHAPE_COLORS as PT_COLORS } from '../avvvatars/colors.js';

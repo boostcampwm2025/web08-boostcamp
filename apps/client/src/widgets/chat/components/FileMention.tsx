@@ -1,8 +1,5 @@
-import { useContext } from 'react';
 import { FileText } from 'lucide-react';
 import { useFileStore } from '@/stores/file';
-import { useTabStore } from '@/stores/tab';
-import { LinearTabApiContext } from '@/contexts/ProviderAPI';
 
 type FileMentionProps = {
   fileName: string;
@@ -17,9 +14,9 @@ type FileMentionProps = {
 export function FileMention({ fileName }: FileMentionProps) {
   const getFileId = useFileStore((state) => state.getFileId);
   const setActiveFile = useFileStore((state) => state.setActiveFile);
-  const activeTabKey = useTabStore((state) => state.activeTabKey);
-  const setActiveTab = useTabStore((state) => state.setActiveTab);
-  const { appendLinear } = useContext(LinearTabApiContext);
+
+  // Files metadata 변경 시 파일 존재 확인을 위해 재렌더링 유도
+  useFileStore((state) => state.files);
 
   // 렌더링 시점에 파일 존재 여부 확인
   const fileId = getFileId(fileName);
@@ -29,11 +26,6 @@ export function FileMention({ fileName }: FileMentionProps) {
     if (isDeleted) return;
 
     setActiveFile(fileId);
-    appendLinear(activeTabKey, fileName, {
-      fileId,
-      readOnly: false,
-    });
-    setActiveTab(activeTabKey, fileName);
   };
 
   // 삭제된 파일

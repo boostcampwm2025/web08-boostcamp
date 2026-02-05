@@ -19,13 +19,11 @@ const EMIT_TIMEOUT = 5000;
  */
 export const setupChatEventHandlers = () => {
   const onChatSystem = (data: ChatSystemPayload) => {
-    console.log(`💬 [CHAT_SYSTEM] ${data.type}: ${data.pt.nickname}`);
     // store에 메시지 추가 (클라이언트 메모리에만 저장)
     useChatStore.getState().addSystemMessage(data);
   };
 
   const onChatMessage = (data: ChatMessagePayload) => {
-    console.log(`💬 [CHAT_MESSAGE] ${data.pt.nickname}: ${data.content}`);
     // store에 메시지 추가 (중복 방지 로직은 store 내부에서 처리)
     useChatStore.getState().addUserMessage(data, 'sent');
   };
@@ -54,20 +52,17 @@ export const emitChatMessage = (content: string): string | null => {
     trimmedContent.length < LIMITS.CHAT_MESSAGE_MIN ||
     trimmedContent.length > LIMITS.CHAT_MESSAGE_MAX
   ) {
-    console.warn('[CHAT] Invalid message length');
     return null;
   }
 
   // 현재 사용자 pt 정보 가져오기
   const myPtId = useRoomStore.getState().myPtId;
   if (!myPtId) {
-    console.warn('[CHAT] Not joined to room');
     return null;
   }
 
   const myPt = usePtsStore.getState().pts[myPtId];
   if (!myPt) {
-    console.warn('[CHAT] Pt info not found');
     return null;
   }
 
@@ -91,7 +86,6 @@ export const emitChatMessage = (content: string): string | null => {
       { content: trimmedContent },
       (err: Error | null, response: { success: boolean } | undefined) => {
         if (err || !response?.success) {
-          console.error('[CHAT] Message send failed:', err);
           useChatStore.getState().updateMessageStatus(messageId, 'failed');
         } else {
           // 서버에서 브로드캐스트가 오면 중복 방지로 무시됨

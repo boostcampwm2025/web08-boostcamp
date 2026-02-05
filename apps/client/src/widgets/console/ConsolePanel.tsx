@@ -1,52 +1,58 @@
 import { Activity } from 'react';
 import { useEffect, useRef } from 'react';
 import { useCodeExecutionStore } from '@/stores/code-execution';
+import { useConsoleStore } from '@/stores/console';
 import { useConsolePanelResize } from './hooks/useConsolePanelResize';
 import { ConsolePanelHeader } from './components/ConsolePanelHeader';
 import { ConsolePanelContent } from './components/ConsolePanelContent';
 import { ConsolePanelResizeHandle } from './components/ConsolePanelResizeHandle';
+import { cn } from '@codejam/ui';
 
-const MIN_WIDTH = 60;
-const MAX_WIDTH = 600;
-const DEFAULT_WIDTH = 384;
-
-interface ConsolePanelProps {
-  variant: 'light' | 'dark';
-}
-
-export function ConsolePanel({ variant }: ConsolePanelProps) {
-  const { width, isResizing, isCollapsed, handleMouseDown, handleExpand } =
+export function ConsolePanel({ variant }: { variant: 'light' | 'dark' }) {
+  const { toggleConsole } = useConsoleStore();
+  const { width, isResizing, isCollapsed, handleMouseDown } =
     useConsolePanelResize({
-      minWidth: MIN_WIDTH,
-      maxWidth: MAX_WIDTH,
-      defaultWidth: DEFAULT_WIDTH,
+      minWidth: 60,
+      maxWidth: 600,
+      defaultWidth: 384,
     });
 
   const isExecuting = useCodeExecutionStore((state) => state.isExecuting);
   const prevIsExecutingRef = useRef(false);
 
-  // Expand console when execution starts while collapsed
   useEffect(() => {
     const wasExecuting = prevIsExecutingRef.current;
-    const executionStarting = !wasExecuting && isExecuting;
-
-    if (executionStarting && isCollapsed) handleExpand();
+    if (!wasExecuting && isExecuting && isCollapsed) {
+      toggleConsole();
+    }
     prevIsExecutingRef.current = isExecuting;
-  }, [isExecuting, isCollapsed, handleExpand]);
+  }, [isExecuting, isCollapsed, toggleConsole]);
 
   return (
     <div
-      className="border-border relative h-full shrink-0 border-l"
-      style={{ width }}
+      className={cn(
+        'bg-background relative h-full shrink-0 overflow-visible transition-[width] duration-300 ease-in-out',
+        isResizing && 'transition-none',
+      )}
+      style={{ width: isCollapsed ? 0 : width }}
     >
       <ConsolePanelResizeHandle
         isResizing={isResizing}
+        isCollapsed={isCollapsed}
         onMouseDown={handleMouseDown}
+        onToggle={toggleConsole}
       />
 
       <Activity mode={isCollapsed ? 'hidden' : 'visible'}>
-        <ConsolePanelHeader />
-        <ConsolePanelContent variant={variant} />
+        <div
+          className={cn(
+            'border-border flex h-full w-full flex-col border-l',
+            isCollapsed && 'invisible',
+          )}
+        >
+          <ConsolePanelHeader />
+          <ConsolePanelContent variant={variant} />
+        </div>
       </Activity>
     </div>
   );

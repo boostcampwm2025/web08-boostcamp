@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { CardHeader, CardTitle, CardDescription } from '@codejam/ui';
 import { cardColorSchemes } from '../constants/card-color-schemes';
@@ -9,7 +10,7 @@ interface CardHeadingProps {
   colorKey: string;
 }
 
-export function CardHeading({
+export const CardHeading = memo(function CardHeading({
   icon: Icon,
   title,
   description,
@@ -18,7 +19,7 @@ export function CardHeading({
   const colors = cardColorSchemes[colorKey];
 
   return (
-    <CardHeader className="flex flex-col items-center gap-6 pt-12 pb-2 text-center">
+    <CardHeader className="flex flex-col items-center gap-6 text-center">
       <div
         className={`flex size-12 items-center justify-center rounded-2xl ${colors.iconBg}`}
       >
@@ -35,4 +36,4 @@ export function CardHeading({
       </div>
     </CardHeader>
   );
-}
+});

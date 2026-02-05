@@ -1,27 +1,32 @@
-import { Logo } from './Logo';
 import { RoomCode } from './RoomCode';
-import { CodeExecutionButton } from './buttons/CodeExecutionButton';
-import { ShareButton } from './buttons/ShareButton';
-import { DestroyRoomButton } from './buttons/DestroyRoomButton';
-import { ThemeToggleButton } from './buttons/ThemeToggleButton';
+import { Title } from './components/Title';
+import { ShareButton } from './components/ShareButton';
+import { DestroyRoomButton } from './components/DestroyRoomButton';
+import { ThemeToggleButton } from './components/ThemeToggleButton';
+import { RoleBadge } from './components/RoleBadge';
+import { usePermission } from '@/shared/lib/hooks/usePermission';
 
 type HeaderProps = {
   roomCode: string;
 };
 
 export default function Header({ roomCode }: HeaderProps) {
+  const { role } = usePermission();
+
   return (
-    <header className="bg-background border-border scrollbar-hide flex h-14 items-center gap-2 overflow-x-auto border-b px-4 sm:gap-4">
-      <Logo />
-
-      <RoomCode roomCode={roomCode} />
-
-      {/* 우측 액션 버튼들 */}
-      <div className="ml-auto flex shrink-0 items-center gap-1">
-        <CodeExecutionButton />
-        <ShareButton roomCode={roomCode} />
-        <DestroyRoomButton />
-        <ThemeToggleButton />
+    <header className="border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between">
+        <div className="flex h-full min-w-0 flex-1 items-center">
+          <Title />
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <RoleBadge role={role} />
+          <RoomCode roomCode={roomCode} />
+          {/* <CodeExecutionButton /> */}
+          <ShareButton roomCode={roomCode} />
+          <DestroyRoomButton />
+          <ThemeToggleButton />
+        </div>
       </div>
     </header>
   );

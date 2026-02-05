@@ -13,7 +13,7 @@ import {
   RadixDialogTrigger as DialogTrigger,
 } from '@codejam/ui';
 import { RadixLabel as Label } from '@codejam/ui';
-import { RadixButton as Button } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import { RadixInput as Input } from '@codejam/ui';
 import { RadixSlider as Slider } from '@codejam/ui';
 import { RadixSwitch as Switch } from '@codejam/ui';
@@ -85,7 +85,7 @@ export function SettingsDialog() {
           <span className="hidden lg:inline">Settings</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Editor Settings</DialogTitle>
           <DialogDescription>
@@ -115,7 +115,7 @@ export function SettingsDialog() {
                 className="flex-1"
               />
 
-              <div className="flex min-w-[4.5rem] items-center gap-2">
+              <div className="flex min-w-18 items-center gap-2">
                 <Input
                   id="fontSize"
                   type="number"

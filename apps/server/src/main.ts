@@ -5,6 +5,7 @@ import { PROJECT_NAME } from '@codejam/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -24,6 +25,8 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
+
+  app.use(cookieParser());
 
   await app.listen(port);
   console.log(`🚀 ${PROJECT_NAME} Server (NestJS) running on port ${port}`);

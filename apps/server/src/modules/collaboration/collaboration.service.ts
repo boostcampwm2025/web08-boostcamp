@@ -3,18 +3,12 @@ import {
   ERROR_CODE,
   ROLE,
   UPDATABLE_PT_ROLES,
-  EXT_TYPES,
-  FILENAME_CHECK_RESULT_TYPES,
   LIMITS,
   type JoinRoomPayload,
   type FileUpdatePayload,
   type AwarenessUpdatePayload,
   type Pt,
   type PtUpdateRolePayload,
-  type FilenameCheckResultPayload,
-  type FilenameCheckPayload,
-  type FileRenamePayload,
-  type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
   type PtRole,
@@ -98,9 +92,8 @@ export class CollaborationService {
     client: CollabSocket,
     server: Server,
     payload: JoinRoomPayload,
-    token: string | null,
   ): Promise<void> {
-    const { roomCode: rawRoomCode } = payload;
+    const { roomCode: rawRoomCode, token } = payload;
     const roomCode = rawRoomCode.toUpperCase();
 
     // 방 존재 확인
@@ -322,81 +315,6 @@ export class CollaborationService {
     if (!pt) return;
 
     this.notifyUpdatePt(client, server, pt);
-  }
-
-  /** 파일 이름 유효성 확인 */
-  async handleCheckFileName(
-    client: CollabSocket,
-    payload: FilenameCheckPayload,
-  ): Promise<FilenameCheckResultPayload> {
-    const currentExts = [...EXT_TYPES, 'htm'];
-    const extResult = {
-      error: true,
-      type: FILENAME_CHECK_RESULT_TYPES[0], // 'ext'
-      message: '유효하지 않는 확장자입니다.',
-    } as FilenameCheckResultPayload;
-
-    const { filename } = payload;
-    const { roomId, docId } = client.data;
-
-    const room = await this.roomService.findRoomById(roomId);
-
-    if (!room) {
-      return {
-        error: true,
-        type: FILENAME_CHECK_RESULT_TYPES[2], // 'no_room'
-        message: '유효하지 않는 방입니다.',
-      };
-    }
-
-    const lastDot = filename.trim().lastIndexOf('.');
-
-    if (lastDot === -1) {
-      return extResult;
-    }
-
-    const ext = filename
-      .trim()
-      .substring(lastDot + 1)
-      .toLowerCase();
-
-    if (!currentExts.includes(ext)) {
-      return extResult;
-    }
-
-    if (this.fileService.checkDuplicate(docId, filename)) {
-      return {
-        error: true,
-        type: FILENAME_CHECK_RESULT_TYPES[1], // 'duplicate'
-        message: '중복되는 파일명입니다.',
-      };
-    }
-
-    return {
-      error: false,
-    };
-  }
-
-  /** 파일 이름 변경 */
-  handleFileRename(
-    server: Server,
-    client: CollabSocket,
-    payload: FileRenamePayload,
-  ) {
-    const { fileId, newName } = payload;
-    const { docId } = client.data;
-    this.fileService.renameFile(docId, fileId, newName, client, server);
-  }
-
-  /** 파일 삭제 */
-  handleFileDelete(
-    server: Server,
-    client: CollabSocket,
-    payload: FileDeletePayload,
-  ) {
-    const { fileId } = payload;
-    const { docId } = client.data;
-    this.fileService.deleteFile(docId, fileId, client, server);
   }
 
   /** 채팅 메시지 처리 */

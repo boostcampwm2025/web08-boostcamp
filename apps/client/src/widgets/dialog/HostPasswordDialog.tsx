@@ -1,15 +1,20 @@
-import { useState } from 'react';
 import {
-  RadixDialog as Dialog,
-  RadixDialogContent as DialogContent,
-  RadixDialogDescription as DialogDescription,
-  RadixDialogFooter as DialogFooter,
-  RadixDialogHeader as DialogHeader,
-  RadixDialogTitle as DialogTitle,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  Label,
 } from '@codejam/ui';
-import { RadixButton as Button } from '@codejam/ui';
-import { RadixInput as Input } from '@codejam/ui';
-import { RadixLabel as Label } from '@codejam/ui';
+import { passwordSchema } from '@codejam/common';
+import { Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 
 interface HostPasswordDialogProps {
   open: boolean;
@@ -28,24 +33,39 @@ export function HostPasswordDialog({
 }: HostPasswordDialogProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
 
-    const input = password.trim();
-    if (!input) {
-      setError('비밀번호를 입력해주세요.');
-      return;
-    }
+    if (error || !password) return;
 
-    onConfirm(input);
+    onConfirm(password);
     handleClose();
   };
 
   const handleClose = () => {
     setPassword('');
     setError('');
+    setShowPassword(false);
     onOpenChange(false);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setPassword(input);
+
+    if (!input.trim()) {
+      setError('');
+      return;
+    }
+
+    const result = passwordSchema.safeParse(input);
+    if (!result.success) {
+      setError(result.error.issues[0].message);
+    } else {
+      setError('');
+    }
   };
 
   return (
@@ -56,30 +76,48 @@ export function HostPasswordDialog({
         else onOpenChange(isOpen);
       }}
     >
-      <DialogContent showCloseButton={false}>
-        <form onSubmit={handleSubmit}>
+      <DialogContent className="sm:max-w-md">
+        <form onSubmit={handleSubmit} className="contents">
           <DialogHeader>
-            <DialogTitle>호스트 비밀번호 입력</DialogTitle>
+            <DialogTitle>호스트 권한 요청</DialogTitle>
             <DialogDescription>
-              호스트 권한을 요청하려면 비밀번호를 입력해주세요.
+              호스트가 되려면 비밀번호를 입력해 주세요.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="host-password">비밀번호</Label>
-              <Input
-                id="host-password"
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError('');
-                }}
-                placeholder="호스트 비밀번호를 입력해주세요."
-                autoFocus
-                maxLength={16}
-              />
-              {error && <p className="text-destructive text-sm">{error}</p>}
+          <div className="grid gap-1">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="host-password" className="text-right">
+                비밀번호
+              </Label>
+              <div className="col-span-3">
+                <InputGroup>
+                  <InputGroupInput
+                    id="host-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={handlePasswordChange}
+                    placeholder="호스트 비밀번호 입력"
+                    autoFocus
+                    maxLength={16}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      size="icon-xs"
+                      onClick={() => setShowPassword(!showPassword)}
+                      type="button"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+              </div>
+            </div>
+            <div className={`h-4 ${!error ? 'invisible' : ''}`}>
+              <p className="text-right text-[12px] text-red-500">{error}</p>
             </div>
           </div>
           <DialogFooter>
@@ -87,7 +125,7 @@ export function HostPasswordDialog({
               취소
             </Button>
             <Button type="submit" disabled={!password.trim()}>
-              요청
+              요청하기
             </Button>
           </DialogFooter>
         </form>

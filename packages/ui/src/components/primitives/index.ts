@@ -1,5 +1,4 @@
 export * from './card';
-export * from './label';
 export * from './textarea';
 export * from './menu-button';
 
@@ -28,3 +27,5 @@ export {
 export { LucideAvatarProvider, getAvatarIcon } from './avatar/lucide-avatar.js';
 
 export { SidebarHeader } from './sidebar-header';
+
+export { Badge, badgeVariants } from './badge';

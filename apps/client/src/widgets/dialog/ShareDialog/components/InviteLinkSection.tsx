@@ -1,4 +1,4 @@
-import { RadixButton as Button, RadixInput as Input } from '@codejam/ui';
+import { Button, RadixInput as Input } from '@codejam/ui';
 import { Check, Copy, Share2 } from 'lucide-react';
 
 interface Props {

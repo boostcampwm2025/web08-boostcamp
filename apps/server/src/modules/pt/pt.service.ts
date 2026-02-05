@@ -335,7 +335,7 @@ export class PtService {
       ptId: entity.ptId,
       nickname: entity.nickname,
       ptHash: entity.ptHash,
-      color: entity.color as Pt['color'],
+      color: entity.color,
       role: entity.role,
       presence: entity.presence,
       createdAt: entity.createdAt.toISOString(),

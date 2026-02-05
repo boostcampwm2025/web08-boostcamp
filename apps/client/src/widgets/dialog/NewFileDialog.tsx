@@ -1,9 +1,4 @@
-import type { ExtType } from '@/shared/lib/file';
-import {
-  RadixButton as Button,
-  RadixInput as Input,
-  RadixLabel as Label,
-} from '@codejam/ui';
+import { Button, RadixInput as Input, RadixLabel as Label } from '@codejam/ui';
 import {
   RadixDialog as Dialog,
   RadixDialogClose as DialogClose,
@@ -13,20 +8,11 @@ import {
   RadixDialogHeader as DialogHeader,
   RadixDialogTitle as DialogTitle,
 } from '@codejam/ui';
-import {
-  RadixSelect as Select,
-  RadixSelectContent as SelectContent,
-  RadixSelectGroup as SelectGroup,
-  RadixSelectItem as SelectItem,
-  RadixSelectLabel as SelectLabel,
-  RadixSelectTrigger as SelectTrigger,
-  RadixSelectValue as SelectValue,
-} from '@codejam/ui';
 import { RadixDialogTrigger as DialogTrigger } from '@codejam/ui';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 
 type NewFileDialogProps = {
-  onSubmit: (filename: string, ext: string) => Promise<void>;
+  onSubmit: (filename: string) => Promise<void>;
   children: React.ReactNode;
 };
 
@@ -34,16 +20,10 @@ export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
   const [open, setOpen] = useState(false);
   const [filename, setFilename] = useState('');
   const [helperMessage, setHelperMessage] = useState('');
-  const [extname, setExtname] = useState<ExtType>(undefined);
 
   const errorPass = (): boolean => {
     if (filename.trim().length === 0) {
       setHelperMessage('파일 이름을 입력해주세요.');
-      return false;
-    }
-
-    if (!extname) {
-      setHelperMessage('파일 확장자를 정해주세요.');
       return false;
     }
 
@@ -60,14 +40,13 @@ export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
     setFilename(ev.target.value);
   };
 
-  const handleChangeExtname = (value: string) => setExtname(value as ExtType);
   const handleOnSubmit = (ev: FormEvent) => {
     ev.preventDefault();
     if (!errorPass()) {
       return;
     }
 
-    onSubmit(filename, extname!);
+    onSubmit(filename);
     clear();
   };
 
@@ -88,30 +67,12 @@ export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
             </Label>
             <Input
               id="filename"
-              defaultValue={filename}
+              value={filename}
               onChange={handleChangeFilename}
               className="h-9"
+              placeholder="example.txt"
+              autoFocus
             />
-            <Select value={extname} onValueChange={handleChangeExtname}>
-              <SelectTrigger className="w-45">
-                <SelectValue placeholder="확장자 선택" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectGroup>
-                  <SelectLabel>확장자</SelectLabel>
-                  <SelectItem value="c">.c</SelectItem>
-                  <SelectItem value="cpp">.cpp</SelectItem>
-                  <SelectItem value="css">.css</SelectItem>
-                  <SelectItem value="html">.html</SelectItem>
-                  <SelectItem value="java">.java</SelectItem>
-                  <SelectItem value="js">.js</SelectItem>
-                  <SelectItem value="jsx">.jsx</SelectItem>
-                  <SelectItem value="py">.py</SelectItem>
-                  <SelectItem value="ts">.ts</SelectItem>
-                  <SelectItem value="tsx">.tsx</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
           </div>
           {helperMessage && (
             <p className="text-destructive text-[12px] text-red-500">

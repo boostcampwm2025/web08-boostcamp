@@ -28,8 +28,6 @@ export function useAwarenessSync() {
       currentAwarenessUser.color !== myPt.color;
 
     if (hasChanged) {
-      console.log(`[Sync] Updating identity: ${myPt.nickname}`);
-
       awareness.setLocalStateField('user', {
         name: myPt.nickname,
         color: myPt.color,

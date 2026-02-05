@@ -8,7 +8,11 @@ export function useCreateRoom() {
 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [view, setView] = useState<'main' | 'form'>('main');
+
+  const isFormOpen = view === 'form';
+  const toggleForm = () =>
+    setView((prev) => (prev === 'main' ? 'form' : 'main'));
 
   const handleQuickStart = async () => {
     if (isLoading) return;
@@ -35,7 +39,7 @@ export function useCreateRoom() {
     try {
       const { roomCode } = await createCustomRoom(data);
       navigate(ROUTES.ROOM(roomCode));
-      setIsPopoverOpen(false);
+      setView('main');
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -46,8 +50,8 @@ export function useCreateRoom() {
   return {
     error,
     isLoading,
-    isPopoverOpen,
-    setIsPopoverOpen,
+    isFormOpen,
+    toggleForm,
     handleQuickStart,
     handleCustomStart,
   };

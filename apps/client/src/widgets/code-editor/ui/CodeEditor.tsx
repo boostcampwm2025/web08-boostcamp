@@ -21,7 +21,7 @@ export default function CodeEditor({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { yText, awareness } = useYText(fileId);
-  const { isDark } = useDarkMode();
+  const { isDark, hiddenTheme } = useDarkMode();
   const {
     fontSize,
     showRemoteCursor,
@@ -39,6 +39,7 @@ export default function CodeEditor({
     language,
     readOnly,
     isDark,
+    hiddenTheme,
     fontSize,
     users,
     handleGutterClick,
@@ -54,6 +55,7 @@ export default function CodeEditor({
     autoFocus: false,
     compartments,
     isDark,
+    hiddenTheme,
     fontSize,
     yText: yText ?? null,
     users,
@@ -64,14 +66,14 @@ export default function CodeEditor({
   });
 
   return (
-    <>
-      <div ref={containerRef} className="h-screen" />
+    <div className="relative flex min-h-0 flex-1">
+      <div ref={containerRef} className="min-h-0 flex-1" />
       <AvatarGutterMenu
         isOpen={menuState.isOpen}
         position={menuState.position}
         users={menuState.users}
         onClose={closeMenu}
       />
-    </>
+    </div>
   );
 }

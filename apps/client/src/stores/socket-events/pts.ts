@@ -21,12 +21,10 @@ import { toast } from '@codejam/ui';
 
 export const setupPtsEventHandlers = () => {
   const onPtJoined = (data: PtJoinedPayload) => {
-    console.log(`👋 [PT_JOINED] ${data.pt.nickname}`);
     usePtsStore.getState().setPt(data.pt.ptId, data.pt);
   };
 
   const onPtDisconnect = (data: PtDisconnectPayload) => {
-    console.log(`👋 [PT_DISCONNECT] PtId: ${data.ptId}`);
     const pt = usePtsStore.getState().pts[data.ptId];
     if (!pt) return;
     usePtsStore
@@ -35,12 +33,10 @@ export const setupPtsEventHandlers = () => {
   };
 
   const onPtLeft = (data: PtLeftPayload) => {
-    console.log(`⏰ [PT_LEFT] PtId: ${data.ptId} removed by TTL expiration`);
     usePtsStore.getState().removePt(data.ptId);
   };
 
   const onRoomPts = (data: RoomPtsPayload) => {
-    console.log(`👥 [ROOM_PTS]`, data.pts);
     const pts: Pt[] = data.pts;
     const newPts: Record<string, Pt> = pts.reduce(
       (acc, pt) => {
@@ -110,8 +106,6 @@ export const setupPtsEventHandlers = () => {
   };
 
   const onHostTransferred = (data: HostTransferredPayload) => {
-    console.log(`👑 [HOST_TRANSFERRED] New host: ${data.newHostPtId}`);
-
     const myPtId = useRoomStore.getState().myPtId;
     const isMe = data.newHostPtId === myPtId;
     const newHostPt = usePtsStore.getState().pts[data.newHostPtId];
@@ -134,7 +128,6 @@ export const setupPtsEventHandlers = () => {
 
   // 호스트에게: 권한 요청 알림 (모달 표시)
   const onHostClaimRequest = (data: HostClaimRequestPayload) => {
-    console.log(`🙋 [HOST_CLAIM_REQUEST] From: ${data.requesterNickname}`);
     useHostClaimStore
       .getState()
       .openRequestModal(data.requesterPtId, data.requesterNickname);
@@ -142,20 +135,17 @@ export const setupPtsEventHandlers = () => {
 
   // 요청자에게: 요청 거절 알림
   const onHostClaimRejected = () => {
-    console.log(`❌ [HOST_CLAIM_REJECTED]`);
     toast.error('호스트가 요청을 거절했습니다.');
   };
 
   // 호스트에게: 요청 취소 알림 (요청자 퇴장)
   const onHostClaimCancelled = () => {
-    console.log(`🚪 [HOST_CLAIM_CANCELLED]`);
     useHostClaimStore.getState().closeRequestModal();
     toast.info('요청자가 퇴장했습니다.');
   };
 
   // 요청자에게: 호스트 클레임 실패 알림
   const onHostClaimFailed = (data: { reason: string }) => {
-    console.log(`❌ [HOST_CLAIM_FAILED] ${data.reason}`);
     toast.error(
       MESSAGE.HOST_CLAIM_FAIL[data.reason] ||
         '호스트 권한 요청에 실패했습니다.',

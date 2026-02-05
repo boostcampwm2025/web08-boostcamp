@@ -4,10 +4,6 @@ import {
   type AwarenessUpdatePayload,
   type JoinRoomPayload,
   type PtUpdateRolePayload,
-  type FilenameCheckPayload,
-  type FilenameCheckResultPayload,
-  type FileRenamePayload,
-  type FileDeletePayload,
   type PtUpdateNamePayload,
   type ClaimHostPayload,
   type ExecuteCodePayload,
@@ -19,11 +15,14 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { PrometheusSocketIo } from 'socket.io-prometheus-v3';
+import * as http from 'http';
 import { CollaborationService } from './collaboration.service';
 import type { CollabSocket } from './collaboration.types';
 import { PermissionGuard } from './guards/permission.guard';
@@ -31,24 +30,62 @@ import { HostGuard } from './guards/host.guard';
 import { DestroyRoomGuard } from './guards/destroy-room.guard';
 import { CustomRoomGuard } from './guards/custom-room.guard';
 import { NotHostGuard } from './guards/not-host.guard';
-import { WsToken } from '../../common/decorators/ws-token.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { WsThrottlerGuard } from '../../common/guards/ws-throttler.guard';
 import { WsExceptionFilter } from '../../common/filters/ws-exception.filter';
 
+/**
+ * Throttle Limit (환경변수로 조절 가능)
+ * - 운영 서버: 기본값 적용
+ * - 스테이징/테스트: .env에서 상향 설정하여 부하테스트 가능
+ */
+const EXECUTE_CODE_LIMIT = parseInt(
+  process.env.EXECUTE_CODE_THROTTLE_LIMIT || '6',
+  10,
+);
+const CHAT_MESSAGE_LIMIT = parseInt(
+  process.env.CHAT_MESSAGE_THROTTLE_LIMIT || '10',
+  10,
+);
+
 @UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   cors: {
-    origin: '*', // 개발용: 모든 출처 허용 (배포 시 프론트 주소로 변경)
+    origin: true,
+    credentials: true,
   },
 })
 export class CollaborationGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  private prometheus: ReturnType<typeof PrometheusSocketIo.init>;
+
   constructor(private readonly collaborationService: CollaborationService) {}
 
   @WebSocketServer()
   server: Server;
+
+  /** Socket.io 서버 초기화 시 메트릭 수집 시작 (9091 포트) */
+  afterInit(server: Server) {
+    this.prometheus = PrometheusSocketIo.init({
+      io: server as any,
+      collectDefaultMetrics: true,
+    });
+
+    // 메트릭 HTTP 서버 (9091 포트)
+    const metricsServer = http.createServer((req, res) => {
+      void (async () => {
+        if (req.url === '/metrics') {
+          res.setHeader('Content-Type', 'text/plain');
+          res.end(await this.prometheus.getMetrics());
+        } else {
+          res.statusCode = 404;
+          res.end('Not Found');
+        }
+      })();
+    });
+    metricsServer.listen(9091);
+  }
 
   /** 클라이언트 연결 시 초기화 */
   handleConnection(client: CollabSocket) {
@@ -65,14 +102,12 @@ export class CollaborationGateway
   async handleJoinRoom(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: JoinRoomPayload,
-    @WsToken() token: string | null,
   ) {
     try {
       await this.collaborationService.handleJoinRoom(
         client,
         this.server,
         payload,
-        token,
       );
     } catch (error) {
       const errorMessage =
@@ -153,36 +188,6 @@ export class CollaborationGateway
     );
   }
 
-  /** C -> S 파일 이름 유효성 확인 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.CHECK_FILENAME)
-  async handleCheckFileName(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FilenameCheckPayload,
-  ): Promise<FilenameCheckResultPayload> {
-    return await this.collaborationService.handleCheckFileName(client, payload);
-  }
-
-  /** C -> S 파일 이름 변경 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.RENAME_FILE)
-  handleRenameFile(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FileRenamePayload,
-  ) {
-    this.collaborationService.handleFileRename(this.server, client, payload);
-  }
-
-  /** C- > S 파일 삭제 */
-  @UseGuards(PermissionGuard)
-  @SubscribeMessage(SOCKET_EVENTS.DELETE_FILE)
-  handleDeleteFile(
-    @ConnectedSocket() client: CollabSocket,
-    @MessageBody() payload: FileDeletePayload,
-  ) {
-    this.collaborationService.handleFileDelete(this.server, client, payload);
-  }
-
   /** C -> S 방 폭파 요청 */
   @UseGuards(DestroyRoomGuard)
   @SubscribeMessage(SOCKET_EVENTS.DESTROY_ROOM)
@@ -221,7 +226,7 @@ export class CollaborationGateway
   /** C -> S 채팅 메시지 전송 */
   @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
   @UseGuards(WsThrottlerGuard)
-  @Throttle({ default: { limit: 10, ttl: 1000 } })
+  @Throttle({ default: { limit: CHAT_MESSAGE_LIMIT, ttl: 1000 } })
   async handleChatMessage(
     @ConnectedSocket() client: CollabSocket,
     @MessageBody() payload: ChatMessageSendPayload,
@@ -236,8 +241,7 @@ export class CollaborationGateway
 
   /** C -> S 코드 실행 요청 */
   @UseGuards(PermissionGuard, WsThrottlerGuard)
-  @Throttle({ default: { limit: 6, ttl: 60000 } })
-  @UseGuards(PermissionGuard)
+  @Throttle({ default: { limit: EXECUTE_CODE_LIMIT, ttl: 60000 } })
   @SubscribeMessage(SOCKET_EVENTS.EXECUTE_CODE)
   async handleExecuteCode(
     @ConnectedSocket() client: CollabSocket,

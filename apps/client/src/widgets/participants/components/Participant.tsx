@@ -1,91 +1,147 @@
-import { memo, useState } from 'react';
-import { usePt } from '@/stores/pts';
-import { ParticipantAvatar } from '../ui';
-import { ParticipantInfo } from './ParticipantInfo';
-import type { ParticipantProps, PermissionPtProps } from '../lib/types';
-import { useRoomStore } from '@/stores/room';
-import { useSocketStore } from '@/stores/socket';
-import { SOCKET_EVENTS, ROLE, PRESENCE } from '@codejam/common';
-import {
-  RadixPopover as Popover,
-  RadixPopoverContent as PopoverContent,
-  RadixPopoverTrigger as PopoverTrigger,
-} from '@codejam/ui';
-import { MoreHorizontal } from 'lucide-react';
+import { memo, useRef } from 'react';
+import { Pencil } from 'lucide-react';
+import { LIMITS, PRESENCE, ROLE } from '@codejam/common';
+import { cn } from '@codejam/ui';
+import { ParticipantAvatar, RoleToggleBadge } from '../ui';
+import { type ParticipantProps } from '../lib/types';
+import { HostPasswordDialog } from '@/widgets/dialog/HostPasswordDialog';
+import { useParticipant } from '../lib/hooks/useParticipant';
 
-/**
- * 참가자 정보를 표시하는 컴포넌트
- * - 아바타, 닉네임, 역할(role) 정보 표시
- * - 호스트 권한이 있는 경우 역할 변경 가능 (Editor ↔ Viewer)
- * - 온라인/오프라인 상태에 따라 불투명도 조절
- */
-export const Participant = memo(
-  ({ ptId, hasPermission = false }: ParticipantProps & PermissionPtProps) => {
-    const pt = usePt(ptId);
-    const { myPtId, roomCode } = useRoomStore();
-    const { socket } = useSocketStore();
-    const [popoverOpen, setPopoverOpen] = useState(false);
-    const [isEditable, setIsEditable] = useState(false);
+export const Participant = memo(({ ptId }: ParticipantProps) => {
+  const {
+    pt,
+    isMe,
+    canManageRole,
+    showHostClaimSwitcher,
+    nickname,
+    hostPassword,
+    role,
+  } = useParticipant(ptId);
 
-    if (!pt) return null;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isEditMode = isMe && nickname.isEditing;
 
-    const isOnline = pt.presence === PRESENCE.ONLINE;
-    const opacity = isOnline ? 'opacity-100' : 'opacity-40';
-    const isMe = ptId === myPtId;
+  const handlePencilClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    nickname.handleClick();
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
 
-    const isTargetHost = pt.role === ROLE.HOST;
-    const canToggle = hasPermission && !isMe && !isTargetHost;
+  if (!pt) return null;
 
-    const handleToggleRole = () => {
-      if (!socket || !socket.connected) {
-        return;
-      }
+  return (
+    <div
+      className={cn(
+        'hover:bg-accent/40 flex items-center justify-between rounded-sm p-2 transition-colors select-none',
+        'flex items-center gap-3',
+        pt.presence !== PRESENCE.ONLINE && 'opacity-40',
+      )}
+    >
+      <div className="flex flex-1 gap-3">
+        <ParticipantAvatar ptId={ptId} />
 
-      const newRole = pt.role === ROLE.EDITOR ? ROLE.VIEWER : ROLE.EDITOR;
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-col gap-0.5">
+            <div
+              onClick={isEditMode ? undefined : nickname.handleClick}
+              className={`group flex min-w-0 items-center gap-2 ${
+                isEditMode ? '' : 'cursor-pointer'
+              }`}
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                className={cn(
+                  'bg-transparent text-sm font-semibold text-gray-900 outline-none dark:text-gray-100',
+                  'border-b border-transparent transition-colors',
+                  isEditMode
+                    ? 'border-muted-foreground field-sizing-content'
+                    : 'group-hover:border-muted-foreground/50 pointer-events-none field-sizing-content truncate',
+                )}
+                maxLength={LIMITS.NICKNAME_MAX}
+                value={isEditMode ? nickname.value : pt.nickname}
+                onChange={nickname.handleChange}
+                onKeyDown={nickname.handleKeyDown}
+                onBlur={nickname.handleSubmit}
+                readOnly={!isEditMode}
+                autoFocus={isEditMode}
+              />
+              {isMe && (
+                <>
+                  <Pencil
+                    onClick={handlePencilClick}
+                    className={cn(
+                      'text-muted-foreground size-3 shrink-0 cursor-pointer',
+                      isEditMode
+                        ? ''
+                        : 'opacity-0 transition-opacity group-hover:opacity-100',
+                    )}
+                  />
+                  {/* <span className="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300">
+                    YOU
+                  </span> */}
+                </>
+              )}
+            </div>
+            {nickname.error ? (
+              <div className="flex h-4 items-center">
+                <span className="text-[10px] text-red-500">
+                  {nickname.error}
+                </span>
+              </div>
+            ) : (
+              <div className="flex h-4 items-center gap-1">
+                {pt.ptHash && (
+                  <span className="font-mono text-xs text-gray-400 dark:text-gray-500">
+                    #{pt.ptHash}
+                  </span>
+                )}
 
-      socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
-        roomCode,
-        ptId: pt.ptId,
-        role: newRole,
-      });
-    };
-
-    const handleRenamePopover = () => {
-      setIsEditable(true);
-      setPopoverOpen(false);
-    };
-
-    return (
-      <div className="group flex items-center justify-between p-2 transition-colors select-none hover:bg-gray-100 dark:hover:bg-gray-700">
-        <div className={`flex items-center space-x-5 ${opacity}`}>
-          <ParticipantAvatar ptId={ptId} />
-          <ParticipantInfo
-            editable={isEditable}
-            onEditable={setIsEditable}
-            ptId={ptId}
-            canToggle={canToggle}
-            onToggleRole={handleToggleRole}
-          />
+                {isMe && (
+                  <div className="dark:text-indigo-300s relative flex items-center rounded-full bg-indigo-100 p-0.5 px-2 text-indigo-600 dark:bg-indigo-900/50">
+                    <div className="flex w-full justify-center">
+                      <span className="z-10 text-[10px] font-bold uppercase select-none">
+                        YOU
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-        {isMe && (
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              <MoreHorizontal className="size-4" />
-            </PopoverTrigger>
-            <PopoverContent className="z-50 w-32 p-1" align="start">
-              <button
-                type="button"
-                onClick={handleRenamePopover}
-                className="flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <span>이름 변경</span>
-              </button>
-            </PopoverContent>
-          </Popover>
+      </div>
+
+      <div>
+        {showHostClaimSwitcher ? (
+          <>
+            <RoleToggleBadge
+              role={pt.role}
+              mode="hostClaim"
+              displayText={role.displayText}
+              onHostClaim={() => hostPassword.onOpenChange(true)}
+            />
+            <HostPasswordDialog
+              open={hostPassword.isOpen}
+              onOpenChange={hostPassword.onOpenChange}
+              onConfirm={hostPassword.onConfirm}
+            />
+          </>
+        ) : canManageRole && pt.role !== ROLE.HOST ? (
+          <RoleToggleBadge
+            role={pt.role}
+            mode="roleToggle"
+            isEditor={role.isEditor}
+            onToggle={role.toggle}
+          />
+        ) : (
+          <RoleToggleBadge
+            role={pt.role}
+            mode="static"
+            isEditor={role.isEditor}
+          />
         )}
       </div>
-    );
-  },
-);
-
-Participant.displayName = 'Participant';
+    </div>
+  );
+});

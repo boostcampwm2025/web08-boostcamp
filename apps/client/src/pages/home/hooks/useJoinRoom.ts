@@ -1,36 +1,49 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { checkRoomJoinable } from '@/shared/api/room';
-import { ROUTES } from '@codejam/common';
+import { ROUTES, roomCodeSchema, LIMITS } from '@codejam/common';
 import { ROOM_CODE_LENGTH } from '../components/RoomCodeInput';
 
 export function useJoinRoom() {
   const navigate = useNavigate();
 
-  const [roomCode, setRoomCode] = useState<string[]>(
-    Array(ROOM_CODE_LENGTH).fill(''),
-  );
-  const [error, setError] = useState('');
+  const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorKey, setErrorKey] = useState(0);
+  const isCodeComplete = roomCode.length === LIMITS.ROOM_CODE_LENGTH;
 
-  const isCodeComplete = roomCode.every((digit) => digit !== '');
+  const validateRoomCode = (code: string) => {
+    if (code.length < ROOM_CODE_LENGTH) return true;
+
+    const result = roomCodeSchema.safeParse(code);
+    if (!result.success) {
+      setErrorMessage(result.error.issues[0].message);
+      return false;
+    }
+    setErrorMessage('');
+    return true;
+  };
+
+  const handleChangeRoomCode = (value: string) => {
+    const upperValue = value.toUpperCase();
+    setRoomCode(upperValue);
+    validateRoomCode(upperValue);
+  };
 
   const handleJoinRoom = async () => {
-    const code = roomCode.join('');
-    if (code.length !== ROOM_CODE_LENGTH || isLoading) return;
+    if (!isCodeComplete || !validateRoomCode(roomCode)) return;
 
     setIsLoading(true);
-    setError('');
+    setErrorMessage('');
 
     try {
-      const status = await checkRoomJoinable(code);
-      if (status === 'FULL') {
-        setError('방의 정원이 초과되었습니다.');
-      } else {
-        navigate(ROUTES.ROOM(code));
-      }
+      await checkRoomJoinable(roomCode);
+      navigate(ROUTES.ROOM(roomCode));
     } catch (e) {
-      setError((e as Error).message);
+      const message = e instanceof Error ? e.message : '알 수 없는 오류';
+      setErrorMessage(message);
+      setErrorKey((k) => k + 1);
     } finally {
       setIsLoading(false);
     }
@@ -38,10 +51,11 @@ export function useJoinRoom() {
 
   return {
     roomCode,
-    setRoomCode,
-    error,
-    isLoading,
-    isCodeComplete,
+    handleChangeRoomCode,
     handleJoinRoom,
+    isLoading,
+    errorMessage,
+    errorKey,
+    isCodeComplete,
   };
 }

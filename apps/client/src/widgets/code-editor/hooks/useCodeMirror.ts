@@ -4,6 +4,12 @@ import { type Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { lineAvatarExtension, type RemoteUser } from '../plugin/LineAvatars';
 import * as Y from 'yjs';
+import { useEditorStore } from '@/stores/editor';
+import {
+  rainbowEditorTheme,
+  neonEditorTheme,
+  pastelEditorTheme,
+} from '../plugin/TrollEditorTheme';
 
 interface UseCodeMirrorProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -21,6 +27,7 @@ interface UseCodeMirrorProps {
   showGutterAvatars: boolean;
   alwaysShowCursorLabels: boolean;
   isDark: boolean;
+  hiddenTheme: 'rainbow' | 'neon' | 'pastel' | null;
   fontSize: number;
   yText: Y.Text | null;
   users: RemoteUser[];
@@ -37,6 +44,7 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
     showGutterAvatars,
     alwaysShowCursorLabels,
     isDark,
+    hiddenTheme,
     fontSize,
     yText,
     users,
@@ -45,6 +53,7 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
 
   const viewRef = useRef<EditorView | null>(null);
   const [initialDoc] = useState(docString);
+  const setEditorView = useEditorStore((state) => state.setEditorView);
 
   // Mount Editor
   useEffect(() => {
@@ -57,19 +66,32 @@ export function useCodeMirror(props: UseCodeMirrorProps) {
     });
 
     viewRef.current = view;
+    setEditorView(view);
 
     return () => {
       view.destroy();
       viewRef.current = null;
+      setEditorView(null);
     };
-  }, [extensions, containerRef, initialDoc]);
+  }, [extensions, containerRef, initialDoc, setEditorView]);
 
   // Update Theme
   useEffect(() => {
+    const targetTheme =
+      hiddenTheme === 'rainbow'
+        ? rainbowEditorTheme
+        : hiddenTheme === 'neon'
+          ? neonEditorTheme
+          : hiddenTheme === 'pastel'
+            ? pastelEditorTheme
+            : isDark
+              ? oneDark
+              : [];
+
     viewRef.current?.dispatch({
-      effects: compartments.theme.reconfigure(isDark ? oneDark : []),
+      effects: compartments.theme.reconfigure(targetTheme),
     });
-  }, [isDark, compartments.theme]);
+  }, [hiddenTheme, isDark, compartments.theme]);
 
   // Update Font Size
   useEffect(() => {

@@ -1,29 +1,14 @@
-import { useContext, useEffect, type DragEvent } from 'react';
-import { CodeEditor } from '@/widgets/code-editor';
-import { EmptyView } from './EmptyView';
+import type { DragEvent } from 'react';
 import { Header } from '@/widgets/header';
 import { useSocket } from '@/shared/lib/hooks/useSocket';
 import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
-import { useRoomStore } from '@/stores/room';
-import { usePt } from '@/stores/pts';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  RadixToaster as Toaster,
-  RadixContextMenu as ContextMenu,
-  RadixContextMenuContent as ContextMenuContent,
-  RadixContextMenuItem as ContextMenuItem,
-  RadixContextMenuTrigger as ContextMenuTrigger,
-  ScrollArea,
-  ScrollBar,
-} from '@codejam/ui';
+import { RadixToaster as Toaster } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
 import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
 import { HostClaimRequestDialog } from '@/widgets/dialog/HostClaimRequestDialog';
-import { ROLE, type RoomJoinStatus } from '@codejam/common';
+import { PERMISSION, type RoomJoinStatus } from '@codejam/common';
+import { usePermission } from '@/shared/lib/hooks/usePermission';
 import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
@@ -33,11 +18,12 @@ import { ConsolePanel as Output } from '@/widgets/console';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { Chat } from '@/widgets/chat';
 import { RoomSidebar } from '@/widgets/room-sidebar';
-import { LinearGrid } from './LinearGrid';
-import { LinearTabApiContext, ProviderAPI } from '@/contexts/ProviderAPI';
+import { ProviderAPI } from '@/contexts/ProviderAPI';
 import { TabProvider } from '@/contexts/TabProvider';
-import { Trash2 } from 'lucide-react';
-import { useTabStore } from '@/stores/tab';
+import TabViewer from './TabViewer';
+import { TabLayout } from './TabLayout';
+import { GlobalShortcutHandler, ShortcutHUD } from '@/widgets/global-shortcuts';
+import FileObserver from './FileObserver';
 
 function RoomPage() {
   const {
@@ -46,39 +32,30 @@ function RoomPage() {
     isPasswordDialogOpen,
     setIsPasswordDialogOpen,
     setIsNicknameDialogOpen,
-    roomError,
     passwordError,
     handleNicknameConfirm,
     handlePasswordConfirm,
   } = useRoomJoin();
+
   const { setIsDuplicated, isDuplicated, handleFileChange } = useFileRename(
-    paramCode || '',
+    paramCode!,
   );
 
   useAwarenessSync();
   useInitialFileSelection();
 
+  const setActiveFile = useFileStore((state) => state.setActiveFile);
   const activeFileId = useFileStore((state) => state.activeFileId);
-  const setRoomCode = useRoomStore((state) => state.setRoomCode);
   const getFileName = useFileStore((state) => state.getFileName);
 
   const loader = useLoaderData<RoomJoinStatus>();
 
-  useSocket(paramCode || '');
+  useSocket(paramCode!);
 
   const { isDark } = useDarkMode();
 
-  useEffect(() => {
-    if (!paramCode) {
-      throw new Error('Invalid roomCode');
-    }
-
-    setRoomCode(paramCode);
-  }, [paramCode, setRoomCode]);
-
-  const myPtId = useRoomStore((state) => state.myPtId);
-  const myPt = usePt(myPtId || '');
-  const isViewer = myPt?.role === ROLE.VIEWER;
+  const { can } = usePermission();
+  const canEdit = can(PERMISSION.EDIT_DOCS);
 
   const handleDragPrevent = (ev: DragEvent) => {
     ev.preventDefault();
@@ -93,165 +70,87 @@ function RoomPage() {
   };
 
   const convertProcessFn = (fileId: string) => {
-    const fileName = getFileName(fileId);
-    if (!fileName) {
-      return {};
-    }
-
     return {
-      fileId,
-      readOnly: isViewer,
+      fileName: getFileName(fileId),
     };
   };
 
-  const convertKeyName = (key: string) => {
-    const fileName = getFileName(key);
-    return fileName!;
+  const handleOnActiveTab = (_: number, key: string) => {
+    setActiveFile(key);
   };
 
   return (
-    <div className="flex h-screen flex-col">
-      <Header roomCode={paramCode!} />
-      {roomError && (
-        <div className="bg-red-500 p-4 text-center text-white">{roomError}</div>
-      )}
-      <main className="flex flex-1 overflow-hidden">
-        <TabProvider>
-          <ProviderAPI>
-            <RoomSidebar readOnly={isViewer} />
-            <div
-              className="bg-background h-full flex-1"
-              onDragOver={handleDragPrevent}
-              onDrop={handleFileDrop}
-            >
-              <LinearGrid
-                min={1}
-                max={2}
-                keyName="fileId"
-                convertKeyName={convertKeyName}
-                convertProcessFn={convertProcessFn}
-                initialTabValue={{
-                  key: getFileName(activeFileId),
-                  value: {
-                    fileId: activeFileId,
-                    readOnly: isViewer,
-                  },
-                }}
-              >
-                {(tabKey: number) => (
-                  <FileViewer tabKey={tabKey} readOnly={isViewer} />
-                )}
-              </LinearGrid>
+    <div
+      className={`flex h-screen overflow-hidden transition-colors duration-500`}
+    >
+      <TabProvider>
+        <ProviderAPI>
+          <FileObserver />
+          <RoomSidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Header roomCode={paramCode!} />
+            <div className="flex min-h-0 flex-1">
+              <main className="flex min-h-0 flex-1">
+                <GlobalShortcutHandler />
+                <div
+                  className="bg-background flex h-full min-h-0 flex-1 flex-col"
+                  onDragOver={handleDragPrevent}
+                  onDrop={handleFileDrop}
+                >
+                  <TabLayout
+                    min={1}
+                    max={2}
+                    keyName="fileId"
+                    convertProcessFn={convertProcessFn}
+                    onCreateLinearTab={handleOnActiveTab}
+                    onAppendLinearTab={handleOnActiveTab}
+                    initialTabValue={{
+                      key: activeFileId,
+                      value: {
+                        fileName: getFileName(activeFileId),
+                      },
+                    }}
+                  >
+                    {(tabKey: number) => (
+                      <TabViewer tabKey={tabKey} readOnly={!canEdit} />
+                    )}
+                  </TabLayout>
+                </div>
+                <Chat />
+                <Output variant={isDark ? 'dark' : 'light'} />
+              </main>
             </div>
-            <Chat />
-          </ProviderAPI>
-        </TabProvider>
-        <Output variant={isDark ? 'dark' : 'light'} />
-      </main>
-      {loader === 'FULL' ? (
-        <ErrorDialog
-          title="사람이 가득 찼습니다!"
-          description="현재 방에 인원이 많습니다."
-          buttonLabel="뒤로가기"
-          onSubmit={() => {
-            window.location.href = '/';
-          }}
-        />
-      ) : (
-        <PrepareStage
-          isNicknameDialogOpen={isNicknameDialogOpen}
-          isPasswordDialogOpen={isPasswordDialogOpen}
-          setIsNicknameDialogOpen={setIsNicknameDialogOpen}
-          setIsPasswordDialogOpen={setIsPasswordDialogOpen}
-          passwordError={passwordError}
-          handleNicknameConfirm={handleNicknameConfirm}
-          handlePasswordConfirm={handlePasswordConfirm}
-        />
-      )}
-      <Toaster />
-      <DuplicateDialog open={isDuplicated} onOpenChange={setIsDuplicated} />
-      <HostClaimRequestDialog />
+            {loader === 'FULL' ? (
+              <ErrorDialog
+                title="사람이 가득 찼습니다!"
+                description="현재 방에 인원이 많습니다."
+                buttonLabel="뒤로가기"
+                onSubmit={() => {
+                  window.location.href = '/';
+                }}
+              />
+            ) : (
+              <PrepareStage
+                isNicknameDialogOpen={isNicknameDialogOpen}
+                isPasswordDialogOpen={isPasswordDialogOpen}
+                setIsNicknameDialogOpen={setIsNicknameDialogOpen}
+                setIsPasswordDialogOpen={setIsPasswordDialogOpen}
+                passwordError={passwordError}
+                handleNicknameConfirm={handleNicknameConfirm}
+                handlePasswordConfirm={handlePasswordConfirm}
+              />
+            )}
+            <Toaster richColors position="top-center" />
+            <DuplicateDialog
+              open={isDuplicated}
+              onOpenChange={setIsDuplicated}
+            />
+            <HostClaimRequestDialog />
+            <ShortcutHUD />
+          </div>
+        </ProviderAPI>
+      </TabProvider>
     </div>
-  );
-}
-
-interface FileViewerProps {
-  tabKey: number;
-  readOnly: boolean;
-}
-
-type FileViewerTab = {
-  [fileName: string]: {
-    fileId: string;
-    readOnly: boolean;
-  };
-};
-
-function FileViewer({ tabKey, readOnly }: FileViewerProps) {
-  const { takeTab, removeLinear, deleteLinearTab, tabKeys } =
-    useContext(LinearTabApiContext);
-  const setActiveFileId = useFileStore((state) => state.setActiveFile);
-  const getFileName = useFileStore((state) => state.getFileName);
-  const activeTab = useTabStore((state) => state.activeTab);
-  const setActiveTab = useTabStore((state) => state.setActiveTab);
-
-  const fileTab = takeTab(tabKey) as FileViewerTab;
-
-  if (!activeTab[tabKey] || !fileTab[activeTab[tabKey]]) return <EmptyView />;
-
-  const { fileId } = fileTab[activeTab[tabKey]];
-
-  const handleDeleteTab = (fileName: string) => {
-    removeLinear(tabKey, fileName);
-    const nextActive = Object.keys(fileTab)[0];
-    if (activeTab[tabKey] === fileName) {
-      setActiveTab(
-        tabKey,
-        nextActive === fileName ? Object.keys(fileTab)[1] : nextActive,
-      );
-    }
-    const deleted = takeTab(tabKey) as FileViewerTab;
-    const keys = Object.keys(deleted);
-
-    if (keys.length === 1 && tabKeys().length > 1) {
-      deleteLinearTab(tabKey);
-    }
-  };
-
-  const handleValueChange = (fileId: string) => {
-    setActiveFileId(fileId);
-    const fileName = getFileName(fileId)!;
-    setActiveTab(tabKey, fileName);
-  };
-
-  return (
-    <Tabs value={fileId} onValueChange={handleValueChange}>
-      <ScrollArea className="overflow-x-auto">
-        <TabsList variant="line">
-          {Object.keys(fileTab).map((fileName) => (
-            <ContextMenu key={fileName}>
-              <ContextMenuTrigger>
-                <TabsTrigger value={fileTab[fileName].fileId}>
-                  {fileName}
-                </TabsTrigger>
-              </ContextMenuTrigger>
-              <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleDeleteTab(fileName)}>
-                  <Trash2 color="red" />
-                  삭제하기
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
-          ))}
-        </TabsList>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-      {Object.keys(fileTab).map((fileName) => (
-        <TabsContent key={fileName} value={fileTab[fileName].fileId}>
-          <CodeEditor fileId={fileTab[fileName].fileId} readOnly={readOnly} />
-        </TabsContent>
-      ))}
-    </Tabs>
   );
 }
 

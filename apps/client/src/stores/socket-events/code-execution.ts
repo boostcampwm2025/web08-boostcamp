@@ -13,39 +13,33 @@ import { useCodeExecutionStore } from '../code-execution';
 export const setupCodeExecutionEventHandlers = () => {
   // Streaming events
   const onCodeExecutionStarted = (data: CodeExecutionStartedPayload) => {
-    console.log(`🚀 [CODE_EXECUTION_STARTED]`, data);
     const { setRuntime } = useCodeExecutionStore.getState();
     setRuntime(data);
   };
 
   const onCodeExecutionStage = (data: CodeExecutionStagePayload) => {
-    console.log(`🔄 [CODE_EXECUTION_STAGE]`, data);
     const { setStage } = useCodeExecutionStore.getState();
     setStage(data);
   };
 
   const onCodeExecutionData = (data: CodeExecutionDataPayload) => {
-    console.log(`📊 [CODE_EXECUTION_DATA]`, data.stream, data.data);
     const { setData } = useCodeExecutionStore.getState();
     setData(data);
   };
 
   const onCodeExecutionCompleted = (data: CodeExecutionCompletedPayload) => {
-    console.log(`✅ [CODE_EXECUTION_COMPLETED]`, data);
     const { setExit } = useCodeExecutionStore.getState();
     setExit(data);
   };
 
   // Non-streaming events
   const onCodeExecutionResult = (data: CodeExecutionResultPayload) => {
-    console.log(`✅ [CODE_EXECUTION_RESULT]`, data);
     const { setResult } = useCodeExecutionStore.getState();
     setResult(data);
   };
 
   // Execution Error
   const onCodeExecutionError = (data: CodeExecutionErrorPayload) => {
-    console.log(`❌ [CODE_EXECUTION_ERROR]`, data);
     const { setError } = useCodeExecutionStore.getState();
     setError(data);
   };
