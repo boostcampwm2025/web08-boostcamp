@@ -10,7 +10,8 @@ export default function FileObserver() {
   const getFileName = useFileStore((state) => state.getFileName);
 
   useEffect(() => {
-    if (activeFileId && activeTab.active) {
+    const fileName = getFileName(activeFileId);
+    if (activeFileId && fileName && activeTab.active) {
       appendLinear(activeTab.active, activeFileId, {
         fileName: getFileName(activeFileId),
       });

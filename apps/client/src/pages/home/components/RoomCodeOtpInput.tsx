@@ -49,32 +49,32 @@ export function RoomCodeOtpInput({
       <InputOTPGroup key={errorKey} className={invalid ? 'animate-shake' : ''}>
         <InputOTPSlot
           index={0}
-          className="size-14 font-mono text-2xl font-bold"
+          className="size-14 font-mono text-2xl font-bold dark:border-zinc-700 dark:text-zinc-100"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={1}
-          className="size-14 font-mono text-2xl font-bold"
+          className="size-14 font-mono text-2xl font-bold dark:border-zinc-700 dark:text-zinc-100"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={2}
-          className="size-14 font-mono text-2xl font-bold"
+          className="size-14 font-mono text-2xl font-bold dark:border-zinc-700 dark:text-zinc-100"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={3}
-          className="size-14 font-mono text-2xl font-bold"
+          className="size-14 font-mono text-2xl font-bold dark:border-zinc-700 dark:text-zinc-100"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={4}
-          className="size-14 font-mono text-2xl font-bold"
+          className="size-14 font-mono text-2xl font-bold dark:border-zinc-700 dark:text-zinc-100"
           aria-invalid={invalid}
         />
         <InputOTPSlot
           index={5}
-          className="size-14 font-mono text-2xl font-bold"
+          className="size-14 font-mono text-2xl font-bold dark:border-zinc-700 dark:text-zinc-100"
           aria-invalid={invalid}
         />
       </InputOTPGroup>

@@ -5,13 +5,23 @@ import { WsApiException } from '../exceptions/ws-api.exception';
 
 @Injectable()
 export class WsThrottlerGuard extends ThrottlerGuard {
+  protected generateKey(
+    context: ExecutionContext,
+    suffix: string,
+    name: string,
+  ): string {
+    const client = context.switchToWs().getClient();
+    return `${suffix}-${name}-${client.id}`;
+  }
+
   protected getRequestResponse(context: ExecutionContext) {
     const wsCtx = context.switchToWs();
     const client = wsCtx.getClient();
 
     return {
       req: {
-        ip: client.conn.remoteAddress,
+        // 내부 로직용 객체 구조 유지
+        ip: client.id,
         headers: client.handshake.headers,
       },
       res: client,

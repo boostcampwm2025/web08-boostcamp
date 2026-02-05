@@ -268,7 +268,15 @@ export class RoomService {
           decoded &&
           decoded.roomCode.toUpperCase() === room.roomCode.toUpperCase()
         ) {
-          return { authenticated: true, token };
+          // 토큰은 유효하지만 DB에 참가자가 존재하는지 확인
+          const pt = await this.ptService.getPt(room.roomId, decoded.ptId);
+          if (pt) {
+            return { authenticated: true, token };
+          }
+          // 토큰은 유효하지만 참가자가 삭제됨 (LEFT_ROOM 등) -> 새 유저로 처리
+          this.logger.log(
+            `Auth status check - Token valid but participant deleted (ptId: ${decoded.ptId})`,
+          );
         }
       } catch (e) {
         this.logger.warn(`Auth status check - Token invalid: ${e.message}`);
