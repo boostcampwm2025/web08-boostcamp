@@ -211,7 +211,7 @@ function TabLayoutChildren({
         flex: `${width} 1 0%`,
         minWidth: 0,
       }}
-      className="flex min-h-0 flex-1"
+      className="relative flex min-h-0 flex-1"
       onClick={handleClick}
     >
       {tabKey == draggingTab && draggingSignal.signal && (
@@ -221,7 +221,7 @@ function TabLayoutChildren({
             backgroundColor: 'rgba(0, 0, 255, 0.1)',
             width: `${halfOver ? width / 2 : width}px`,
             zIndex: 9999,
-            ...(halfOver && { left: `50%` }),
+            ...(halfOver && { left: `${width / 2}px` }),
           }}
         ></div>
       )}
