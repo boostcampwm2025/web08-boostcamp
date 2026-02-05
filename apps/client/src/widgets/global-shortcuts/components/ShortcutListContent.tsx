@@ -11,6 +11,7 @@ export function ShortcutListContent({ className }: ShortcutListContentProps) {
     typeof window !== 'undefined' &&
     /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
   const modKey = isMac ? '⌘' : 'Ctrl';
+  const altKey = isMac ? '⌥' : 'Alt';
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
@@ -24,7 +25,7 @@ export function ShortcutListContent({ className }: ShortcutListContentProps) {
         <ShortcutRow label="파일 열기" keys={[modKey, 'O']} />
         <ShortcutRow label="에디터 포커스" keys={[modKey, 'E']} />
         <ShortcutRow label="코드 실행" keys={[modKey, 'Shift', 'R']} />
-        <ShortcutRow label="탭 닫기" keys={['Alt', 'W']} />
+        <ShortcutRow label="탭 닫기" keys={[altKey, 'W']} />
         <ShortcutRow label="탭 탐색" keys={[modKey, '← / →']} />
         <ShortcutRow label="출력창 토글" keys={[modKey, 'J']} />
         <ShortcutRow label="출력창 토글 (대체)" keys={[modKey, '`']} />
