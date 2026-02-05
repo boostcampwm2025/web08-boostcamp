@@ -15,6 +15,7 @@ import type { FileMetadata } from '@/shared/lib/collaboration';
 import { InlineFileInput } from './components/InlineFileInput';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
+import { PinButton } from '@/widgets/room-sidebar/components/PinButton';
 
 export function FileList() {
   const files = useFileStore((state) => state.files);
@@ -141,8 +142,12 @@ function HeaderSection({
       title="파일"
       count={count}
       action={
-        roomCode &&
-        hasPermission && <FileHeaderActions onCreateClick={onCreateClick} />
+        <>
+          {roomCode && hasPermission && (
+            <FileHeaderActions onCreateClick={onCreateClick} />
+          )}
+          <PinButton />
+        </>
       }
     />
   );

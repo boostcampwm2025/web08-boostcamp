@@ -12,6 +12,7 @@ import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
 import { filterParticipants, sortParticipants } from './types';
 import { usePermission } from '@/shared/lib/hooks/usePermission';
+import { PinButton } from '@/widgets/room-sidebar/components/PinButton';
 
 /**
  * 참가자 목록 위젯 메인 컴포넌트
@@ -90,7 +91,7 @@ export function Participants() {
 
   return (
     <div className="flex h-full w-full flex-col space-y-2">
-      <SidebarHeader title="참가자" count={totalCount} />
+      <SidebarHeader title="참가자" count={totalCount} action={<PinButton />} />
       <ParticipantsFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
