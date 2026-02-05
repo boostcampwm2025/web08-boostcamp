@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   cn,
-  Button,
   Combobox,
   ComboboxInput,
   ComboboxContent,
@@ -9,10 +8,10 @@ import {
   ComboboxItem,
   ComboboxGroup,
   ComboboxLabel,
+  Button,
 } from '@codejam/ui';
-import { Pencil, Eye, User, Clock, X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw } from 'lucide-react';
 import type { FilterOption } from '../types';
-import type { SortKey } from '../lib/types';
 import { FILTER_OPTIONS } from '../types';
 
 interface ParticipantsFilterBarProps {
@@ -20,12 +19,8 @@ interface ParticipantsFilterBarProps {
   onSearchChange: (value: string) => void;
   selectedFilters: FilterOption[];
   onFiltersChange: (filters: FilterOption[]) => void;
-  sortKey: SortKey;
-  onSortChange: (sortKey: SortKey) => void;
-  filteredCount: number;
-  onBulkEdit: () => void;
-  onBulkView: () => void;
-  isHost: boolean;
+  sortControls: React.ReactNode;
+  actions?: React.ReactNode;
 }
 
 export function ParticipantsFilterBar({
@@ -33,12 +28,8 @@ export function ParticipantsFilterBar({
   onSearchChange,
   selectedFilters,
   onFiltersChange,
-  sortKey,
-  onSortChange,
-  filteredCount,
-  onBulkEdit,
-  onBulkView,
-  isHost,
+  sortControls,
+  actions,
 }: ParticipantsFilterBarProps) {
   return (
     <div className="flex flex-col gap-2">
@@ -50,28 +41,8 @@ export function ParticipantsFilterBar({
       />
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <SortButton
-            active={sortKey === 'time'}
-            onClick={() => onSortChange('time')}
-            icon={<Clock size={14} />}
-            label="입장순"
-          />
-
-          <SortButton
-            active={sortKey === 'name'}
-            onClick={() => onSortChange('name')}
-            icon={<User size={14} />}
-            label="이름순"
-          />
-        </div>
-
-        <BulkActions
-          isHost={isHost}
-          filteredCount={filteredCount}
-          onBulkEdit={onBulkEdit}
-          onBulkView={onBulkView}
-        />
+        {sortControls}
+        {actions}
       </div>
     </div>
   );
@@ -155,7 +126,7 @@ function SearchFilterCombobox({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="mt-1 flex flex-col gap-2">
       <Combobox
         value={selectedValues}
         onValueChange={handleValueChange}
@@ -168,7 +139,6 @@ function SearchFilterCombobox({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="참가자 검색 ..."
-          className="border-input focus-visible:ring-ring h-9 w-full rounded-md border bg-transparent py-1 text-sm shadow-none transition-colors outline-none focus-visible:ring-1"
         />
 
         <FilterOptions
@@ -213,7 +183,7 @@ function FilterOptions({
                   key={option.value}
                   value={option.value}
                   className={cn(
-                    'data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors outline-none select-none',
+                    'cursor-pointer rounded-none px-3 py-2',
                     isSelected && 'bg-accent/50',
                   )}
                 >
@@ -248,14 +218,15 @@ function CustomChips({
           onRemove={() => onRemove(filter.value)}
         />
       ))}
-      <button
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        className="rounded-full"
         onClick={onClearAll}
-        className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1 transition-colors"
-        type="button"
-        title="Clear all filters"
+        title="필터 모두 제거"
       >
-        <RotateCcw size={14} />
-      </button>
+        <RotateCcw />
+      </Button>
     </div>
   );
 }
@@ -268,7 +239,7 @@ function CustomChip({
   onRemove: () => void;
 }) {
   return (
-    <div className="bg-muted text-foreground flex h-[21px] w-fit items-center justify-center gap-1 rounded-sm px-1.5 text-xs font-medium whitespace-nowrap">
+    <div className="bg-muted text-foreground flex h-5.25 w-fit items-center justify-center gap-1 rounded-sm px-1.5 text-xs font-medium whitespace-nowrap">
       <span>{label}</span>
       <button
         onClick={onRemove}
@@ -277,72 +248,6 @@ function CustomChip({
       >
         <X size={10} />
       </button>
-    </div>
-  );
-}
-
-function SortButton({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onClick}
-      className={cn(
-        'h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200',
-        active
-          ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
-          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
-      )}
-    >
-      {icon}
-      <span>{label}</span>
-    </Button>
-  );
-}
-
-function BulkActions({
-  isHost,
-  filteredCount,
-  onBulkEdit,
-  onBulkView,
-}: {
-  isHost: boolean;
-  filteredCount: number;
-  onBulkEdit: () => void;
-  onBulkView: () => void;
-}) {
-  if (!isHost || filteredCount === 0) return null;
-
-  return (
-    <div className="flex items-center gap-1">
-      <Button
-        variant="outline"
-        size="icon-sm"
-        onClick={onBulkEdit}
-        className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 text-sm font-medium transition-colors duration-200"
-        title="전체 편집 허용"
-      >
-        <Pencil size={14} />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon-sm"
-        onClick={onBulkView}
-        className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 text-sm font-medium transition-colors duration-200"
-        title="전체 읽기 허용"
-      >
-        <Eye size={14} />
-      </Button>
     </div>
   );
 }
