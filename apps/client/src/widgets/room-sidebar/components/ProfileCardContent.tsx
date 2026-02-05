@@ -102,7 +102,7 @@ export function ProfileCardContent({ me }: ProfileCardContentProps) {
           <h3 className="text-muted-foreground mb-1 text-xs font-bold tracking-wider uppercase">
             사용자 이름
           </h3>
-          <div className="flex min-h-[32px] items-center gap-1.5">
+          <div className="flex min-h-8 items-center gap-1.5">
             {isEditing ? (
               <Input
                 type="text"

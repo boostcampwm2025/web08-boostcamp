@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
-import { Button } from '@codejam/ui';
 import {
-  RadixDialog as Dialog,
-  RadixDialogContent as DialogContent,
-  RadixDialogDescription as DialogDescription,
-  RadixDialogFooter as DialogFooter,
-  RadixDialogHeader as DialogHeader,
-  RadixDialogTitle as DialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
 } from '@codejam/ui';
 import { socket } from '@/shared/api/socket';
 import { SOCKET_EVENTS } from '@codejam/common';
 import { useHostClaimStore } from '@/stores/hostClaim';
+import { ShieldAlertIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const TIMEOUT_SECONDS = 10;
 
@@ -50,50 +53,37 @@ export function HostClaimRequestDialog() {
   };
 
   return (
-    <Dialog
+    <AlertDialog
       open={isRequestModalOpen}
       onOpenChange={(open) => {
-        // X 버튼 클릭 시 거절 처리
-        if (!open) {
-          handleReject();
-        }
+        if (!open) handleReject();
       }}
     >
-      <DialogContent className="sm:max-w-md" showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>호스트 권한 요청</DialogTitle>
-          <DialogDescription className="mt-2">
-            <span className="font-semibold text-blue-600 dark:text-blue-400">
-              {requesterNickname}
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogMedia className="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary">
+            <ShieldAlertIcon className="size-6" />
+          </AlertDialogMedia>
+          <AlertDialogTitle>호스트 권한 요청</AlertDialogTitle>
+          <AlertDialogDescription className="flex flex-col gap-1">
+            <span>
+              <strong className="text-primary">{requesterNickname}</strong> 님이
+              호스트가 되기를 요청했어요.
             </span>
-            님이 호스트 권한을 요청했습니다.
-            <br />
-            <br />
             <span className="text-muted-foreground">
-              {countdown}초 후 자동으로 수락됩니다.
+              {countdown}초 후 자동으로 요청이 수락돼요.
             </span>
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="mt-4 flex-row justify-end gap-2 border-t pt-4">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={handleReject}
-          >
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleReject} variant="outline">
             거절
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleAccept}
-            className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
-          >
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={handleAccept} variant="default">
             수락
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

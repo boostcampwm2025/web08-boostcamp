@@ -52,7 +52,9 @@ export function DeleteDialog({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel variant="outline">취소</AlertDialogCancel>
-            <AlertDialogAction variant="destructive">삭제</AlertDialogAction>
+            <AlertDialogAction type="submit" variant="destructive">
+              삭제
+            </AlertDialogAction>
           </AlertDialogFooter>
         </form>
       </AlertDialogContent>
