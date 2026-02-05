@@ -16,6 +16,7 @@ interface ShortcutHandlers {
   onFocusEditor?: () => void; // 에디터 포커스
   onToggleTheme?: () => void; // 다크모드 토글
   onExecuteCode?: () => void; // 코드 실행
+  onClearHiddenTheme?: () => void; // 히든 테마 해제
 }
 
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
@@ -138,6 +139,13 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
       if (isMod && e.shiftKey && key === 'd') {
         e.preventDefault();
         handlers?.onToggleTheme?.();
+        return;
+      }
+
+      // Clear Hidden Theme
+      if (isMod && e.shiftKey && key === 'h') {
+        e.preventDefault();
+        handlers?.onClearHiddenTheme?.();
         return;
       }
     };

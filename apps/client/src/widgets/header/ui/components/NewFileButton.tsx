@@ -9,20 +9,15 @@ import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { useFileStore } from '@/stores/file';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
 import { HeaderActionButton } from './HeaderActionButton';
-import { useContext } from 'react';
-import { LinearTabApiContext } from '@/contexts/ProviderAPI';
-import { ActiveTabContext } from '@/contexts/TabProvider';
 
 interface NewFileButtonProps {
   roomCode: string;
 }
 
 export function NewFileButton({ roomCode }: NewFileButtonProps) {
-  const { getFileId, createFile, setActiveFile, getFileName } = useFileStore();
+  const { getFileId, createFile, setActiveFile } = useFileStore();
   const { setIsDuplicated, isDuplicated, handleCheckRename } =
     useFileRename(roomCode);
-  const { appendLinear } = useContext(LinearTabApiContext);
-  const { activeTab } = useContext(ActiveTabContext);
   const handleNewFile = async (name: string) => {
     const newFilename = name;
     if (getFileId(newFilename)) {
@@ -31,9 +26,6 @@ export function NewFileButton({ roomCode }: NewFileButtonProps) {
       const result = await handleCheckRename(newFilename);
       if (result) {
         const fileId = createFile(newFilename, '');
-        appendLinear(activeTab.active, fileId, {
-          fileName: getFileName(fileId),
-        });
         setActiveFile(fileId);
       }
     }

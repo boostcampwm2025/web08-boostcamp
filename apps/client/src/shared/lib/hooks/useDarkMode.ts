@@ -16,6 +16,7 @@ interface ThemeState {
   incrementSidebarToggle: () => void;
   incrementConsoleToggle: () => void;
   toggleTheme: () => void;
+  clearHiddenTheme: () => void;
 }
 
 const HIDDEN_THEME_CONFIG = {
@@ -71,8 +72,13 @@ const checkAndActivateHiddenTheme = (
     const randomMsg =
       config.messages[Math.floor(Math.random() * config.messages.length)];
 
+    const isMac =
+      typeof window !== 'undefined' &&
+      /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+    const modKey = isMac ? '⌘' : 'Ctrl';
+
     toast(randomMsg, {
-      description: '새로고침하면 원래대로 돌아갑니다 😉',
+      description: `새로고침하면 원래대로 돌아갑니다 😉\n${modKey} + Shift + H로 해제 가능`,
       duration: 5000,
       style: {
         textAlign: 'center',
@@ -80,7 +86,7 @@ const checkAndActivateHiddenTheme = (
       classNames: {
         toast: 'justify-center items-center',
         title: 'text-center w-full',
-        description: 'text-center w-full',
+        description: 'text-center w-full whitespace-pre-line',
       },
     });
 
@@ -149,6 +155,11 @@ export const useThemeStore = create<ThemeState>()(
         set((state) => ({
           themeToggleCount: state.themeToggleCount + 1,
         })),
+
+      clearHiddenTheme: () =>
+        set(() => ({
+          hiddenTheme: null,
+        })),
     }),
     {
       name: 'theme-mode',
@@ -160,7 +171,8 @@ export const useThemeStore = create<ThemeState>()(
 );
 
 export function useDarkMode() {
-  const { isDark, hiddenTheme, toggleTheme } = useThemeStore();
+  const { isDark, hiddenTheme, toggleTheme, clearHiddenTheme } =
+    useThemeStore();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -178,5 +190,5 @@ export function useDarkMode() {
     }
   }, [isDark, hiddenTheme]);
 
-  return { isDark, hiddenTheme, toggleTheme };
+  return { isDark, hiddenTheme, toggleTheme, clearHiddenTheme };
 }

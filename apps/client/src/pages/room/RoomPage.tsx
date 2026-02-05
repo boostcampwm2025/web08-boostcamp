@@ -23,6 +23,7 @@ import { TabProvider } from '@/contexts/TabProvider';
 import TabViewer from './TabViewer';
 import { TabLayout } from './TabLayout';
 import { GlobalShortcutHandler, ShortcutHUD } from '@/widgets/global-shortcuts';
+import FileObserver from './FileObserver';
 
 function RoomPage() {
   const {
@@ -84,6 +85,7 @@ function RoomPage() {
     >
       <TabProvider>
         <ProviderAPI>
+          <FileObserver />
           <RoomSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <Header roomCode={paramCode!} />
