@@ -5,7 +5,7 @@ import { useRoomJoin } from '@/shared/lib/hooks/useRoomJoin';
 import { RadixToaster as Toaster } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { useLoaderData } from 'react-router-dom';
-import { ErrorDialog } from '@/widgets/error-dialog/ErrorDialog';
+import { ErrorDialog } from '@/widgets/dialog/ErrorDialog';
 import { HostClaimRequestDialog } from '@/widgets/dialog/HostClaimRequestDialog';
 import { PERMISSION, type RoomJoinStatus } from '@codejam/common';
 import { usePermission } from '@/shared/lib/hooks/usePermission';
@@ -119,9 +119,9 @@ function RoomPage() {
             </div>
             {loader === 'FULL' ? (
               <ErrorDialog
-                title="사람이 가득 찼습니다!"
-                description="현재 방에 인원이 많습니다."
-                buttonLabel="뒤로가기"
+                title="방이 가득 찼어요"
+                description="현재 방에 참여할 수 있는 최대 인원에 도달했어요."
+                buttonLabel="홈으로 돌아가기"
                 onSubmit={() => {
                   window.location.href = '/';
                 }}
