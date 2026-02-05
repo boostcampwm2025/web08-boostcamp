@@ -81,7 +81,7 @@ export function HostPasswordDialog({
           <DialogHeader>
             <DialogTitle>호스트 권한 요청</DialogTitle>
             <DialogDescription>
-              호스트 권한을 얻으려면 비밀번호를 입력해 주세요.
+              호스트가 되려면 비밀번호를 입력해 주세요.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-1">
@@ -125,7 +125,7 @@ export function HostPasswordDialog({
               취소
             </Button>
             <Button type="submit" disabled={!password.trim()}>
-              인증하기
+              요청하기
             </Button>
           </DialogFooter>
         </form>

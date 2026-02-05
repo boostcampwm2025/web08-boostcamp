@@ -68,7 +68,7 @@ export function HostClaimRequestDialog() {
           <AlertDialogDescription className="flex flex-col gap-1">
             <span>
               <strong className="text-primary">{requesterNickname}</strong> 님이
-              호스트가 되고 싶어해요.
+              호스트가 되기를 요청했어요.
             </span>
             <span className="text-muted-foreground">
               {countdown}초 후 자동으로 요청이 수락돼요.
