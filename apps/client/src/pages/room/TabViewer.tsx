@@ -3,19 +3,21 @@ import { useFileStore } from '@/stores/file';
 import { lazy, Suspense, useContext, useEffect, type MouseEvent } from 'react';
 import { EmptyView } from './EmptyView';
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
+  Button,
   ScrollArea,
   ScrollBar,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  toast,
 } from '@codejam/ui';
-import { Trash2 } from 'lucide-react';
+import { X, Play } from 'lucide-react';
 import { ActiveTabContext } from '@/contexts/TabProvider';
+import { useCodeExecutionStore } from '@/stores/code-execution';
+import { emitExecuteCode } from '@/stores/socket-events';
+import { extname, getPistonLanguage } from '@/shared/lib/file';
+import { useSettings } from '@/shared/lib/hooks/useSettings';
 
 type TabViewerProps = {
   tabKey: number;
@@ -36,6 +38,8 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
   const { activeTab, setActiveTab } = useContext(ActiveTabContext);
   const setActiveFileId = useFileStore((state) => state.setActiveFile);
   const getFileName = useFileStore((state) => state.getFileName);
+  const isExecuting = useCodeExecutionStore((state) => state.isExecuting);
+  const { streamCodeExecutionOutput } = useSettings();
 
   useFileStore((state) => state.files);
 
@@ -65,8 +69,47 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
     }
   };
 
+  const handleExecuteCode = (fileId: string) => {
+    const fileName = getFileName(fileId);
+
+    if (!fileName) {
+      toast.error('파일 이름을 가져올 수 없습니다.');
+      return;
+    }
+
+    const extension = extname(fileName);
+    if (!extension) {
+      toast.error('파일 확장자를 찾을 수 없습니다.');
+      return;
+    }
+
+    const language = getPistonLanguage(extension);
+    if (!language) {
+      toast.error('코드 실행을 지원하지 않는 파일입니다.');
+      return;
+    }
+
+    if (isExecuting) {
+      toast.warning('코드가 이미 실행 중입니다.');
+      return;
+    }
+
+    emitExecuteCode(fileId, language, streamCodeExecutionOutput);
+  };
+
   const handleValueChange = (fileId: string) => {
     setActiveTab(tabKey, fileId);
+  };
+
+  const isFileExecutable = (fileId: string): boolean => {
+    const fileName = getFileName(fileId);
+    if (!fileName) return false;
+
+    const extension = extname(fileName);
+    if (!extension) return false;
+
+    const language = getPistonLanguage(extension);
+    return !!language;
   };
 
   const myTabs = Object.keys(fileTab);
@@ -83,30 +126,47 @@ export default function TabViewer({ tabKey, readOnly }: TabViewerProps) {
       <ScrollArea>
         <TabsList variant="line">
           {myTabs.map((fileId) => (
-            <ContextMenu key={fileId}>
-              <ContextMenuTrigger>
-                <TabsTrigger key={fileId} value={fileId}>
-                  {getFileName(fileId) ? (
-                    getFileName(fileId)
-                  ) : (
-                    <span className="text-red-400 italic line-through">
-                      {fileTab[fileId].fileName}
-                    </span>
-                  )}
-                </TabsTrigger>
-              </ContextMenuTrigger>
-              <ContextMenuContent>
-                <ContextMenuItem
+            <TabsTrigger
+              key={fileId}
+              value={fileId}
+              className="group flex p-1 pb-0"
+            >
+              <span className="inline-block flex-1">
+                {getFileName(fileId) ? (
+                  getFileName(fileId)
+                ) : (
+                  <span className="text-red-400 italic line-through">
+                    {fileTab[fileId].fileName}
+                  </span>
+                )}
+              </span>
+              <div className="flex items-center">
+                {isFileExecutable(fileId) && (
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    className="opacity-60"
+                    onClick={(e: MouseEvent) => {
+                      e.stopPropagation();
+                      handleExecuteCode(fileId);
+                    }}
+                  >
+                    <Play className="h-3 w-3" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  className="opacity-60"
                   onClick={(e: MouseEvent) => {
                     e.stopPropagation();
                     handleDeleteTab(fileId);
                   }}
                 >
-                  <Trash2 color="red" />
-                  삭제하기
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            </TabsTrigger>
           ))}
         </TabsList>
         <ScrollBar orientation="horizontal" />
