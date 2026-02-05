@@ -4,7 +4,7 @@ import { File } from './components/File';
 import { useRoomStore } from '@/stores/room';
 import { usePt } from '@/stores/pts';
 import { useMemo, useState } from 'react';
-import { SidebarHeader } from '@codejam/ui';
+import { SidebarHeader, toast } from '@codejam/ui';
 import { CapacityGauge } from '../capacity-gauge';
 import { FileHeaderActions } from './components/FileHeaderActions';
 import { FileSortControls } from './components/FileSortControls';
@@ -12,12 +12,25 @@ import type { FileSortKey } from './lib/types';
 import { filterFiles, sortFiles } from './lib/file-logic';
 import { FileFilterBar } from './components/FileFilterBar';
 import type { FileMetadata } from '@/shared/lib/collaboration';
+import { InlineFileInput } from './components/InlineFileInput';
+import { useFileRename } from '@/shared/lib/hooks/useFileRename';
+import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
 
 export function FileList() {
   const files = useFileStore((state) => state.files);
   const roomCode = useRoomStore((state) => state.roomCode);
+  const getFileId = useFileStore((state) => state.getFileId);
+  const createFile = useFileStore((state) => state.createFile);
+  const setActiveFile = useFileStore((state) => state.setActiveFile);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<FileSortKey>('name-asc');
+  const [isCreatingNewFile, setIsCreatingNewFile] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState<{ name: string } | null>(
+    null,
+  );
+
+  const { handleCheckRename } = useFileRename(roomCode);
 
   const myPtId = useRoomStore((state) => state.myPtId);
   const me = usePt(myPtId);
@@ -28,12 +41,36 @@ export function FileList() {
     return sortFiles(filtered, sortKey);
   }, [files, searchQuery, sortKey]);
 
+  const handleStartCreate = () => setIsCreatingNewFile(true);
+  const handleCancelCreate = () => setIsCreatingNewFile(false);
+
+  const handleSubmitCreate = (filename: string) => {
+    if (!filename.trim()) {
+      toast.error('파일명을 입력하세요');
+      return;
+    }
+
+    if (getFileId(filename)) {
+      setDuplicateInfo({ name: filename });
+      setIsCreatingNewFile(false);
+      return;
+    }
+
+    const isValid = handleCheckRename(filename);
+    if (!isValid) return;
+
+    const fileId = createFile(filename, '');
+    setActiveFile(fileId);
+    setIsCreatingNewFile(false);
+  };
+
   return (
     <div className="flex h-full w-full flex-col gap-2">
       <HeaderSection
         count={processedFiles.length}
         roomCode={roomCode}
         hasPermission={hasPermission}
+        onCreateClick={handleStartCreate}
       />
       <FilterSection
         searchQuery={searchQuery}
@@ -42,13 +79,30 @@ export function FileList() {
         onSortChange={setSortKey}
       />
       <Divider />
-      <FileItems
-        files={processedFiles}
-        hasPermission={hasPermission}
-        searchQuery={searchQuery}
-      />
+      <div className="scrollbar-hide flex-1 overflow-y-auto">
+        {isCreatingNewFile && (
+          <InlineFileInput
+            onSubmit={handleSubmitCreate}
+            onCancel={handleCancelCreate}
+          />
+        )}
+        <FileItems
+          files={processedFiles}
+          hasPermission={hasPermission}
+          searchQuery={searchQuery}
+        />
+      </div>
       <Divider />
       <GaugeSection />
+
+      {duplicateInfo && (
+        <DuplicateDialog
+          open={!!duplicateInfo}
+          onOpenChange={(open) => !open && setDuplicateInfo(null)}
+          filename={duplicateInfo.name}
+          onClick={() => {}}
+        />
+      )}
     </div>
   );
 }
@@ -61,17 +115,25 @@ function HeaderSection({
   count,
   roomCode,
   hasPermission,
+  onCreateClick,
 }: {
   count: number;
   roomCode: string | null;
   hasPermission: boolean;
+  onCreateClick: () => void;
 }) {
   return (
     <SidebarHeader
       title="파일"
       count={count}
       action={
-        roomCode && hasPermission && <FileHeaderActions roomCode={roomCode} />
+        roomCode &&
+        hasPermission && (
+          <FileHeaderActions
+            roomCode={roomCode}
+            onCreateClick={onCreateClick}
+          />
+        )
       }
     />
   );
@@ -109,7 +171,7 @@ function FileItems({
   searchQuery: string;
 }) {
   return (
-    <div className="scrollbar-hide flex-1 overflow-y-auto">
+    <>
       {files.length > 0 ? (
         <div className="flex flex-col gap-0.5">
           {files.map((file) => (
@@ -128,7 +190,7 @@ function FileItems({
           </p>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
