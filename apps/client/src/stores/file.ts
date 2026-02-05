@@ -279,6 +279,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     set({
       yDoc: null,
       awareness: null,
+      files: [],
 
       yDocManager: null,
       awarenessManager: null,
@@ -286,6 +287,7 @@ export const useFileStore = create<FileState>((set, get) => ({
 
       activeFileId: null,
       isInitialized: false,
+      isInitialDocLoaded: false,
     });
   },
 
