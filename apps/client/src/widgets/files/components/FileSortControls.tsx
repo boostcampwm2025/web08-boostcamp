@@ -1,5 +1,5 @@
 import { SortAsc, SortDesc, FileType } from 'lucide-react';
-import { Button, cn } from '@codejam/ui';
+import { Button } from '@codejam/ui';
 import type { FileSortKey } from '../lib/types';
 
 interface FileSortControlsProps {
@@ -58,18 +58,15 @@ function SortButton({
 }) {
   return (
     <Button
-      variant="ghost"
-      size="sm"
+      variant={active ? 'secondary' : 'ghost'}
+      size="xs"
       onClick={onClick}
-      className={cn(
-        'h-7 gap-1.5 px-2 text-[11px] font-medium transition-colors duration-200',
-        active
-          ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
-          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
-      )}
+      className={
+        active ? 'bg-primary/10 text-primary ...' : 'text-muted-foreground ...'
+      }
     >
       {icon}
-      <span>{label}</span>
+      {label}
     </Button>
   );
 }
