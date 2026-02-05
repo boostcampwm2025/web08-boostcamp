@@ -5,6 +5,7 @@ import { DestroyRoomButton } from './components/DestroyRoomButton';
 import { ThemeToggleButton } from './components/ThemeToggleButton';
 import { RoleBadge } from './components/RoleBadge';
 import { usePermission } from '@/shared/lib/hooks/usePermission';
+// import { CodeExecutionButton } from './components/CodeExecutionButton';
 
 type HeaderProps = {
   roomCode: string;
