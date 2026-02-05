@@ -19,7 +19,7 @@ export function FeatureCard({
 
   return (
     <li className="group">
-      <Card className="ring-accent h-full rounded-2xl border-gray-100 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl">
+      <Card className="ring-accent border-border h-full rounded-2xl bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl dark:bg-zinc-800">
         <CardHeader className="flex flex-col items-center gap-4 p-6 text-center">
           <div
             className={`flex size-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${colors.iconBg}`}

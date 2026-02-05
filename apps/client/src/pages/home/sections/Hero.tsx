@@ -31,19 +31,19 @@ export function Hero() {
       </div>
 
       {/* 설명 */}
-      <div className="h-14 max-w-2xl px-4 text-center text-lg leading-relaxed break-keep text-gray-500 md:h-16 md:text-xl">
+      <div className="text-muted-foreground h-14 max-w-2xl px-4 text-center text-lg leading-relaxed break-keep md:h-16 md:text-xl">
         <Typewriter
           options={{ delay: 90 }}
           onInit={(typewriter) => {
             typewriter
               .typeString('로그인 없이 바로 시작하는<br />')
               .typeString(
-                '<span class="font-semibold text-gray-900">온라인 코드</span>',
+                '<span class="text-foreground font-semibold">온라인 코드</span>',
               )
               .pauseFor(500)
               .deleteChars(6)
               .typeString(
-                '<span class="font-semibold text-gray-900">실시간 협업 코드 에디터</span>',
+                '<span class="text-foreground font-semibold">실시간 협업 코드 에디터</span>',
               )
               .start();
           }}

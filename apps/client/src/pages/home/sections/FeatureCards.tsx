@@ -4,12 +4,12 @@ import { FeatureCard } from '../cards/FeatureCard';
 
 export function FeatureCards() {
   return (
-    <div className="border-t border-gray-100">
+    <div className="border-border border-t">
       <div className="flex flex-col items-center gap-2 py-12 text-center">
-        <h2 className="font-mono text-3xl font-bold text-gray-900">
+        <h2 className="text-foreground font-mono text-3xl font-bold">
           Why {PROJECT_NAME}?
         </h2>
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           복잡한 설정은 걷어내고, 핵심 기능만 담았습니다
         </p>
       </div>

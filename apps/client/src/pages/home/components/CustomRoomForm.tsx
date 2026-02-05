@@ -295,20 +295,20 @@ export function CustomRoomForm({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-center gap-4 border-b border-gray-100 bg-gray-50/50 p-4">
+      <header className="border-border bg-accent/20 flex items-center gap-4 border-b p-4 dark:bg-zinc-700">
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 text-gray-500 hover:bg-gray-200"
+          className="text-muted-foreground hover:bg-accent/50 size-8"
           onClick={onCancel}
         >
           <ArrowLeft size={18} />
         </Button>
-        <h4 className="text-lg font-semibold text-gray-900">방 설정</h4>
+        <h4 className="text-foreground text-lg font-semibold">방 설정</h4>
       </header>
 
       <form
-        className="flex h-full flex-col justify-between px-12 py-4"
+        className="flex h-full flex-col justify-between px-12 py-4 dark:bg-zinc-800"
         onSubmit={handleCreateCustomRoom}
       >
         <div className="flex flex-col gap-2">
