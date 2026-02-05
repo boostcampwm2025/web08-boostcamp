@@ -126,7 +126,7 @@ function SearchFilterCombobox({
   };
 
   return (
-    <div className="mt-1 flex flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <Combobox
         value={selectedValues}
         onValueChange={handleValueChange}

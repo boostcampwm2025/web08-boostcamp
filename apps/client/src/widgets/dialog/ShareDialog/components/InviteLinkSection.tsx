@@ -1,4 +1,11 @@
-import { Button, RadixInput as Input } from '@codejam/ui';
+import {
+  Button,
+  DialogDescription,
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+  InputGroupButton,
+} from '@codejam/ui';
 import { Check, Copy, Share2 } from 'lucide-react';
 
 interface Props {
@@ -15,37 +22,36 @@ export const InviteLinkSection = ({
   onShare,
 }: Props) => (
   <div className="space-y-6">
-    <div className="space-y-3">
-      <span className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase">
-        Invite Link
-      </span>
-      <div className="relative">
-        <Input
-          readOnly
+    <div className="space-y-2">
+      <DialogDescription>Invite Link</DialogDescription>
+      <InputGroup className="h-full w-full">
+        <InputGroupInput
+          type="text"
           value={inviteUrl}
-          className="bg-muted/50 text-muted-foreground h-10 rounded-lg pr-10 text-xs"
+          readOnly
+          className="text-muted-foreground truncate text-xs"
         />
-        <button
-          onClick={onCopy}
-          className="hover:text-brand-green absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
-        >
-          {linkCopied ? (
-            <Check className="text-brand-green h-4 w-4" />
-          ) : (
-            <Copy className="text-muted-foreground h-4 w-4" />
-          )}
-        </button>
-      </div>
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            size="icon-xs"
+            onClick={onCopy}
+            type="button"
+            title="초대 링크 복사"
+          >
+            {linkCopied ? <Check className="text-green-500" /> : <Copy />}
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
     </div>
-    <div className="space-y-3">
-      <span className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase">
-        Share Via
-      </span>
+    <div className="space-y-2">
+      <DialogDescription>Share Via</DialogDescription>
       <Button
         onClick={onShare}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border-none bg-slate-100 text-slate-900 transition-all hover:bg-slate-200 dark:bg-white/10 dark:text-white"
+        variant="secondary"
+        className="w-full gap-2"
+        size="lg"
       >
-        <Share2 className="h-4 w-4" />
+        <Share2 />
         <span className="text-sm font-medium">기기 공유하기</span>
       </Button>
     </div>

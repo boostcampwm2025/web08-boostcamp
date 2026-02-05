@@ -75,9 +75,7 @@ export function NewFileDialog({ onSubmit, children }: NewFileDialogProps) {
             />
           </div>
           {helperMessage && (
-            <p className="text-destructive text-[12px] text-red-500">
-              {helperMessage}
-            </p>
+            <p className="text-destructive text-[12px]">{helperMessage}</p>
           )}
           <DialogFooter className="sm:justify-start">
             <Button type="submit" variant="default" size="sm">
