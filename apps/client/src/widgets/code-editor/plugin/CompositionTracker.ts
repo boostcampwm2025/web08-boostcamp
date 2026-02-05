@@ -68,9 +68,7 @@ export function compositionTracker(
     clearIdleTimer();
 
     timer = window.setTimeout(() => {
-      const message = '[CompositionTracker] Composition idle timeout';
-      console.log(message);
-
+      // Reset timer
       timer = null;
 
       // Force composition to end by blurring and refocusing
@@ -123,8 +121,6 @@ export function compositionTracker(
         });
 
         view.dispatch({ effects });
-
-        console.log('[CompositionTracker] Composition started at:', position);
         return false;
       },
 
@@ -153,8 +149,6 @@ export function compositionTracker(
 
       // Composition ends
       compositionend(_event, view) {
-        console.log('[CompositionTracker] Composition ended');
-
         // Clear idle timer
         clearIdleTimer();
 
@@ -173,8 +167,6 @@ export function compositionTracker(
 
           // Check if user started composing again
           if (view.composing) return;
-
-          console.log('[CompositionTracker] Composition ended - safe to flush');
           callbacks?.onCompositionEnd?.();
         });
 
