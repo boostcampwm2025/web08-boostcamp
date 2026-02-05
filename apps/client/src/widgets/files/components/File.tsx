@@ -1,9 +1,9 @@
-import { cn } from '@codejam/ui';
+import { cn, toast } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { memo, useState, type DragEvent, type MouseEvent } from 'react';
-import { RenameDialog } from '@/widgets/dialog/RenameDialog';
 import { DeleteDialog } from '@/widgets/dialog/DeleteDialog';
 import { FileMoreMenu } from './FileMoreMenu';
+import { InlineFileInput } from './InlineFileInput';
 
 type DialogType = 'RENAME' | 'DELETE' | undefined;
 type FileProps = {
@@ -19,12 +19,14 @@ const INACTIVE_FILE_HOVER =
 export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const setActiveFile = useFileStore((state) => state.setActiveFile);
   const activeFileId = useFileStore((state) => state.activeFileId);
+  const renameFile = useFileStore((state) => state.renameFile);
 
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
 
   const [open, setOpen] = useState(false);
   const [dialogType, setDialogType] = useState<DialogType>(undefined);
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const isActive = activeFileId === fileId;
 
@@ -33,8 +35,26 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   };
 
   const handleActionClick = (type: DialogType) => {
+    if (type === 'RENAME') {
+      setIsRenaming(true);
+      return;
+    }
     setDialogType(type);
     setOpen(true);
+  };
+
+  const handleRenameSubmit = async (newFileName: string) => {
+    if (fileName === newFileName) {
+      setIsRenaming(false);
+      return;
+    }
+
+    try {
+      await renameFile(fileId, newFileName);
+      setIsRenaming(false);
+    } catch {
+      toast.error('파일 이름 변경에 실패했습니다.');
+    }
   };
 
   const handleDragStart = (ev: DragEvent) => {
@@ -58,6 +78,16 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
     }
   };
 
+  if (isRenaming) {
+    return (
+      <InlineFileInput
+        initialValue={fileName}
+        onSubmit={handleRenameSubmit}
+        onCancel={() => setIsRenaming(false)}
+      />
+    );
+  }
+
   return (
     <>
       <div
@@ -70,7 +100,7 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
         onMouseUp={onMouseUp}
         onDragStart={handleDragStart}
       >
-        <div className="flex items-center space-x-3 overflow-hidden">
+        <div className="flex w-full items-center space-x-3 overflow-hidden">
           <p className="truncate text-sm" title={fileName}>
             {fileName}
           </p>
@@ -87,13 +117,6 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
         )}
       </div>
 
-      <RenameDialog
-        fileId={fileId}
-        fileName={fileName}
-        open={open && dialogType === 'RENAME'}
-        onOpenChange={setOpen}
-      />
-
       <DeleteDialog
         fileId={fileId}
         fileName={fileName}
@@ -103,4 +126,5 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
     </>
   );
 });
+
 File.displayName = 'FileList';
