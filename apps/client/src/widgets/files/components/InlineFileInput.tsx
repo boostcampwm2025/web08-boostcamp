@@ -6,7 +6,10 @@ interface InlineFileInputProps {
   onCancel: () => void;
 }
 
-export const InlineFileInput = ({ onSubmit, onCancel }: InlineFileInputProps) => {
+export const InlineFileInput = ({
+  onSubmit,
+  onCancel,
+}: InlineFileInputProps) => {
   const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,7 +46,7 @@ export const InlineFileInput = ({ onSubmit, onCancel }: InlineFileInputProps) =>
         placeholder="example.txt"
         className={cn(
           'field-sizing-content bg-transparent text-sm outline-none',
-          'border-b border-primary/50 text-foreground',
+          'border-primary/50 text-foreground border-b',
         )}
         autoFocus
       />
