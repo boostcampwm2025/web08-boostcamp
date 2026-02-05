@@ -279,15 +279,24 @@ export const useFileStore = create<FileState>((set, get) => ({
     set({
       yDoc: null,
       awareness: null,
-      files: [],
 
       yDocManager: null,
       awarenessManager: null,
       fileManager: null,
 
       activeFileId: null,
+      viewerFileId: null,
       isInitialized: false,
       isInitialDocLoaded: false,
+
+      docMeta: null,
+      files: [],
+      tempFiles: [],
+
+      // Capacity State 초기값
+      capacityBytes: 0,
+      capacityPercentage: 0,
+      isOverLimit: false,
     });
   },
 

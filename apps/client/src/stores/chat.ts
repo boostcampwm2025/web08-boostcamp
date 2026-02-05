@@ -70,6 +70,7 @@ interface ChatState {
   resetUnreadCount: () => void;
   setPanelPosition: (position: Position) => void;
   setPanelSize: (size: Size) => void;
+  clear: () => void;
 }
 
 /**
@@ -94,6 +95,16 @@ export const useChatStore = create<ChatState>((set) => ({
   unreadCount: 0,
   panelPosition: null,
   panelSize: null,
+
+  clear: () => {
+    set({
+      messages: [],
+      isChatOpen: false,
+      unreadCount: 0,
+      panelPosition: null,
+      panelSize: null,
+    });
+  },
 
   addSystemMessage: (payload: ChatSystemPayload) => {
     set((state) => {
