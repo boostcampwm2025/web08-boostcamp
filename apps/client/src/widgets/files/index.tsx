@@ -14,7 +14,7 @@ import { FileFilterBar } from './components/FileFilterBar';
 import type { FileMetadata } from '@/shared/lib/collaboration';
 import { InlineFileInput } from './components/InlineFileInput';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
-import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog_new';
+import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 
 export function FileList() {
   const files = useFileStore((state) => state.files);
@@ -22,6 +22,7 @@ export function FileList() {
   const getFileId = useFileStore((state) => state.getFileId);
   const createFile = useFileStore((state) => state.createFile);
   const setActiveFile = useFileStore((state) => state.setActiveFile);
+  const overwriteFile = useFileStore((state) => state.overwriteFile);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<FileSortKey>('name-asc');
@@ -101,6 +102,19 @@ export function FileList() {
           onOpenChange={(open) => !open && setDuplicateInfo(null)}
           filename={duplicateInfo.name}
           onClick={() => {}}
+          onOverwrite={() => {
+            const existingId = getFileId(duplicateInfo.name);
+            if (existingId) {
+              overwriteFile(existingId, '');
+              setActiveFile(existingId);
+            }
+            setDuplicateInfo(null);
+          }}
+          onAutoRename={(newName) => {
+            const fileId = createFile(newName, '');
+            setActiveFile(fileId);
+            setDuplicateInfo(null);
+          }}
         />
       )}
     </div>
@@ -128,12 +142,7 @@ function HeaderSection({
       count={count}
       action={
         roomCode &&
-        hasPermission && (
-          <FileHeaderActions
-            roomCode={roomCode}
-            onCreateClick={onCreateClick}
-          />
-        )
+        hasPermission && <FileHeaderActions onCreateClick={onCreateClick} />
       }
     />
   );

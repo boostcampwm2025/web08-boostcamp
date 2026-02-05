@@ -1,7 +1,8 @@
-import { cn, toast } from '@codejam/ui';
+import { cn } from '@codejam/ui';
 import { useFileStore } from '@/stores/file';
 import { memo, useState, type DragEvent, type MouseEvent } from 'react';
 import { DeleteDialog } from '@/widgets/dialog/DeleteDialog';
+import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { FileMoreMenu } from './FileMoreMenu';
 import { InlineFileInput } from './InlineFileInput';
 
@@ -20,6 +21,11 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const setActiveFile = useFileStore((state) => state.setActiveFile);
   const activeFileId = useFileStore((state) => state.activeFileId);
   const renameFile = useFileStore((state) => state.renameFile);
+  const getFileId = useFileStore((state) => state.getFileId);
+  const overwriteFile = useFileStore((state) => state.overwriteFile);
+  const deleteFile = useFileStore((state) => state.deleteFile);
+  const getFileContent = useFileStore((state) => state.getFileContent);
+  const getFileType = useFileStore((state) => state.getFileType);
 
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
@@ -27,6 +33,7 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
   const [open, setOpen] = useState(false);
   const [dialogType, setDialogType] = useState<DialogType>(undefined);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [duplicateTarget, setDuplicateTarget] = useState<string | null>(null);
 
   const isActive = activeFileId === fileId;
 
@@ -43,18 +50,38 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
     setOpen(true);
   };
 
-  const handleRenameSubmit = async (newFileName: string) => {
+  const handleRenameSubmit = (newFileName: string) => {
     if (fileName === newFileName) {
       setIsRenaming(false);
       return;
     }
 
-    try {
-      await renameFile(fileId, newFileName);
+    if (getFileId(newFileName)) {
+      setDuplicateTarget(newFileName);
       setIsRenaming(false);
-    } catch {
-      toast.error('파일 이름 변경에 실패했습니다.');
+      return;
     }
+
+    renameFile(fileId, newFileName);
+  };
+
+  // 중복 모달에서 "덮어쓰기" 선택: 충돌 파일의 내용을 현재 파일 내용으로 덮어쓰고 현재 파일 삭제
+  const handleOverwrite = () => {
+    if (!duplicateTarget) return;
+    const targetId = getFileId(duplicateTarget);
+    if (!targetId) return;
+
+    const content = getFileContent(fileId) ?? '';
+    const type = getFileType(fileId);
+    overwriteFile(targetId, content, type ?? undefined);
+    deleteFile(fileId);
+    setDuplicateTarget(null);
+  };
+
+  // 중복 모달에서 "사본으로 저장" 선택: 자동 생성된 이름으로 현재 파일 rename
+  const handleAutoRename = (newName: string) => {
+    renameFile(fileId, newName);
+    setDuplicateTarget(null);
   };
 
   const handleDragStart = (ev: DragEvent) => {
@@ -123,6 +150,17 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
         open={open && dialogType === 'DELETE'}
         onOpenChange={setOpen}
       />
+
+      {duplicateTarget && (
+        <DuplicateDialog
+          open={!!duplicateTarget}
+          onOpenChange={(isOpen) => !isOpen && setDuplicateTarget(null)}
+          filename={duplicateTarget}
+          onClick={() => {}}
+          onOverwrite={handleOverwrite}
+          onAutoRename={handleAutoRename}
+        />
+      )}
     </>
   );
 });

@@ -13,7 +13,6 @@ import { PrepareStage } from './PrepareStage';
 import { useAwarenessSync } from '@/shared/lib/hooks/useAwarenessSync';
 import { useInitialFileSelection } from '@/shared/lib/hooks/useInitialFileSelection';
 import { useFileRename } from '@/shared/lib/hooks/useFileRename';
-import { DuplicateDialog } from '@/widgets/dialog/DuplicateDialog';
 import { ConsolePanel as Output } from '@/widgets/console';
 import { useDarkMode } from '@/shared/lib/hooks/useDarkMode';
 import { Chat } from '@/widgets/chat';
@@ -37,9 +36,7 @@ function RoomPage() {
     handlePasswordConfirm,
   } = useRoomJoin();
 
-  const { setIsDuplicated, isDuplicated, handleFileChange } = useFileRename(
-    paramCode!,
-  );
+  const { handleFileChange } = useFileRename(paramCode!);
 
   useAwarenessSync();
   useInitialFileSelection();
@@ -141,10 +138,6 @@ function RoomPage() {
               />
             )}
             <Toaster richColors position="top-center" />
-            <DuplicateDialog
-              open={isDuplicated}
-              onOpenChange={setIsDuplicated}
-            />
             <HostClaimRequestDialog />
             <ShortcutHUD />
           </div>
