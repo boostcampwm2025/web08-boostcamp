@@ -15,6 +15,9 @@ export function FileMention({ fileName }: FileMentionProps) {
   const getFileId = useFileStore((state) => state.getFileId);
   const setActiveFile = useFileStore((state) => state.setActiveFile);
 
+  // Files metadata 변경 시 파일 존재 확인을 위해 재렌더링 유도
+  useFileStore((state) => state.files);
+
   // 렌더링 시점에 파일 존재 여부 확인
   const fileId = getFileId(fileName);
   const isDeleted = !fileId;
