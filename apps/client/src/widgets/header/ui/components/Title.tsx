@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useState, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Pencil } from 'lucide-react';
 import { useFileStore } from '@/stores/file';
 import { usePermission } from '@/shared/lib/hooks/usePermission';
@@ -10,6 +10,7 @@ export function Title() {
   const { can } = usePermission();
   const canEdit = can(PERMISSION.EDIT_DOCS);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const [editTitle, setEditTitle] = useState('');
   const [isEditable, setIsEditable] = useState(false);
 
@@ -31,6 +32,14 @@ export function Title() {
     setIsEditable(true);
   };
 
+  const handlePencilClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    setEditTitle(docMeta?.title ?? '');
+    setIsEditable(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
   const isEditMode = canEdit && isEditable;
 
   return (
@@ -44,6 +53,7 @@ export function Title() {
         }`}
       >
         <input
+          ref={inputRef}
           type="text"
           className={`${textStyles} ${underlineStyles} min-w-0 bg-transparent outline-none ${
             isEditMode
@@ -68,7 +78,8 @@ export function Title() {
 
         {canEdit && (
           <Pencil
-            className={`text-muted-foreground size-4 shrink-0 ${
+            onClick={handlePencilClick}
+            className={`text-muted-foreground size-4 shrink-0 cursor-pointer ${
               isEditMode
                 ? ''
                 : 'opacity-0 transition-opacity group-hover:opacity-100'
