@@ -16,6 +16,9 @@ import {
   ROUTE_PATTERNS,
   VALIDATION_MESSAGES,
 } from '@codejam/common';
+import { useFileStore } from './stores/file';
+import { useChatStore } from './stores/chat';
+import { useCodeExecutionStore } from './stores/code-execution';
 
 async function joinLoader({
   params,
@@ -43,6 +46,9 @@ async function roomLoader({
   params,
 }: LoaderFunctionArgs): Promise<RoomJoinStatus> {
   const { roomCode } = params;
+  useFileStore.getState().destroy();
+  useChatStore.getState().clear();
+  useCodeExecutionStore.getState().reset();
   if (!roomCode) {
     throw new Response(VALIDATION_MESSAGES.ROOM_CODE_REQUIRED, {
       status: HTTP_STATUS.BAD_REQUEST,
