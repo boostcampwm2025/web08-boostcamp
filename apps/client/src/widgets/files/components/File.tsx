@@ -12,7 +12,7 @@ type FileProps = {
   hasPermission: boolean;
 };
 
-const ACTIVE_FILE_BG = 'bg-accent/80 text-primary font-semibold rounded-lg';
+const ACTIVE_FILE_BG = 'bg-accent/80 text-primary rounded-sm';
 const INACTIVE_FILE_HOVER =
   'hover:bg-muted/60 text-muted-foreground hover:text-foreground rounded-lg';
 
