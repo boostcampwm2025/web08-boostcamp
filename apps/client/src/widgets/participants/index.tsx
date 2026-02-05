@@ -1,14 +1,17 @@
-import { useState, useMemo, type ComponentProps } from 'react';
+import { useState, useMemo } from 'react';
 import { Participant } from './components';
 import { ParticipantsFilterBar } from './components/ParticipantsFilterBar';
-import { usePt, usePtsStore } from '@/stores/pts';
+import { SortControls } from './components/SortControls';
+import { BulkActions } from './components/BulkActions';
+import { usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
-import { SOCKET_EVENTS, ROLE, type Pt } from '@codejam/common';
+import { SOCKET_EVENTS, PERMISSION, ROLE, type Pt } from '@codejam/common';
 import { SidebarHeader, toast } from '@codejam/ui';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
 import { filterParticipants, sortParticipants } from './types';
+import { usePermission } from '@/shared/lib/hooks/usePermission';
 
 /**
  * 참가자 목록 위젯 메인 컴포넌트
@@ -18,13 +21,9 @@ import { filterParticipants, sortParticipants } from './types';
  */
 export function Participants() {
   const pts = usePtsStore((state) => state.pts);
-  const myPtId = useRoomStore((state) => state.myPtId);
-  const roomCode = useRoomStore((state) => state.roomCode);
-  const socket = useSocketStore((state) => state.socket);
-
-  // 내 정보와 권한 확인
-  const meData = usePt(myPtId);
-  const iAmHost = meData?.role === ROLE.HOST;
+  const { myPtId, roomCode } = useRoomStore();
+  const { socket } = useSocketStore();
+  const { can } = usePermission();
 
   // 상태 관리
   const [selectedFilters, setSelectedFilters] = useState<FilterOption[]>([]);
@@ -35,7 +34,6 @@ export function Participants() {
   const { me, others, totalCount } = useMemo(() => {
     // 1. 필터 적용
     let filtered = filterParticipants(pts, selectedFilters);
-
     // 2. 검색 적용
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -43,14 +41,11 @@ export function Participants() {
         pt.nickname.toLowerCase().includes(query),
       );
     }
-
     // 3. 정렬 적용
     const sorted = sortParticipants(filtered, sortKey);
-
     // 3. me와 others 분리
     const me = myPtId ? sorted.find((pt) => pt.ptId === myPtId) : undefined;
     const others = sorted.filter((pt) => pt.ptId !== myPtId);
-
     return { me, others, totalCount: sorted.length };
   }, [pts, searchQuery, selectedFilters, sortKey, myPtId]);
 
@@ -60,99 +55,78 @@ export function Participants() {
   };
 
   // 일괄 권한 변경 핸들러
-  const handleBulkEdit = () => {
-    if (!socket || !roomCode || !iAmHost) return;
+  const handleBulkRoleChange = (
+    targetRole: typeof ROLE.EDITOR | typeof ROLE.VIEWER,
+  ) => {
+    if (!socket || !roomCode || !can(PERMISSION.MANAGE_ROLE)) return;
 
     const targetPtIds = others.map((pt) => pt.ptId);
     if (targetPtIds.length === 0) {
-      toast.info('편집 권한을 부여할 참가자가 없습니다.');
+      const message =
+        targetRole === ROLE.EDITOR
+          ? '편집 권한을 부여할 참가자가 없습니다.'
+          : '읽기 권한으로 변경할 참가자가 없습니다.';
+      toast.info(message);
       return;
     }
 
-    // 각 참가자에게 Editor 권한 부여
     targetPtIds.forEach((ptId) => {
       socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
         roomCode,
         ptId,
-        role: ROLE.EDITOR,
+        role: targetRole,
       });
     });
 
-    toast.success(`${targetPtIds.length}명에게 편집 권한을 부여했습니다.`);
+    const successMessage =
+      targetRole === ROLE.EDITOR
+        ? `${targetPtIds.length}명에게 편집 권한을 부여했습니다.`
+        : `${targetPtIds.length}명을 읽기 권한으로 변경했습니다.`;
+    toast.success(successMessage);
   };
 
-  const handleBulkView = () => {
-    if (!socket || !roomCode || !iAmHost) return;
-
-    const targetPtIds = others.map((pt) => pt.ptId);
-    if (targetPtIds.length === 0) {
-      toast.info('읽기 권한으로 변경할 참가자가 없습니다.');
-      return;
-    }
-
-    // 각 참가자에게 Viewer 권한 부여
-    targetPtIds.forEach((ptId) => {
-      socket.emit(SOCKET_EVENTS.UPDATE_ROLE_PT, {
-        roomCode,
-        ptId,
-        role: ROLE.VIEWER,
-      });
-    });
-
-    toast.success(`${targetPtIds.length}명을 읽기 권한으로 변경했습니다.`);
-  };
+  const handleBulkEdit = () => handleBulkRoleChange(ROLE.EDITOR);
+  const handleBulkView = () => handleBulkRoleChange(ROLE.VIEWER);
 
   return (
-    <div className="flex h-full w-full flex-col">
-      <div className="px-4">
-        <SidebarHeader title="참가자" count={totalCount} />
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <FilterSection
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedFilters={selectedFilters}
-          onFiltersChange={setSelectedFilters}
-          sortKey={sortKey}
-          onSortChange={handleSortChange}
-          filteredCount={others.length}
-          onBulkEdit={handleBulkEdit}
-          onBulkView={handleBulkView}
-          isHost={iAmHost}
-        />
-        <ParticipantsSection
-          count={totalCount}
-          me={me}
-          others={others}
-          iAmHost={iAmHost}
-        />
+    <div className="flex h-full w-full flex-col space-y-2">
+      <SidebarHeader title="참가자" count={totalCount} />
+      <ParticipantsFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedFilters={selectedFilters}
+        onFiltersChange={setSelectedFilters}
+        sortControls={
+          <SortControls sortKey={sortKey} onSortChange={handleSortChange} />
+        }
+        actions={
+          <BulkActions
+            isHost={can(PERMISSION.MANAGE_ROLE)}
+            filteredCount={others.length}
+            onBulkEdit={handleBulkEdit}
+            onBulkView={handleBulkView}
+          />
+        }
+      />
+      <div>
+        <ParticipantsSection count={totalCount} me={me} others={others} />
       </div>
     </div>
   );
 }
 
 function Divider() {
-  return <div className="mx-4 border-b border-gray-200 dark:border-gray-700" />;
-}
-
-function FilterSection(props: ComponentProps<typeof ParticipantsFilterBar>) {
-  return (
-    <div className="px-4 pt-0.5 pb-3">
-      <ParticipantsFilterBar {...props} />
-    </div>
-  );
+  return <div className="border-b border-gray-200 dark:border-gray-700" />;
 }
 
 function ParticipantsSection({
   count,
   me,
   others,
-  iAmHost,
 }: {
   count: number;
   me?: Pt;
   others: Pt[];
-  iAmHost: boolean;
 }) {
   if (count === 0) {
     return <NoSearchResult />;
@@ -163,7 +137,7 @@ function ParticipantsSection({
       {me && <Divider />}
       <Me me={me} />
       {others.length > 0 && <Divider />}
-      <ParticipantList others={others} iAmHost={iAmHost} />
+      <ParticipantList others={others} />
     </>
   );
 }
@@ -179,24 +153,14 @@ function NoSearchResult() {
 function Me({ me }: { me?: Pt }) {
   if (!me) return null;
 
-  return (
-    <div className="flex-none px-4 py-2">
-      <Participant ptId={me.ptId} hasPermission={false} />
-    </div>
-  );
+  return <Participant ptId={me.ptId} />;
 }
 
-function ParticipantList({
-  others,
-  iAmHost,
-}: {
-  others: Pt[];
-  iAmHost: boolean;
-}) {
+function ParticipantList({ others }: { others: Pt[] }) {
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-2">
+    <div className="flex-1 overflow-y-auto">
       {others.map((p) => (
-        <Participant key={p.ptId} ptId={p.ptId} hasPermission={iAmHost} />
+        <Participant key={p.ptId} ptId={p.ptId} />
       ))}
     </div>
   );
@@ -204,5 +168,4 @@ function ParticipantList({
 
 // Re-export components only (for Fast Refresh compatibility)
 export { Participant } from './components/Participant';
-export { ParticipantInfo } from './components/ParticipantInfo';
 export { ParticipantAvatar, ParticipantMenu } from './ui';

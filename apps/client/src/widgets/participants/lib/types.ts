@@ -1,4 +1,4 @@
-import type { RoomType, PtId, PtRole } from '@codejam/common';
+import type { PtId, PtRole } from '@codejam/common';
 
 // 정렬 모드 키
 export type SortKey = 'name' | 'time';
@@ -12,23 +12,9 @@ export interface SortState {
   order: SortOrder;
 }
 
-// 참가자 컴포넌트의 공통 Props 타입
+// 참가자 컴포넌트의 Props 타입
 export interface ParticipantProps {
   ptId: PtId;
-  roomType?: RoomType | null;
-  canToggle?: boolean;
-  onToggleRole?: () => void;
-}
-
-// 닉네임 수정 Props 타입
-export interface EditableProps {
-  editable: boolean;
-  onEditable: (value: boolean) => void;
-}
-
-// 권한을 수정할 수 있는지 확인하는 타입
-export interface PermissionPtProps {
-  hasPermission: boolean;
 }
 
 // 역할별 뱃지 스타일
