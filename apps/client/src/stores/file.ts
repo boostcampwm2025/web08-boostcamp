@@ -19,14 +19,14 @@ import {
  * @param wait - Wait time in milliseconds
  * @returns Throttled function
  */
-function throttle<T extends (...args: any[]) => void>(
-  func: T,
+function throttle<TArgs extends unknown[], TReturn = void>(
+  func: (...args: TArgs) => TReturn,
   wait: number,
-): T {
+): (...args: TArgs) => void {
   let timeout: number | null = null;
   let previous = 0;
 
-  return function (this: any, ...args: any[]) {
+  return function (...args: TArgs) {
     const now = Date.now();
     const remaining = wait - (now - previous);
 
@@ -36,15 +36,15 @@ function throttle<T extends (...args: any[]) => void>(
         timeout = null;
       }
       previous = now;
-      func.apply(this, args);
+      func(...args);
     } else if (!timeout) {
       timeout = setTimeout(() => {
         previous = Date.now();
         timeout = null;
-        func.apply(this, args);
+        func(...args);
       }, remaining);
     }
-  } as T;
+  };
 }
 
 interface FileState {
