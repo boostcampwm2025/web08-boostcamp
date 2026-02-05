@@ -120,7 +120,7 @@ export const File = memo(({ fileId, fileName, hasPermission }: FileProps) => {
       <div
         draggable
         className={cn(
-          'group relative flex h-10 cursor-pointer items-center justify-between px-2 transition-all duration-200 select-none',
+          'group relative mt-1 flex h-10 cursor-pointer items-center justify-between px-2 transition-all duration-200 select-none',
           isActive ? ACTIVE_FILE_BG : INACTIVE_FILE_HOVER,
         )}
         onMouseDown={onMouseDown}

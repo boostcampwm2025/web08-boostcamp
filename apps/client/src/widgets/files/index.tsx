@@ -81,7 +81,7 @@ export function FileList() {
         onSortChange={setSortKey}
       />
       <Divider />
-      <div className="scrollbar-hide flex-1 overflow-y-auto">
+      <div className="scrollbar-hide -mt-1 flex-1 overflow-y-auto">
         {isCreatingNewFile && (
           <InlineFileInput
             onSubmit={handleSubmitCreate}

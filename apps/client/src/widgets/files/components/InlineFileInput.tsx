@@ -89,7 +89,7 @@ export const InlineFileInput = ({
   };
 
   return (
-    <div className={cn('relative w-full', error && 'mb-5')}>
+    <div className={cn('relative mt-1 w-full', error && 'mb-5')}>
       <div
         className={cn(
           'group relative flex h-10 items-center justify-between px-2 transition-all duration-200 select-none',
