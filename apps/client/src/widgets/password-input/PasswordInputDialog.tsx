@@ -69,6 +69,13 @@ export function PasswordDialogProps({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && isValid) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <form onSubmit={handleSubmit}>
@@ -92,6 +99,7 @@ export function PasswordDialogProps({
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     placeholder="비밀번호를 입력해주세요."
                     autoFocus
                     maxLength={LIMITS.PASSWORD_MAX}

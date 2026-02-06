@@ -60,6 +60,13 @@ export function NicknameInputDialog({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && isValid) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <form onSubmit={handleSubmit}>
@@ -81,11 +88,11 @@ export function NicknameInputDialog({
                   id="nickname"
                   value={nickname}
                   onChange={handleChange}
+                  onKeyDown={handleKeyDown}
                   placeholder="닉네임을 입력하세요"
                   autoFocus
                   maxLength={LIMITS.NICKNAME_MAX}
                   aria-invalid={!!error}
-                  className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/50"
                 />
               </div>
             </div>
