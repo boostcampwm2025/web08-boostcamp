@@ -49,7 +49,9 @@ async function createRoom(
     });
 
     spinner.succeed(chalk.green('Custom room created!'));
-    return { roomCode: response.roomCode };
+    // response는 서버에서 { roomCode }만 반환
+    // 하지만 ApiClient가 Set-Cookie 헤더에서 token을 추출하여 { roomCode, token? }로 확장
+    return { roomCode: response.roomCode, token: (response as any).token };
   } else {
     const response = await client.createQuickRoom();
 
