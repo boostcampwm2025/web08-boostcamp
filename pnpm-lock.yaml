@@ -455,9 +455,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@codejam/common':
-        specifier: workspace:*
-        version: link:../common
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -474,6 +471,9 @@ importers:
         specifier: ^8.1.1
         version: 8.2.0
     devDependencies:
+      '@codejam/common':
+        specifier: workspace:*
+        version: link:../common
       '@types/node':
         specifier: ^22.10.5
         version: 22.19.3
