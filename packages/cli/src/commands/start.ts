@@ -121,13 +121,16 @@ export const startCommand = new Command('start')
       const client = new ApiClient(config.serverUrl);
       const { roomCode, token } = await createRoom(client, options);
       displayRoomInfo(roomCode, options);
-      if (!options.custom) {
-        const roomUrl = `${config.clientUrl}${ROUTES.ROOM(roomCode)}`;
-        await openRoomInBrowser(roomUrl, options.browser !== false);
+
+      let roomUrl: string;
+      if (options.custom && token) {
+        // Custom room: use JOIN route with token to save cookie
+        roomUrl = `${config.clientUrl}${ROUTES.JOIN(roomCode)}?token=${token}`;
       } else {
-        const roomUrl = `${config.clientUrl}${ROUTES.JOIN(roomCode)}`;
-        await openRoomInBrowser(roomUrl, options.browser !== false);
+        // Quick room: direct to ROOM
+        roomUrl = `${config.clientUrl}${ROUTES.ROOM(roomCode)}`;
       }
+      await openRoomInBrowser(roomUrl, options.browser !== false);
     } catch (error) {
       handleError('Failed to create room', error);
     }
