@@ -63,7 +63,13 @@ export {
 } from './input-group';
 export { Input } from './input';
 export { Popover, PopoverContent, PopoverTrigger } from './popover';
-export { Progress } from './progress';
+export {
+  Progress,
+  ProgressTrack,
+  ProgressIndicator,
+  ProgressLabel,
+  ProgressValue,
+} from './progress';
 export {
   Select,
   SelectContent,
