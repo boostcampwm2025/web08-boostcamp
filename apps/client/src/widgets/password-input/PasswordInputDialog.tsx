@@ -70,7 +70,7 @@ export function PasswordDialogProps({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && isValid) {
+    if (e.key === 'Enter' && isValid && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSubmit();
     }
