@@ -1833,3 +1833,4 @@ export const Shape60 = ({ ...props }: ShapeProps) => (
     </defs>
   </svg>
 );
+
