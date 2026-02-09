@@ -21,9 +21,11 @@ jobs:
               - 'apps/client/**'
               - 'packages/common/**'
               - 'packages/ui/**'
+              - 'pnpm-lock.yaml'
             server:
               - 'apps/server/**'
               - 'packages/common/**'
+              - 'pnpm-lock.yaml'
 
       - name: Setup pnpm
         if: steps.changes.outputs.client == 'true' || steps.changes.outputs.server == 'true'
