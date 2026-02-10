@@ -7,7 +7,7 @@ import { usePtsStore } from '@/stores/pts';
 import { useRoomStore } from '@/stores/room';
 import { useSocketStore } from '@/stores/socket';
 import { SOCKET_EVENTS, PERMISSION, ROLE, type Pt } from '@codejam/common';
-import { SidebarHeader, toast } from '@codejam/ui';
+import { SidebarHeader, toast, ScrollArea } from '@codejam/ui';
 import type { SortKey } from './lib/types';
 import type { FilterOption } from './types';
 import { filterParticipants, sortParticipants } from './types';
@@ -109,7 +109,7 @@ export function Participants() {
           />
         }
       />
-      <div>
+      <div className="min-h-0 flex-1">
         <ParticipantsSection count={totalCount} me={me} others={others} />
       </div>
     </div>
@@ -134,12 +134,12 @@ function ParticipantsSection({
   }
 
   return (
-    <>
+    <div className="flex h-full flex-col">
       {me && <Divider />}
       <Me me={me} />
       {others.length > 0 && <Divider />}
       <ParticipantList others={others} />
-    </>
+    </div>
   );
 }
 
@@ -159,11 +159,11 @@ function Me({ me }: { me?: Pt }) {
 
 function ParticipantList({ others }: { others: Pt[] }) {
   return (
-    <div className="flex-1 overflow-y-auto">
+    <ScrollArea className="min-h-0 flex-1">
       {others.map((p) => (
         <Participant key={p.ptId} ptId={p.ptId} />
       ))}
-    </div>
+    </ScrollArea>
   );
 }
 
