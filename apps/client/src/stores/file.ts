@@ -19,7 +19,7 @@ import {
  * @param wait - Wait time in milliseconds
  * @returns Throttled function
  */
-function throttle<TArgs extends unknown[], TReturn = void>(
+export function throttle<TArgs extends unknown[], TReturn = void>(
   func: (...args: TArgs) => TReturn,
   wait: number,
 ): (...args: TArgs) => void {
@@ -136,31 +136,27 @@ export const useFileStore = create<FileState>((set, get) => ({
     const { yDoc, awareness, yDocManager, awarenessManager, fileManager } =
       createCollaborationContext();
 
-    // Setup YDoc update listener with 50ms throttle
-    yDocManager.onUpdate(
-      throttle((update, origin) => {
-        // Skip remote updates
-        if (origin === 'remote') return;
+    // Setup YDoc update listener
+    yDocManager.onUpdate((update, origin) => {
+      // Skip remote updates
+      if (origin === 'remote') return;
 
-        const { isConnected } = useSocketStore.getState();
-        if (!isConnected || !roomCode) return;
+      const { isConnected } = useSocketStore.getState();
+      if (!isConnected || !roomCode) return;
 
-        emitFileUpdate(roomCode, update);
-      }, 50),
-    );
+      emitFileUpdate(roomCode, update);
+    });
 
     // Setup awareness update listener with 100ms throttle
-    awarenessManager.onUpdate(
-      throttle((update, origin) => {
-        // Skip remote updates
-        if (origin === 'remote') return;
+    awarenessManager.onUpdate((update, origin) => {
+      // Skip remote updates
+      if (origin === 'remote') return;
 
-        const { isConnected, roomCode } = useSocketStore.getState();
-        if (!isConnected || !roomCode) return;
+      const { isConnected, roomCode } = useSocketStore.getState();
+      if (!isConnected || !roomCode) return;
 
-        emitAwarenessUpdate(roomCode, update);
-      }, 100),
-    );
+      emitAwarenessUpdate(roomCode, update);
+    });
 
     // Measure capacity on files updates
     fileManager.onFilesChange(() => {
